@@ -1,0 +1,23 @@
+{
+	"name": "Environment Pump Altitude",
+	"icon": [
+		"makentmgreatagain:environment_pump",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:environment_pump",
+			1,
+			2
+		]
+	],
+	"title": {
+		"en_US": "Environmental Pump - Altitude and Power Penalty",
+		"zh_CN": "环境地下泵 · 高度与电力惩罚"
+	},
+	"content": {
+		"en_US": "Actual draw = base x tier factor x (1 + 0.25 x steps) x (1 + 0.05 x steps). The tier factor comes from the medium tier; both height penalties ride on top of it.<br><br>Normal band: overworld 45~75, nether 25~60, end 40~80. No penalty inside the band.<br><br>Outside it, every 5 blocks is one step, with no cap: steps = floor(distance / 5). Each step hits three things at once:<br>power: +25%, then a separate +5%<br>input flow: +5%<br>output: -5%, hitting zero at 20 steps, after which the pump simply stops instead of burning power for nothing<br><br>Example, a tier III medium such as bitumen or mercury: base 2,000 HE/t, tier factor x2.5, so 5,000 HE/t at normal height, eating 5,000 mB of input and yielding 2,000 mB per cycle.<br>Y=52 inside band: 5,000 HE/t, input 5,000, output 2,000<br>Y=44 off by 1 block, under one step: unchanged<br>Y=40 1 step: 6,563 HE/t, input 5,250, output 1,900<br>Y=32 2 steps: 8,250 HE/t, input 5,500, output 1,800<br>Y=20 5 steps: 14,063 HE/t, input 6,250, output 1,500<br>Y=10 7 steps: 18,563 HE/t, input 6,750, output 1,300<br><br>So going off-band is not just expensive: to keep it running you must widen the pipes and feed more power, while the output keeps sliding. If you cannot get back in band, move the pump.",
+		"zh_CN": "实际耗电 = 基础耗电 x 等级系数 x (1 + 0.25 x 档数) x (1 + 0.05 x 档数)。 等级系数由介质等级决定, 两条高度惩罚都乘在它上面。<br><br>正常区间: 主世界 45~75, 下界 25~60, 末地 40~80。 区间内没有任何惩罚。<br><br>越界之后每偏离 5 格算一档, 档数不封顶, 档数 = 向下取整(偏离格数 / 5)。 每一档同时压三样东西:<br>电力: 先 +25%, 再单独叠 +5%<br>输入流量: +5%<br>产出: -5%, 到 20 档归零, 此后机器直接停机, 不再白烧电<br><br>举例, 三级介质(沥青、水银等): 基础 2,000 HE/t, 等级系数 x2.5, 正常高度耗电 5,000 HE/t, 每次结算耗输入 5,000 mB、产出 2,000 mB。<br>Y=52 区间内: 5,000 HE/t, 输入 5,000, 产出 2,000<br>Y=44 偏离 1 格, 不足一档: 同上<br>Y=40 1 档: 6,563 HE/t, 输入 5,250, 产出 1,900<br>Y=32 2 档: 8,250 HE/t, 输入 5,500, 产出 1,800<br>Y=20 5 档: 14,063 HE/t, 输入 6,250, 产出 1,500<br>Y=10 7 档: 18,563 HE/t, 输入 6,750, 产出 1,300<br><br>所以越界不只是费电: 想让它继续产, 你得同时把管道流量调大、把电补够, 而产出还是一路往下掉。 实在压不下高度就换个位置。"
+	}
+}

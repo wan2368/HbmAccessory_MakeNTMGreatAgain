@@ -1,0 +1,296 @@
+package com.hbm.tileentity;
+
+import com.hbm.blocks.ModBlocks;
+import com.hbm.config.GeneralConfig;
+import com.hbm.handler.threading.PacketThreading;
+import com.hbm.inventory.fluid.tank.FluidTank;
+import com.hbm.main.NTMSounds;
+import com.hbm.packet.toclient.BufPacket;
+import com.hbm.sound.AudioWrapper;
+import com.hbm.tileentity.TilePort.PortDef;
+import com.hbm.util.fauxpointtwelve.BlockPos;
+
+import api.hbm.energymk2.IEnergyProviderMK2;
+import api.hbm.energymk2.IEnergyReceiverMK2;
+import api.hbm.energymk2.Nodespace;
+import api.hbm.fluidmk2.IFluidStandardReceiverMK2;
+import api.hbm.fluidmk2.IFluidStandardSenderMK2;
+import api.hbm.tile.ILoadedTile;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.util.ForgeDirection;
+
+public class TileEntityLoadedBase extends TileEntity implements ILoadedTile, IBufPacketReceiver {
+
+	public boolean isLoaded = true;
+	public boolean muffled = false;
+	public boolean tilted = false;
+	public int tiltBlocksChecked = 0;
+	public int tiltBlocksValid = 0;
+	
+	// temporary crap solution for furnaces to not destroy networks on state change
+	public static boolean destroyPortsOnInvalidate = true;
+
+	// that did not last long at all
+	@Deprecated public TilePort[] powerPorts;
+	@Deprecated public TilePort[] fluidInPorts;
+	@Deprecated public TilePort[] fluidOutPorts;
+	
+	/// PORTS START ///
+	
+	/** Sets up power, fluid in (if valid) and fluid out (if valid) ports */
+	@Deprecated public void setupAllPorts(PortDef[] ports) {
+		if(ports == null || ports.length == 0) return;
+		this.setupPowerPorts(ports);
+		this.setupFluidPorts(ports);
+	}
+	
+	/** Sets up only the power ports with M2M port rules (i.e. no passthrough, all ports are separate) */
+	@Deprecated public void setupPowerPorts(PortDef[] ports) {
+		if(powerPorts != null) return;
+		powerPorts = TilePort.manyToMany(this, ports);
+		for(TilePort port : powerPorts) {
+			port.setupType(Nodespace.THE_POWER_PROVIDER);
+		}
+	}
+
+	/** Sets up  fluid in (if valid) and fluid out (if valid) ports */
+	@Deprecated public void setupFluidPorts(PortDef[] ports) {
+		if(this instanceof IFluidStandardReceiverMK2) this.setupFluidInPorts(((IFluidStandardReceiverMK2) this).getReceivingTanks(), PortDef.combine(ports));
+		if(this instanceof IFluidStandardSenderMK2) this.setupFluidOutPorts(((IFluidStandardSenderMK2) this).getSendingTanks(), PortDef.combine(ports));
+	}
+	
+	@Deprecated public void setupFluidInPorts(FluidTank[] tanks, PortDef ports) {
+		if(fluidInPorts != null) return;
+		fluidInPorts = TilePort.oneToMany(this, tanks.length, ports);
+		for(int i = 0; i < fluidInPorts.length; i++) {
+			fluidInPorts[i].setupType(tanks[i].getTankType().getNetworkProvider());
+		}
+	}
+	
+	@Deprecated public void setupFluidOutPorts(FluidTank[] tanks, PortDef ports) {
+		if(fluidOutPorts != null) return;
+		fluidOutPorts = TilePort.oneToMany(this, tanks.length, ports);
+		for(int i = 0; i < fluidOutPorts.length; i++) {
+			fluidOutPorts[i].setupType(tanks[i].getTankType().getNetworkProvider());
+		}
+	}
+	
+	@Deprecated public void updateAllPorts() {
+		if(powerPorts != null) for(TilePort port : powerPorts) port.update(worldObj);
+		if(fluidInPorts != null) for(TilePort port : fluidInPorts) port.update(worldObj);
+		if(fluidOutPorts != null) for(TilePort port : fluidOutPorts) port.update(worldObj);
+	}
+	
+	/** Fluid in, fluid out */
+	@Deprecated public void updatePortFIFO() {
+		this.updateAllPorts();
+		if(this instanceof IFluidStandardReceiverMK2) this.receiveFluid(((IFluidStandardReceiverMK2) this).getReceivingTanks());
+		if(this instanceof IFluidStandardSenderMK2) this.provideFluid(((IFluidStandardSenderMK2) this).getSendingTanks());
+	}
+	
+	/** Power in, fluid in, fluid out */
+	@Deprecated public void updatePortPIFIFO() { this.updatePortFIFO(); this.receivePower(); }
+	/** Power out, fluid in, fluid out */
+	@Deprecated public void updatePortPOFIFO() { this.updatePortFIFO(); this.providePower(); }
+	
+	@Deprecated public void receivePower() { if(powerPorts == null) return; if(this instanceof IEnergyReceiverMK2) for(TilePort port : powerPorts) port.checkSubscribe(worldObj); }
+	@Deprecated public void providePower() { if(powerPorts == null) return; if(this instanceof IEnergyProviderMK2) for(TilePort port : powerPorts) port.checkProvide(worldObj); }
+
+	@Deprecated public void provideFluid(FluidTank[] tanks) { provideFluid(tanks, this.fluidOutPorts); }
+	@Deprecated public void provideFluid(FluidTank[] tanks, TilePort[] ports) {
+		if(ports == null || ports.length != tanks.length) return;
+		
+		for(int i = 0; i < ports.length; i++) {
+			ports[i].setupType(tanks[i].getTankType().getNetworkProvider());
+			if(!ports[i].needsRebuild) ports[i].checkProvide(worldObj);
+		}
+	}
+
+	@Deprecated public void receiveFluid(FluidTank[] tanks) { receiveFluid(tanks, this.fluidInPorts); }
+	@Deprecated public void receiveFluid(FluidTank[] tanks, TilePort[] ports) {
+		if(ports == null || ports.length != tanks.length) return;
+		
+		for(int i = 0; i < ports.length; i++) {
+			ports[i].setupType(tanks[i].getTankType().getNetworkProvider());
+			if(!ports[i].needsRebuild) ports[i].checkSubscribe(worldObj);
+		}
+	}
+	
+	@Deprecated public void destroyAllPorts() {
+		if(powerPorts != null) for(int i = 0; i < powerPorts.length; i++) { powerPorts[i].disableIfPresent(worldObj); powerPorts[i] = null; }
+		if(fluidInPorts != null) for(int i = 0; i < fluidInPorts.length; i++) { fluidInPorts[i].disableIfPresent(worldObj); fluidInPorts[i] = null; }
+		if(fluidOutPorts != null) for(int i = 0; i < fluidOutPorts.length; i++) { fluidOutPorts[i].disableIfPresent(worldObj); fluidOutPorts[i] = null; }
+		powerPorts = null;
+		fluidInPorts = null;
+		fluidOutPorts = null;
+	}
+	
+	/// PORTS END ///
+
+	@Override
+	public boolean isLoaded() {
+		return isLoaded;
+	}
+
+	@Override
+	public void onChunkUnload() {
+		super.onChunkUnload();
+		this.isLoaded = false;
+		
+		if(powerPorts != null) for(TilePort port : powerPorts) port.disableIfPresent(worldObj);
+		if(fluidInPorts != null) for(TilePort port : fluidInPorts) port.disableIfPresent(worldObj);
+		if(fluidOutPorts != null) for(TilePort port : fluidOutPorts) port.disableIfPresent(worldObj);
+	}
+	
+	@Override
+	public void invalidate() {
+		super.invalidate();
+		if(!destroyPortsOnInvalidate) return;
+		if(powerPorts != null) for(TilePort port : powerPorts) port.disableIfPresent(worldObj);
+		if(fluidInPorts != null) for(TilePort port : fluidInPorts) port.disableIfPresent(worldObj);
+		if(fluidOutPorts != null) for(TilePort port : fluidOutPorts) port.disableIfPresent(worldObj);
+	}
+
+	/** The "chunks is modified, pls don't forget to save me" effect of markDirty, minus the block updates */
+	public void markChanged() {
+		this.worldObj.markTileEntityChunkModified(this.xCoord, this.yCoord, this.zCoord, this);
+	}
+
+	public AudioWrapper createAudioLoop() { return null; }
+
+	public AudioWrapper rebootAudio(AudioWrapper wrapper) {
+		wrapper.stopSound();
+		AudioWrapper audio = createAudioLoop();
+		audio.startSound();
+		return audio;
+	}
+
+	@Override
+	public void readFromNBT(NBTTagCompound nbt) {
+		super.readFromNBT(nbt);
+		this.muffled = nbt.getBoolean("muffled");
+		this.tilted = nbt.getBoolean("tilted");
+	}
+
+	@Override
+	public void writeToNBT(NBTTagCompound nbt) {
+		super.writeToNBT(nbt);
+		nbt.setBoolean("muffled", muffled);
+		nbt.setBoolean("tilted", tilted);
+	}
+
+	public float getVolume(float baseVolume) {
+		return muffled ? baseVolume * 0.1F : baseVolume;
+	}
+
+	private ByteBuf lastPackedBuf;
+
+	@Override
+	public void serialize(ByteBuf buf) {
+		buf.writeBoolean(muffled);
+		buf.writeBoolean(tilted);
+	}
+
+	@Override
+	public void deserialize(ByteBuf buf) {
+		this.muffled = buf.readBoolean();
+		this.tilted = buf.readBoolean();
+	}
+
+	/** Sends a sync packet that uses ByteBuf for efficient information-cramming */
+	public void networkPackNT(int range) {
+		if(worldObj.isRemote) return;
+
+		BufPacket packet = new BufPacket(xCoord, yCoord, zCoord, this);
+
+		ByteBuf preBuf = packet.getCompiledBuffer();
+
+		// Don't send unnecessary packets, except for maybe one every second or so.
+		// If we stop sending duplicate packets entirely, this causes issues when
+		// a client unloads and then loads back a chunk with an unchanged tile entity.
+		// For that client, the tile entity will appear default until anything changes about it.
+		// In my testing, this can be reliably reproduced with a full fluid barrel, for instance.
+		// I think it might be fixable by doing something with getDescriptionPacket() and onDataPacket(),
+		// but this sidesteps the problem for the mean time.
+		if(preBuf.equals(lastPackedBuf) && this.worldObj.getTotalWorldTime() % 20 != 0) return;
+
+		this.lastPackedBuf = preBuf.copy();
+
+		PacketThreading.createAllAroundThreadedPacket(packet, new NetworkRegistry.TargetPoint(this.worldObj.provider.dimensionId, xCoord, yCoord, zCoord, range));
+	}
+	
+	public static enum TiltType {
+		UNAVOIDABLE, CONFIG;
+	}
+	
+	public void checkTilt(TiltType cfg, boolean extraHeavy) {
+		boolean doesTilt = false;
+		if(cfg == TiltType.UNAVOIDABLE) doesTilt = true;
+		if(cfg == TiltType.CONFIG && GeneralConfig.enableMachineGravity) doesTilt = true;
+		if(cfg == TiltType.CONFIG && GeneralConfig.enable528MachineGravity) doesTilt = true;
+		
+		if(!doesTilt) { this.tilted = false; return; }
+		if(this.getFloorCount() <= 0) { this.tilted = false; return; }
+		if((this.worldObj.getTotalWorldTime() + BlockPos.getIdentity(xCoord, yCoord, zCoord)) % 20 != 0) return;
+		
+		if(this.tiltBlocksChecked >= this.getFloorCount()) {
+			
+			if(this.tiltBlocksValid >= this.tiltBlocksChecked * 0.95) {
+				this.tilted = false;
+			} else {
+				if(!this.tilted) worldObj.playSoundEffect(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, NTMSounds.METAL_IMPACT, 3F, 1F);
+				this.tilted = true;
+			}
+			
+			this.markChanged();
+			this.tiltBlocksChecked = 0;
+			this.tiltBlocksValid = 0;
+		}
+		
+		BlockPos pos = getFloorPosFromIndex(this.tiltBlocksChecked);
+		if(pos == null) return;
+		
+		Block ground = worldObj.getBlock(pos.getX(), pos.getY(), pos.getZ());
+		this.tiltBlocksChecked++;
+		
+		// for extra heavy machines, the ground needs to:
+		// * be a fully solid block (side UP is checked for custom behavior)
+		// * be opaque
+		// * NOT be sand, cloth or ground material
+		// * have an explosion resistance of stone or greater
+		if(extraHeavy) {
+			if(!ground.isBlockSolid(worldObj, pos.getX(), pos.getY(), pos.getZ(), 1)) return;
+			if(!ground.isNormalCube()) return;
+			if(ground.getMaterial() == Material.sand || ground.getMaterial() == Material.cloth || ground.getMaterial() == Material.ground) return;
+			if(ground.getExplosionResistance(null) < Blocks.stone.getExplosionResistance(null)) return;
+			this.tiltBlocksValid++;
+		// for standard machines, the ground needs to:
+		// * be solid at the top
+		// * NOT be sand
+		} else {
+			if(!ground.isSideSolid(worldObj, pos.getX(), pos.getY(), pos.getZ(), ForgeDirection.UP)) return;
+			if(ground.getMaterial() == Material.sand) return;
+			if(ground == ModBlocks.dirt_dead || ground == ModBlocks.dirt_oily || ground == ModBlocks.stone_cracked) return;
+			this.tiltBlocksValid++;
+		}
+	}
+	
+	public int getFloorCount() { return 0; }
+	public BlockPos getFloorPosFromIndex(int index) { return null; }
+
+	public BlockPos standardFloor3x3(int index) {
+		return new BlockPos(xCoord - 1 + (index / 2) * 2, yCoord - 1, zCoord - 1 + (index % 2) * 2);
+	}
+	public BlockPos standardFloor5x5(int index) {
+		return new BlockPos(xCoord - 2 + (index / 3) * 2, yCoord - 1, zCoord - 2 + (index % 3) * 2);
+	}
+	public BlockPos standardFloor7x7(int index) {
+		return new BlockPos(xCoord - 3 + (index / 4) * 2, yCoord - 1, zCoord - 3 + (index % 4) * 2);
+	}
+}

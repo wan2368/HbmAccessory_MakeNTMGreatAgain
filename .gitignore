@@ -1,0 +1,37 @@
+# eclipse
+/eclipse
+/bin
+/*.launch
+/.settings
+/.metadata
+/.classpath
+/.project
+
+# idea
+/out
+/*.ipr
+/*.iws
+/*.iml
+/.idea
+
+# gradle
+/build
+/.gradle
+
+# vscode
+/.vscode
+
+# other
+/run
+
+# CurseForge configuration
+/curseforge.properties
+
+# Maven configuration
+/maven.properties
+
+# Changelog backup
+/changelog.bak
+
+# workbuddy session data
+/.workbuddy

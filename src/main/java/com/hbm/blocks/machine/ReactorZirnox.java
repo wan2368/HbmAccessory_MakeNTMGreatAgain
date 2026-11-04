@@ -1,0 +1,144 @@
+package com.hbm.blocks.machine;
+
+
+import com.hbm.blocks.BlockDummyable;
+import com.hbm.handler.BossSpawnHandler;
+import com.hbm.handler.MultiblockHandlerXR;
+import com.hbm.main.MainRegistry;
+import com.hbm.tileentity.TileEntityProxyCombo;
+import com.hbm.tileentity.machine.TileEntityReactorZirnox;
+
+import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
+
+public class ReactorZirnox extends BlockDummyable {
+
+	public ReactorZirnox(Material mat) {
+		super(mat);
+	}
+
+	@Override
+	public TileEntity createNewTileEntity(World world, int meta) {
+
+		if(meta >= 12)
+			return new TileEntityReactorZirnox();
+		if(meta >= 6)
+			return new TileEntityProxyCombo(true, true, true);
+
+		return null;
+	}
+
+	@Override
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
+		if(world.isRemote) {
+			return true;
+		} else if(!player.isSneaking()) {
+			BossSpawnHandler.markFBI(player);
+
+			int[] pos = this.findCore(world, x, y, z);
+
+			if(pos == null)
+				return false;
+
+			FMLNetworkHandler.openGui(player, MainRegistry.instance, 0, world, pos[0], pos[1], pos[2]);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public int[] getDimensions() {
+		return new int[] {1, 0, 2, 2, 2, 2,};
+	}
+
+	@Override
+	public int getOffset() {
+		return 2;
+	}
+	@Override
+	public int[][] getAllDimensions() {
+		return new int[][] {
+			new int[] {1, 0, 2, 2, 2, 2,},
+			new int[] {4, -2, 1, 1, 1, 1},
+			new int[] {4, -2, 0, 0, 2, -2},
+			new int[] {4, -2, 0, 0, -2, 2}
+		};
+	}
+	@Override
+	public int[][] getAllPorts(ForgeDirection dir) {
+		return rotatePorts(new int[][] {
+			{2, 1, 0, ForgeDirection.EAST.ordinal()},
+			{2, 3, 0, ForgeDirection.EAST.ordinal()},
+			{-2, 1, 0, ForgeDirection.WEST.ordinal()},
+			{-2, 3, 0, ForgeDirection.WEST.ordinal()},
+			{0, 4, 0, ForgeDirection.UP.ordinal()}
+		}, dir);
+	}
+	@Override
+	protected boolean checkRequirement(World world, int x, int y, int z, ForgeDirection dir, int o) {
+		return super.checkRequirement(world, x, y, z, dir, o) &&
+				MultiblockHandlerXR.checkSpace(world, x + dir.offsetX * o, y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {4, -2, 1, 1, 1, 1}, x, y, z, dir) &&
+				MultiblockHandlerXR.checkSpace(world, x + dir.offsetX * o, y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {4, -2, 0, 0, 2, -2}, x, y, z, dir) &&
+				MultiblockHandlerXR.checkSpace(world, x + dir.offsetX * o, y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {4, -2, 0, 0, -2, 2}, x, y, z, dir);
+	}
+
+	@Override
+	protected void fillSpace(World world, int x, int y, int z, ForgeDirection dir, int o) {
+		super.fillSpace(world, x, y, z, dir, o);
+
+		MultiblockHandlerXR.fillSpace(world, x + dir.offsetX * o, y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {4, -2, 1, 1, 1, 1}, this, dir);
+		MultiblockHandlerXR.fillSpace(world, x + dir.offsetX * o, y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {4, -2, 0, 0, 2, -2}, this, dir);
+		MultiblockHandlerXR.fillSpace(world, x + dir.offsetX * o, y + dir.offsetY * o, z + dir.offsetZ * o, new int[] {4, -2, 0, 0, -2, 2}, this, dir);
+
+		for(int[] offset : getAllPorts(dir)) {
+			this.makeExtra(world, x + offset[0], y + offset[1], z + offset[2]);
+		}
+	}
+
+	@Override
+	public void onNeighborBlockChange(World world, int x, int y, int z, Block neighbor) {
+		super.onNeighborBlockChange(world, x, y, z, neighbor);
+		if (world.isRemote) return;
+		int[] core = this.findCore(world, x, y, z);
+		if (core == null) return;
+		int cx = core[0];
+		int cy = core[1];
+		int cz = core[2];
+		TileEntity te = world.getTileEntity(cx, cy, cz);
+		if (!(te instanceof TileEntityReactorZirnox)) return;
+		TileEntityReactorZirnox reactor = (TileEntityReactorZirnox) te;
+		boolean powered = false;
+		// 2. Scan multiblock
+		for (int dx = -2; dx <= 2 && !powered; dx++) {
+			for (int dy = 0; dy <= 4 && !powered; dy++) {
+				for (int dz = -2; dz <= 2 && !powered; dz++) {
+					// Get only surface blocks
+					if (dx == -2 || dx == 2 ||
+						dy == 0  || dy == 4 ||
+						dz == -2 || dz == 2) {
+
+						int sx = cx + dx;
+						int sy = cy + dy;
+						int sz = cz + dz;
+
+						if (world.isBlockIndirectlyGettingPowered(sx, sy, sz) ||
+							world.getBlockPowerInput(sx, sy, sz) > 0) {
+
+							powered = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		reactor.setRedstonePowered(powered);
+	}
+
+}

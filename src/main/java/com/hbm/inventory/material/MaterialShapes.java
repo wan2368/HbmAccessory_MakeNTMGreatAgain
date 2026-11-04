@@ -1,0 +1,193 @@
+package com.hbm.inventory.material;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.*;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.stream.JsonWriter;
+import com.hbm.items.machine.ItemMold.MoldShape;
+import com.hbm.main.MainRegistry;
+import com.hbm.util.Compat;
+
+import net.minecraft.item.Item;
+
+public class MaterialShapes {
+
+	public static final Gson gson = new Gson();
+	public static final List<MaterialShapes> allShapes = new ArrayList();
+	public static List<MaterialShapes> customShapes = new ArrayList();
+	public static List<Item> customShapesItem = new ArrayList();
+	public static final List<MoldShape> S_moldShapes = new ArrayList();
+	public static final List<MoldShape> L_moldShapes = new ArrayList();
+
+	public static final MaterialShapes ANY = new MaterialShapes(0, "any").noAutogen();
+	public static final MaterialShapes ONLY_ORE = new MaterialShapes(0, "ore").noAutogen();
+	public static final MaterialShapes ORE = new MaterialShapes(0, "ore", "oreNether").noAutogen();
+	public static final MaterialShapes ORENETHER = new MaterialShapes(0, "oreNether").noAutogen();
+
+	public static final MaterialShapes QUANTUM = new MaterialShapes(1); // 1/72 of an ingot, allows the ingot to be divisible through 2, 4, 6, 8, 9, 12, 24 and 36
+	public static final MaterialShapes NUGGET = new MaterialShapes(8, "nugget", "tiny");
+	public static final MaterialShapes TINY = new MaterialShapes(8, "tiny").noAutogen();
+	public static final MaterialShapes FRAGMENT = new MaterialShapes(8, "bedrockorefragment");
+	public static final MaterialShapes DUSTTINY = new MaterialShapes(NUGGET.quantity, "dustTiny");
+	public static final MaterialShapes WIRE = new MaterialShapes(9, "wireFine");
+	public static final MaterialShapes BOLT = new MaterialShapes(9, "bolt");
+	public static final MaterialShapes BILLET = new MaterialShapes(NUGGET.quantity * 6, "billet");
+	public static final MaterialShapes INGOT = new MaterialShapes(NUGGET.quantity * 9, "ingot");
+	public static final MaterialShapes GEM = new MaterialShapes(INGOT.quantity, "gem");
+	public static final MaterialShapes CRYSTAL = new MaterialShapes(INGOT.quantity, "crystal");
+	public static final MaterialShapes DUST = new MaterialShapes(INGOT.quantity, "dust");
+	public static final MaterialShapes DENSEWIRE = new MaterialShapes(INGOT.quantity, "wireDense");
+	public static final MaterialShapes PLATE = new MaterialShapes(INGOT.quantity, "plate");
+	public static final MaterialShapes CASTPLATE = new MaterialShapes(INGOT.quantity * 3, "plateTriple");
+	public static final MaterialShapes WELDEDPLATE = new MaterialShapes(INGOT.quantity * 6, "plateSextuple");
+	public static final MaterialShapes SHELL = new MaterialShapes(INGOT.quantity * 4, "shell");
+	public static final MaterialShapes PIPE = new MaterialShapes(INGOT.quantity * 3, "ntmpipe");
+	public static final MaterialShapes QUART = new MaterialShapes(162);
+	public static final MaterialShapes BLOCK = new MaterialShapes(INGOT.quantity * 9, "block");
+
+	public static final MaterialShapes LIGHTBARREL =	new MaterialShapes(INGOT.quantity * 3, "barrelLight");
+	public static final MaterialShapes HEAVYBARREL =	new MaterialShapes(INGOT.quantity * 6, "barrelHeavy");
+	public static final MaterialShapes LIGHTRECEIVER =	new MaterialShapes(INGOT.quantity * 4, "receiverLight");
+	public static final MaterialShapes HEAVYRECEIVER =	new MaterialShapes(INGOT.quantity * 9, "receiverHeavy");
+	public static final MaterialShapes MECHANISM =		new MaterialShapes(INGOT.quantity * 4, "gunMechanism");
+	public static final MaterialShapes STOCK =			new MaterialShapes(INGOT.quantity * 4, "stock");
+	public static final MaterialShapes GRIP =			new MaterialShapes(INGOT.quantity * 2, "grip");
+
+	public static void registerCompatShapes() {
+
+		if(Compat.isModLoaded(Compat.MOD_GT6)) {
+			new MaterialShapes(BLOCK.q(1), "blockDust").noAutogen();
+			new MaterialShapes(BLOCK.q(1), "blockGem").noAutogen();
+			new MaterialShapes(BLOCK.q(1), "blockIngot").noAutogen();
+			new MaterialShapes(BLOCK.q(1), "blockSolid").noAutogen();
+			new MaterialShapes(INGOT.q(9, 8), "crushed").noAutogen();
+			new MaterialShapes(INGOT.q(9, 72), "crushedTiny").noAutogen();
+			new MaterialShapes(INGOT.q(10, 8), "crushedPurified").noAutogen();
+			new MaterialShapes(INGOT.q(10, 72), "crushedPurifiedTiny").noAutogen();
+			new MaterialShapes(INGOT.q(11, 8), "crushedCentrifuged").noAutogen();
+			new MaterialShapes(INGOT.q(11, 72), "crushedCentrifugedTiny").noAutogen();
+			new MaterialShapes(INGOT.q(1, 4), "dustSmall").noAutogen();
+			new MaterialShapes(INGOT.q(1, 72), "dustDiv72").noAutogen();
+			new MaterialShapes(INGOT.q(10, 9), "dustImpure").noAutogen();
+			new MaterialShapes(INGOT.q(11, 9), "dustPure").noAutogen();
+			new MaterialShapes(INGOT.q(12, 9), "dustRefined").noAutogen();
+		}
+	}
+
+	public static void customShapesInit(){
+		File folder = MainRegistry.configHbmDir;
+		File customshapes = new File(folder.getAbsolutePath() + File.separatorChar + "hbmShapes.json");
+		if (!customshapes.exists()) initDefaultShapes(customshapes);
+		readCustomShapes(customshapes);
+	}
+
+	public boolean noAutogen = false;
+	private int quantity;
+	public final String[] prefixes;
+
+	private MaterialShapes(int quantity, String... prefixes) {
+		this.quantity = quantity;
+		this.prefixes = prefixes;
+
+		for(String prefix : prefixes) {
+			Mats.prefixByName.put(prefix, this);
+		}
+
+		allShapes.add(this);
+	}
+
+	/** Disables recipe autogen for special cases like compatibility prefixes (TINY, ORENETHER), technical prefixes (ANY) or prefixes that have to be handled manually (ORE) */
+	public MaterialShapes noAutogen() {
+		this.noAutogen = true;
+		return this;
+	}
+
+	public int q(int amount) {
+		return this.quantity * amount;
+	}
+
+	public int q(int unitsUsed, int itemsProduced) { //eg rails: INOGT.q(6, 16) since the recipe uses 6 iron ingots producing 16 individual rail blocks
+		return this.quantity * unitsUsed / itemsProduced;
+	}
+
+	public String name() {
+		return (prefixes != null && prefixes.length > 0) ? prefixes[0] : "unknown";
+	}
+
+	public String make(NTMMaterial mat) {
+		return this.name() + mat.names[0];
+	}
+
+	private static void initDefaultShapes(File file) {
+
+		try {
+			JsonWriter writer = new JsonWriter(new FileWriter(file));
+			writer.setIndent("  ");
+			writer.beginObject();
+
+			writer.name("demoshape").beginObject();
+			writer.name("quantity").value(MaterialShapes.INGOT.q(4));
+			writer.name("materials").beginArray(); {
+				writer.value("Iron");
+				writer.value("Steel");
+				writer.value("DemoMat");
+			} writer.endArray();
+			writer.name("molds").beginArray(); {
+				writer.beginObject(); {
+					writer.name("size").value("S");
+					writer.name("castAmount").value(3);
+				} writer.endObject();
+			} writer.endArray();
+			writer.endObject();
+
+			writer.endObject();
+			writer.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void readCustomShapes(File file) {
+
+		try {
+			JsonObject json = gson.fromJson(new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8), JsonObject.class);
+
+			for(Map.Entry<String, JsonElement> entry : json.entrySet()) {
+
+				JsonObject obj = (JsonObject) entry.getValue();
+
+				String name = entry.getKey();
+				MaterialShapes shape = new MaterialShapes(obj.get("quantity").getAsInt(), name);
+				
+				JsonArray materials = obj.get("materials").getAsJsonArray();
+				for(JsonElement material : materials) {
+					NTMMaterial mt = Mats.matByName.get(material.getAsString());
+					if(mt != null) mt.setAutogen(shape);
+				}
+				
+				JsonArray molds = obj.get("molds").getAsJsonArray();
+				for(JsonElement moldElement : molds) {
+					JsonObject moldObject = moldElement.getAsJsonObject();
+					boolean large = moldObject.get("size").getAsString().equals("L");
+					int castAmount = moldObject.get("castAmount").getAsInt();
+					List<MoldShape> addTo = large ? L_moldShapes : S_moldShapes;
+					addTo.add(new MoldShape(-1, large ? 1 : 0, name + "." + castAmount, shape, castAmount));
+				}
+				
+				customShapes.add(shape);
+			}
+
+		} catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+}

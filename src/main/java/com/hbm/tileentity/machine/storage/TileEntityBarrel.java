@@ -1,0 +1,372 @@
+package com.hbm.tileentity.machine.storage;
+
+import api.hbm.energymk2.IEnergyReceiverMK2.ConnectionPriority;
+import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
+import api.hbm.redstoneoverradio.IRORInteractive;
+import api.hbm.redstoneoverradio.IRORValueProvider;
+
+import com.hbm.blocks.ModBlocks;
+import com.hbm.handler.CompatHandler;
+import com.hbm.inventory.FluidContainerRegistry;
+import com.hbm.inventory.container.ContainerBarrel;
+import com.hbm.inventory.fluid.FluidType;
+import com.hbm.inventory.fluid.Fluids;
+import com.hbm.inventory.fluid.tank.FluidTank;
+import com.hbm.inventory.fluid.trait.FluidTrait;
+import com.hbm.inventory.fluid.trait.FluidTrait.FluidReleaseType;
+import com.hbm.inventory.gui.GUIBarrel;
+import com.hbm.saveddata.TomSaveData;
+import com.hbm.tileentity.IFluidCopiable;
+import com.hbm.tileentity.IGUIProvider;
+import com.hbm.tileentity.IPersistentNBT;
+import com.hbm.tileentity.TileEntityMachineBase;
+import com.hbm.tileentity.TilePort.PortDef;
+import com.hbm.tileentity.TilePortShapes;
+import com.hbm.util.fauxpointtwelve.DirPos;
+import cpw.mods.fml.common.Optional;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import io.netty.buffer.ByteBuf;
+import li.cil.oc.api.machine.Arguments;
+import li.cil.oc.api.machine.Callback;
+import li.cil.oc.api.machine.Context;
+import li.cil.oc.api.network.SimpleComponent;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
+
+@Optional.InterfaceList({@Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")})
+public class TileEntityBarrel extends TileEntityMachineBase implements SimpleComponent, IFluidStandardTransceiverMK2, IPersistentNBT, IGUIProvider, CompatHandler.OCComponent, IFluidCopiable, IRORValueProvider, IRORInteractive {
+
+	public FluidTank tank;
+	public short mode = 0;
+	public static final short modes = 4;
+	public int age = 0;
+	public byte lastRedstone = 0;
+
+	public TileEntityBarrel() {
+		super(6);
+		tank = new FluidTank(Fluids.NONE, 0);
+	}
+
+	public TileEntityBarrel(int capacity) {
+		super(6);
+		tank = new FluidTank(Fluids.NONE, capacity);
+	}
+	
+	protected PortDef[] cachedPorts;
+	public PortDef[] getPorts() { if(cachedPorts == null) cachedPorts = TilePortShapes.around(xCoord, yCoord, zCoord); return cachedPorts; }
+
+	@Override
+	public String getName() {
+		return "container.barrel";
+	}
+
+	public byte getComparatorPower() {
+		if(tank.getFill() == 0) return 0;
+		double frac = (double) tank.getFill() / (double) tank.getMaxFill() * 15D;
+		return (byte) (MathHelper.clamp_int((int) frac + 1, 0, 15));
+	}
+
+	@Override
+	public long getDemand(FluidType type, int pressure) {
+		if(this.tilted) return 0;
+		if(this.mode == 2 || this.mode == 3) return 0;
+		if(tank.getPressure() != pressure) return 0;
+		return type == tank.getTankType() ? tank.getMaxFill() - tank.getFill() : 0;
+	}
+
+	@Override
+	public long getFluidAvailable(FluidType type, int pressure) {
+		if(this.tilted) return 0;
+		if(this.mode == 0 || this.mode == 3) return 0;
+		if(tank.getPressure() != pressure) return 0;
+		return type == tank.getTankType() ? tank.getFill() : 0;
+	}
+
+	@Override
+	public void updateEntity() {
+
+		if(!worldObj.isRemote) {
+			
+			this.setupFluidPorts(getPorts());
+			this.updatePortFIFO();
+
+			byte comp = this.getComparatorPower(); //do comparator shenanigans
+			if(comp != this.lastRedstone) {
+				this.markDirty();
+				for(PortDef port : getPorts()) for(DirPos pos : port.portConnections) this.triggerNeighborUpdate(pos);
+			}
+			this.lastRedstone = comp;
+
+			tank.setType(0, 1, slots);
+			tank.loadTank(2, 3, slots);
+			tank.unloadTank(4, 5, slots);
+
+			if(tank.getFill() > 0) {
+				checkFluidInteraction();
+			}
+
+			this.networkPackNT(trackingRange());
+		}
+	}
+	
+	public int trackingRange() {
+		return 50;
+	}
+
+	@Override
+	public void serialize(ByteBuf buf) {
+		super.serialize(buf);
+		buf.writeShort(mode);
+		tank.serialize(buf);
+	}
+
+	@Override
+	public void deserialize(ByteBuf buf) {
+		super.deserialize(buf);
+		mode = buf.readShort();
+		tank.deserialize(buf);
+	}
+
+	@Override
+	public boolean isItemValidForSlot(int i, ItemStack itemStack) {
+		ItemStack full = FluidContainerRegistry.getFullContainer(itemStack, tank.getTankType());
+		//if fillable and the fill being possible for this tank size
+		if(i == 4 && full != null && FluidContainerRegistry.getFluidContent(full, tank.getTankType()) <= tank.getMaxFill())
+			return true;
+		int content = FluidContainerRegistry.getFluidContent(itemStack, tank.getTankType());
+		//if content is above 0 but still within capacity
+		if(i == 2 && content > 0 && content <= tank.getMaxFill())
+			return true;
+
+		return false;
+	}
+
+	@Override
+	public boolean canExtractItem(int i, ItemStack itemStack, int j) {
+		return i == 3 || i == 5;
+	}
+
+	@Override
+	public int[] getAccessibleSlotsFromSide(int p_94128_1_) {
+		return new int[] {2, 3, 4, 5};
+	}
+
+	public void checkFluidInteraction() {
+
+		Block b = this.getBlockType();
+
+		//for when you fill antimatter into a matter tank
+		if(b != ModBlocks.barrel_antimatter && tank.getTankType().isAntimatter()) {
+			worldObj.func_147480_a(xCoord, yCoord, zCoord, false);
+			worldObj.newExplosion(null, xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, 5, true, true);
+		}
+
+		//for when you fill hot or corrosive liquids into a plastic tank
+		if(b == ModBlocks.barrel_plastic && (tank.getTankType().isCorrosive() || tank.getTankType().isHot())) {
+			worldObj.func_147480_a(xCoord, yCoord, zCoord, false);
+			worldObj.playSoundEffect(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, "random.fizz", 1.0F, 1.0F);
+		}
+
+		if(b == ModBlocks.barrel_corroded) {
+			if(worldObj.rand.nextInt(3) == 0) {
+				tank.setFill(tank.getFill() - 1);
+				FluidTrait.onRelease(worldObj, xCoord, yCoord, zCoord, tank.getTankType(), tank, FluidReleaseType.SPILL, 1);
+			}
+			if(worldObj.rand.nextInt(3 * 60 * 20) == 0) worldObj.func_147480_a(xCoord, yCoord, zCoord, false);
+		}
+
+		if(b == ModBlocks.barrel_steel && tank.getTankType().isHighlyCorrosive()) {
+			worldObj.setBlock(xCoord, yCoord, zCoord, ModBlocks.barrel_corroded);
+			TileEntityBarrel barrel = (TileEntityBarrel) worldObj.getTileEntity(xCoord, yCoord, zCoord);
+			barrel.tank.setTankType(tank.getTankType());
+			barrel.tank.setFill(tank.getFill());
+		}
+
+		//For when Tom's firestorm hits a barrel full of water
+		if(tank.getTankType() == Fluids.WATER && TomSaveData.forWorld(worldObj).fire > 1e-5) {
+			int light = this.worldObj.getSavedLightValue(EnumSkyBlock.Sky, this.xCoord, this.yCoord, this.zCoord);
+
+			if(light > 7) {
+				worldObj.newExplosion(null, xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, 5, true, true);
+			}
+		}
+	}
+
+	@Override
+	public void readFromNBT(NBTTagCompound nbt) {
+		super.readFromNBT(nbt);
+
+		mode = nbt.getShort("mode");
+		tank.readFromNBT(nbt, "tank");
+	}
+
+	@Override
+	public void writeToNBT(NBTTagCompound nbt) {
+		super.writeToNBT(nbt);
+
+		nbt.setShort("mode", mode);
+		tank.writeToNBT(nbt, "tank");
+	}
+
+	@Override
+	public boolean canConnect(FluidType fluid, ForgeDirection dir) {
+		return fluid == tank.getTankType();
+	}
+
+	@Override public FluidTank[] getSendingTanks() { return new FluidTank[] { tank }; }
+	@Override public FluidTank[] getReceivingTanks() { return new FluidTank[] { tank }; }
+	@Override public FluidTank[] getAllTanks() { return new FluidTank[] { tank }; }
+
+	@Override
+	public long getProviderSpeed(FluidType type, int pressure) {
+		return (mode == 1 || mode == 2) ? 1_000_000_000 : 0;
+	}
+
+	@Override
+	public long getReceiverSpeed(FluidType type, int pressure) {
+		return (mode == 0 || mode == 1) ? 1_000_000_000 : 0;
+	}
+
+	@Override
+	public ConnectionPriority getFluidPriority() {
+		return mode == 1 ? ConnectionPriority.LOW : ConnectionPriority.NORMAL;
+	}
+
+	@Override
+	public int[] getFluidIDToCopy() {
+		return new int[] {tank.getTankType().getID()};
+	}
+
+	@Override
+	public FluidTank getTankToPaste() {
+		return tank;
+	}
+
+	@Override
+	public void writeNBT(NBTTagCompound nbt) {
+		if(tank.getFill() == 0) return;
+		NBTTagCompound data = new NBTTagCompound();
+		this.tank.writeToNBT(data, "tank");
+		data.setShort("mode", mode);
+		nbt.setTag(NBT_PERSISTENT_KEY, data);
+	}
+
+	@Override
+	public void readNBT(NBTTagCompound nbt) {
+		NBTTagCompound data = nbt.getCompoundTag(NBT_PERSISTENT_KEY);
+		this.tank.readFromNBT(data, "tank");
+		this.mode = data.getShort("nbt");
+	}
+
+	@Override
+	public Container provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		return new ContainerBarrel(player.inventory, this);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public Object provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		return new GUIBarrel(player.inventory, this);
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public String getComponentName() {
+		return "ntm_fluid_tank";
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getFluidStored(Context context, Arguments args) {
+		return new Object[] {tank.getFill()};
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getMaxStored(Context context, Arguments args) {
+		return new Object[] {tank.getMaxFill()};
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getTypeStored(Context context, Arguments args) {
+		return new Object[] {tank.getTankType().getName()};
+	}
+
+	@Callback(direct = true)
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] getInfo(Context context, Arguments args) {
+		return new Object[]{tank.getFill(), tank.getMaxFill(), tank.getTankType().getName()};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public String[] methods() {
+		return new String[] {
+				"getFluidStored",
+				"getMaxStored",
+				"getTypeStored",
+				"getInfo"
+		};
+	}
+
+	@Override
+	@Optional.Method(modid = "OpenComputers")
+	public Object[] invoke(String method, Context context, Arguments args) throws Exception {
+		switch (method) {
+			case "getFluidStored": return getFluidStored(context, args);
+			case "getMaxStored": return getMaxStored(context, args);
+			case "getTypeStored": return getTypeStored(context, args);
+			case "getInfo": return getInfo(context, args);
+		}
+		throw new NoSuchMethodException();
+	}
+
+	@Override
+	public String[] getFunctionInfo() {
+		return new String[] {
+				PREFIX_VALUE + "type",
+				PREFIX_VALUE + "fill",
+				PREFIX_VALUE + "fillpercent",
+				PREFIX_FUNCTION + "setmode" + NAME_SEPARATOR + "mode (0-3)",
+				PREFIX_FUNCTION + "setmode" + NAME_SEPARATOR + "mode" + PARAM_SEPARATOR + "fallback (0-3)",
+		};
+	}
+
+	@Override
+	public String provideRORValue(String name) {
+		if((PREFIX_VALUE + "type").equals(name))		return tank.getTankType().getName();
+		if((PREFIX_VALUE + "fill").equals(name))		return "" + tank.getFill();
+		if((PREFIX_VALUE + "fillpercent").equals(name))	return "" + (tank.getFill() * 100 / tank.getMaxFill());
+		return null;
+	}
+
+	@Override
+	public String runRORFunction(String name, String[] params) {
+		
+		if((PREFIX_FUNCTION + "setmode").equals(name) && params.length > 0) {
+			int mode = IRORInteractive.parseInt(params[0], 0, 3);
+			
+			if(mode != this.mode) {
+				this.mode = (short) mode;
+				this.markChanged();
+				return null;
+			} else if(params.length > 1) {
+				int altmode = IRORInteractive.parseInt(params[1], 0, 3);
+				this.mode = (short) altmode;
+				this.markChanged();
+				return null;
+			}
+			return null;
+		}
+		return null;
+	}
+}

@@ -1,0 +1,18 @@
+[
+{
+  "modid": "makentmgreatagain",
+  "name": "Make NTM Great Again",
+  "description": "An addon for Hbm's Nuclear Tech Mod. Adds the seawater/chlor-alkali line, lead-zinc smelting (ISP process, cadmium) and thiosulfate cyanide-free gold leaching, together with their machines, ores, items and fluids. REQUIRED: Hbm's Nuclear Tech Mod (modid: hbm) - without it this mod crashes during loading instead of showing a readable error. Beta build, feedback: QQ group 1108764612.",
+  "version": "1.0.0-beta.3",
+  "mcversion": "1.7.10",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Wan2368/FreeNull13244"],
+  "credits": "Based on Hbm's Nuclear Tech Mod",
+  "logoFile": "",
+  "screenshots": [],
+  "parent": "",
+  "useDependencyInformation": false,
+  "dependencies": ["hbm"]
+}
+]
