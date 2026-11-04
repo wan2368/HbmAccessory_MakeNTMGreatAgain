@@ -243,7 +243,19 @@ public final class ScheeliteRecipes {
                 new ItemStack(com.hbm.items.ModItems.ingot_beryllium, 1), 1.0F);
         GameRegistry.addSmelting(ModItems.zirconium_concentrate,
                 new ItemStack(com.hbm.items.ModItems.ingot_zirconium, 1), 1.0F);
-        MakeNTMGreatAgain.LOG.info("[白钨矿] 熔炉：铍精矿/锆精矿 → 铍锭/锆锭（1:1）");
+
+        // ---- 白钨矿：烧成「没有东西」----
+        // 这条配方存在的意义不是产出，是「解释」。白钨矿本来没有熔炼配方，
+        // 玩家丢进熔炉会看到矿石原封不动地退回来——那看起来像 bug。
+        // 所以给它一条模具配方，让熔炉真的把它消耗掉，吐出一个 HBM 的 nothing，
+        // 玩家看到「没有东西」这四个字就明白了：这矿确实烧不出东西。
+        // 顺带解锁「滚木？」那条成就（AchHandler 扫到 nothing 即解锁）。
+        if (com.hbm.items.ModItems.nothing != null) {
+            GameRegistry.addSmelting(ModBlocks.ore_scheelite,
+                    new ItemStack(com.hbm.items.ModItems.nothing, 1), 0.0F);
+        }
+
+        MakeNTMGreatAgain.LOG.info("[白钨矿] 熔炉：铍精矿/锆精矿 → 铍锭/锆锭（1:1）；白钨矿 → 没有东西");
     }
 
     /** 与 {@code ModRecipes.hasGenericRecipe} 同一套判断，配方表里已有同名的就跳过。 */

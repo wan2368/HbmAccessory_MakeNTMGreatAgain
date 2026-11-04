@@ -160,8 +160,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 		// 注册本模组 GUI 处理器（方块打开界面用）
 		registerGuiHandler();
 
-		// 成就注册必须在物品注册之后（图标引用香烟物品）
-		ModAchievements.init();
+		// 成就总表必须在物品与方块注册之后（图标直接引用它们）
+		com.makentmgreatagain.achievement.AchRegistry.init();
 
 		SerializableRecipe.additionalListeners.add(new IRecipeRegisterListener() {
 			@Override

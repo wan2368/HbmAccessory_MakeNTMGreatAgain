@@ -1,5 +1,6 @@
 package com.makentmgreatagain.init;
 
+import com.makentmgreatagain.packet.AchievementPacket;
 import com.makentmgreatagain.packet.CigaretteDrxEffectPacket;
 import com.makentmgreatagain.packet.HoverJetpackModePacket;
 
@@ -28,6 +29,12 @@ public class ModNetwork {
 				HoverJetpackModePacket.HandlerClient.class,
 				HoverJetpackModePacket.Ack.class,
 				2,
+				Side.CLIENT);
+		// 成就同步（S→C）：登录全量 + 解锁单条
+		NETWORK.registerMessage(
+				AchievementPacket.Handler.class,
+				AchievementPacket.class,
+				3,
 				Side.CLIENT);
 	}
 }

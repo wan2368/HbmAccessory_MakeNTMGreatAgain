@@ -78,6 +78,61 @@ item.hover_jetpack.name=Electric Hover Work Pack
 item.hover_jetpack.desc=Jetpack and hover pack in one, powered by charge.$Defaults to vectorized mode (hold space to fly along your view); press the mode key to switch into hover mode (space rises, Shift sinks)$On/off still uses the HBM jetpack toggle key (C by default)
 makentmgreatagain.key.group=Make NTM Great Again Keys
 makentmgreatagain.key.hoverMode=Hover Pack - Switch Vectorized/Hover Mode
+makentmgreatagain.key.achievements=Open Achievements
+
+# ---- Achievements (standalone, not the vanilla page) ----
+mntga.ach.gui.title=Achievements
+mntga.ach.gui.done=Unlocked
+mntga.ach.gui.locked=Locked
+mntga.ach.toast.label=Achievement Get
+mntga.ach.cat.tungsten=Scheelite
+mntga.ach.cat.industry=Seawater & Metallurgy
+mntga.ach.cat.misc=Misc
+
+mntga.ach.scheelite_mined.title=Wu!
+mntga.ach.scheelite_mined.desc=Your first scheelite ore. It will not smelt into anything. Go crush it.
+
+mntga.ach.scheelite_acid.title=Can I Drink This?
+mntga.ach.scheelite_acid.desc=Tungstic acid. A yellow filter cake, and a terrible beverage.
+
+mntga.ach.beryllium_conc.title=A Buried Story
+mntga.ach.beryllium_conc.desc=You pulled a beryllium concentrate out of the leach residue. Beryllium is rarer than tungsten.
+
+mntga.ach.arsenic_cake.title=Do Not Lick
+mntga.ach.arsenic_cake.desc=Arsenic trioxide, white arsenic. Wash your hands afterwards.
+
+mntga.ach.arsenic_nugget.title=Bought With Blood
+mntga.ach.arsenic_nugget.desc=Reduced white arsenic down to arsenic nuggets. Arsenic bronze and gallium arsenide are waiting.
+
+mntga.ach.nothing_smelt.title=Rolling Log?
+mntga.ach.nothing_smelt.desc=You put scheelite in a furnace. The furnace finished smelting it and handed you nothing at all.
+
+mntga.ach.waste_acid.title=I Should Soak The World In Acid
+mntga.ach.waste_acid.desc=Sixteen tungsten acid cakes, roughly ten thousand millibuckets of waste acid. Do not drink it.
+
+mntga.ach.scheelite_300.title=That Is All Of It
+mntga.ach.scheelite_300.desc=Three hundred scheelite blocks mined. About half a large vein.
+
+mntga.ach.tungsten_carbide.title=High Strength Tungsten Carbide
+mntga.ach.tungsten_carbide.desc=A tungsten carbide ingot. Second highest melting point, hardest thing around.
+
+mntga.ach.seawater.title=That Is Not Water
+mntga.ach.seawater.desc=The environmental pump pulled up seawater. It picks its output by biome, not by what is under it.
+
+mntga.ach.chlorine.title=Both Will Kill You
+mntga.ach.chlorine.desc=Electrolysed chlorine. Lye comes out the other side. Neither is safe to touch.
+
+mntga.ach.lithium.title=It Starts With Lithium
+mntga.ach.lithium.desc=Lithium powder from ore liquor. Batteries, grease and tritium breeding all start here.
+
+mntga.ach.zinc.title=My Heart Is In Pieces!
+mntga.ach.zinc.desc=After the sinter crumbles, the zinc stays behind as oxide in that pile of ash.
+
+mntga.ach.hover.title=I Can Fly
+mntga.ach.hover.desc=You lifted off with the powered hover pack. It will not hold you forever - the power runs out.
+
+mntga.ach.escape_abyss.title=Escape The Abyss
+mntga.ach.escape_abyss.desc=Nicotine poisoning. You ascended, or at least skipped the death screen.
 item.armor_battery_mk4.name=Power Armor Battery Pack Mk4
 item.armor_battery_mk4.desc=Triples the charge capacity of the armor it is installed in (+200%).
 

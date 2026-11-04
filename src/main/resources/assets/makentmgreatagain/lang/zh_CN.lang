@@ -94,6 +94,61 @@ item.armor_battery_mk4.name=动力装甲电池组 Mk4
 item.armor_battery_mk5.name=动力装甲电池组 Mk5
 makentmgreatagain.key.group=让HBM再次伟大：热键
 makentmgreatagain.key.hoverMode=悬浮背包 - 切换矢量/悬浮模式
+makentmgreatagain.key.achievements=打开成就界面
+
+# ---- 成就系统（独立于 Minecraft 原生成就页）----
+mntga.ach.gui.title=成就
+mntga.ach.gui.done=已达成
+mntga.ach.gui.locked=尚未达成
+mntga.ach.toast.label=成就达成
+mntga.ach.cat.tungsten=白钨矿
+mntga.ach.cat.industry=海水与冶金
+mntga.ach.cat.misc=杂项
+
+mntga.ach.scheelite_mined.title=芜！
+mntga.ach.scheelite_mined.desc=挖到第一块白钨矿。它烧不出东西，先去粉碎。
+
+mntga.ach.scheelite_acid.title=这是什么能喝吗？
+mntga.ach.scheelite_acid.desc=做出钨酸。黄色的滤饼，一点都不好喝。
+
+mntga.ach.beryllium_conc.title=尘封的故事
+mntga.ach.beryllium_conc.desc=从浸出渣里分出一份铍精矿——铍在地壳里比钨还稀少。
+
+mntga.ach.arsenic_cake.title=别舔
+mntga.ach.arsenic_cake.desc=三氧化二砷，也就是白砷。摸完记得洗手。
+
+mntga.ach.arsenic_nugget.title=拿命换的
+mntga.ach.arsenic_nugget.desc=把白砷还原成砷粒。砷青铜和砷化镓都在等它。
+
+mntga.ach.nothing_smelt.title=滚木？
+mntga.ach.nothing_smelt.desc=你把白钨矿丢进了熔炉。熔炉认真地烧完了，然后什么也没给你。
+
+mntga.ach.waste_acid.title=我应该把世界泡在酸里。
+mntga.ach.waste_acid.desc=攒够 16 份钨酸，等于存下了一万多毫桶废酸。别喝。
+
+mntga.ach.scheelite_300.title=这就是全部了
+mntga.ach.scheelite_300.desc=累计挖掉 300 块白钨矿，差不多是半条大矿脉。
+
+mntga.ach.tungsten_carbide.title=高强度碳化钨
+mntga.ach.tungsten_carbide.desc=做出碳化钨锭。熔点第二，硬度第一。
+
+mntga.ach.seawater.title=抽上来的不是水
+mntga.ach.seawater.desc=环境地下泵抽出了海水。它按群系决定产物，不看脚下。
+
+mntga.ach.chlorine.title=两种都要命的
+mntga.ach.chlorine.desc=电解出氯气。同一锅的另一半是碱液——两样都不该直接碰。
+
+mntga.ach.lithium.title=从这锂开始
+mntga.ach.lithium.desc=从含矿液里提出锂粉。电池、润滑脂、氚增殖剂，都从这开始。
+
+mntga.ach.zinc.title=我的“心”都碎了！
+mntga.ach.zinc.desc=烧结块粉化之后，锌以氧化物的形态留在了那一堆灰里。
+
+mntga.ach.hover.title=我飞了
+mntga.ach.hover.desc=穿着电力悬浮作业背包离地。它不会让你永远悬着，电会尽。
+
+mntga.ach.escape_abyss.title=逃离深渊
+mntga.ach.escape_abyss.desc=尼古丁中毒身亡。你飞升了，或者说，跳过了结算界面。
 
 tile.environment_pump.name=环境地下泵
 tile.environment_pump.desc=按所在群系抽取不同流体$开采等级每高一级，耗电在基础值上多叠 50%$偏离正常高度区间还会再按每 5 格 25% 叠加$同档位下每 5 格还多要 5% 输入、少给 5% 产出，20 档产出归零$五级可抽取重水、经验汁等稀有介质

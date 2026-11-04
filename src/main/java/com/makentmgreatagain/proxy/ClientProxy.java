@@ -38,6 +38,12 @@ public class ClientProxy extends CommonProxy {
 
         // 这里将来放渲染器注册等客户端代码
         registerManualSource();
+
+        // 成就系统客户端壳：开界面按键 + 提示渲染 + 提示队列推进
+        com.makentmgreatagain.client.AchKeys.register();
+        com.makentmgreatagain.client.AchKeys achKeys = new com.makentmgreatagain.client.AchKeys();
+        MinecraftForge.EVENT_BUS.register(achKeys);
+        cpw.mods.fml.common.FMLCommonHandler.instance().bus().register(achKeys);
     }
 	
     private static void registerManualSource() {

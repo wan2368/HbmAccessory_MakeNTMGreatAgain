@@ -52,11 +52,11 @@ public class CigaretteKillHandler {
 		}
 		try {
 			player.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
-			// 处决后弹成就"逃离深渊"（服务端调用，客户端自动显示弹窗）。
+			// 处决后解锁成就"逃离深渊"。走本模组自己的成就系统，
+			// 不进 Minecraft 原生成就页（见 Achievement 包）。
 			// 注意：不能等 player.isDead —— 死亡动画约20tick后才设该标记，立即判断永远为false。
-			if (com.makentmgreatagain.init.ModAchievements.escapeAbyss != null) {
-				player.triggerAchievement(com.makentmgreatagain.init.ModAchievements.escapeAbyss);
-			}
+			com.makentmgreatagain.achievement.AchManager.unlock(
+					player, com.makentmgreatagain.achievement.AchRegistry.ESCAPE_ABYSS);
 		} finally {
 			if (creativeImmune) {
 				player.capabilities.disableDamage = true;

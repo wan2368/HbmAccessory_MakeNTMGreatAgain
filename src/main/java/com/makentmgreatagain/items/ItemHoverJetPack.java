@@ -116,6 +116,12 @@ public class ItemHoverJetPack extends JetpackBase {
 		else
 			vectorizedTick(world, player);
 
+		// 真正离地了才算「我飞了」：站着按空格不算
+		if (!world.isRemote && !player.onGround) {
+			com.makentmgreatagain.achievement.AchManager.unlock(
+					player, com.makentmgreatagain.achievement.AchRegistry.HOVER);
+		}
+
 		ArmorUtil.resetFlightTime(player);
 	}
 

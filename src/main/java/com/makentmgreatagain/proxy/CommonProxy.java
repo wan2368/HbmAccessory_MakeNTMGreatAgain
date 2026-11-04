@@ -41,6 +41,20 @@ public class CommonProxy {
         // Hover jetpack: drive flight logic when worn standalone in the chest slot
         // PlayerTickEvent 是 FML 事件总线，注册到 Forge 总线会永远收不到（导致单穿不工作）
         cpw.mods.fml.common.FMLCommonHandler.instance().bus().register(new com.makentmgreatagain.hook.HoverJetpackStandaloneHandler());
+
+        registerAchievements();
+    }
+
+    /**
+     * 成就触发器的双总线注册。
+     *
+     * 同一个实例要挂两处：EntityConstructing / PlayerInteract / BlockEvent 在 Forge 总线，
+     * PlayerTickEvent / PlayerLoggedInEvent 在 FML 总线。只注册其一会有触发点永远收不到。
+     */
+    private static void registerAchievements() {
+        com.makentmgreatagain.achievement.AchHandler handler = new com.makentmgreatagain.achievement.AchHandler();
+        MinecraftForge.EVENT_BUS.register(handler);
+        cpw.mods.fml.common.FMLCommonHandler.instance().bus().register(handler);
     }
 
     /**
