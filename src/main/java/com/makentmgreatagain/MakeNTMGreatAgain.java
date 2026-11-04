@@ -60,7 +60,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 
     public static final String MODID = "makentmgreatagain";
     public static final String NAME = "Make NTM Great Again";
-    public static final String VERSION = "1.0.0-beta.3";
+    public static final String VERSION = "1.0.0-beta.4";
 
     /** 统一用这个 logger 打日志，输出会带上模组名，比 System.out.println 好排查。 */
     public static final Logger LOG = LogManager.getLogger(NAME);

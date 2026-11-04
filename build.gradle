@@ -271,7 +271,7 @@ static def parseConfig(File config) {
 //   3) src/addon/resources/mcmod.info 里的 version（独立 jar 用）
 //   4) src/main/resources/mcmod.info 里 modid=makentmgreatagain 那一条的 version
 //      —— 为什么本体那份里也有附属一条，见下面的说明
-ext.addon_version = "1.0.0-beta.3"
+ext.addon_version = "1.0.0-beta.4"
 
 /**
  * 【为什么 src/main/resources/mcmod.info 里有两条】

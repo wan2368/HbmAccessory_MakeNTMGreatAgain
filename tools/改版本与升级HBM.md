@@ -193,6 +193,7 @@ git checkout main
 |---|---|---|
 | 报 `系统找不到文件 ...\WindowsApps\python.exe` | WindowsApps 里那个 `python.exe` 是应用商店的 0 字节占位符，`where` 能找到但执行不了 | 新版 `tools\改版本.bat` 会真的执行一遍再采用，自动改用 `py -3` / 真实安装路径 / WorkBuddy 自带 Python |
 | 打包报 `FileNotFoundException: HBM-NTM-xxx.jar` | `build\libs` 里没有本体 jar（clean 过 / 全新克隆） | 新版 `一键打包附属.bat` 会自动补建，老版本手动跑 `gradlew build` |
+| 启动卡住 / 关掉游戏后第二次 Run 起不来 | Gradle daemon 僵死，或 5005 调试端口还被上次的进程占着 | 双击 `tools\清理Java.bat`，再回 IDEA 点 Run Client |
 | 附属 jar 进整合包 `AbstractMethodError` | 忘了 `reobf`，或者 jar 是未混淆的 | 打包必须 `buildAddonJar reobf` 一起跑，bat 已经带上了 |
 | 模组列表显示 No mod information | `src\main\resources\mcmod.info` 少了第二条 | 参照 `src\addon\resources\mcmod.info` 补一条 |
 | 中文变成 `item.xxx.name` | lang 没重新构建，或 key 拼错 | 先 `gradlew build`；key 规则见下 |
