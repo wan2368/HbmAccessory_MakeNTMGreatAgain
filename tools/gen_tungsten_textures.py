@@ -3,6 +3,12 @@
 
 配色统一走"暖米白"：白钨矿 CaWO4 在现实里就是白色到浅黄白，
 三氧化钨才是标志性的亮黄绿，两者色差正好把"精矿 -> 提纯"的过程讲清楚。
+
+唯一例外是矿粉 powder_scheelite：暖米白和 HBM 的白砷 arsenic_trioxide
+几乎同色（同一套粉堆模板，色阶只差 10 来个亮度），NEI 里并排分不出来，
+所以矿粉单独走土黄 P_OCHRE。角标方案实测过：16x16 上 1px 折角在 GUI
+尺寸完全看不见，2px 以上又像贴了块胶带，不如直接用颜色区分，
+角标版只作为备选输出到 宣传素材，不进资源包。
 """
 import os
 import random
@@ -14,9 +20,13 @@ PREVIEW = os.path.join(ROOT, '宣传素材', 'tungsten')
 
 TEMPLATE_POWDER = os.path.join(TEX, 'items', 'powder_sodium_sulfate.png')
 
-# 暖米白：矿石 / 精矿 / 矿粉通用
+# 暖米白：矿石 / 精矿通用
 P_WARM = [(0x4E, 0x48, 0x37), (0x64, 0x5D, 0x48), (0x7B, 0x73, 0x5A), (0x93, 0x8B, 0x6E),
           (0xAD, 0xA4, 0x83), (0xC9, 0xBF, 0x9A), (0xE1, 0xD7, 0xB1), (0xF1, 0xE8, 0xC3)]
+
+# 土黄：矿粉专用。比暖米白更黄，和白砷（冷灰白）拉开距离
+P_OCHRE = [(0x4E, 0x45, 0x2B), (0x66, 0x5A, 0x38), (0x7E, 0x70, 0x45), (0x98, 0x88, 0x53),
+           (0xB3, 0xA1, 0x63), (0xCF, 0xBB, 0x75), (0xE7, 0xD4, 0x8E), (0xF7, 0xE7, 0xAB)]
 
 # 纯白：钨酸 H2WO4，沉淀出来的白色粉末
 P_ACID = [(0x6B, 0x6B, 0x66), (0x7E, 0x7E, 0x78), (0x96, 0x96, 0x8F), (0xAE, 0xAE, 0xA6),
@@ -231,6 +241,18 @@ def make_granular(pal, seed=7):
     return im
 
 
+def corner_mark(im, col=(0x3D, 0x4F, 0x5C), w=2, n=6):
+    """右上角折角标记。实验结论：16x16 上低于 2px 宽在 GUI 里看不见，
+    2px 以上又像贴了块胶带，所以只作为备选方案输出到预览目录。"""
+    im = im.copy()
+    for i in range(w):
+        for x in range(16 - n, 16):
+            im.putpixel((x, i), col + (255,))
+        for y in range(0, n):
+            im.putpixel((15 - i, y), col + (255,))
+    return im
+
+
 # ------------------------------------------------------------------ 物品：钨酸滤饼
 CAKE = [
     '................',
@@ -299,7 +321,10 @@ def main():
         os.path.join(PREVIEW, 'alt_ore_layout.png'))
     save(make_ore_blob(P_WARM), 'blocks/ore_scheelite.png')
     save(make_granular(P_WARM), 'items/scheelite_concentrate.png')
-    save(make_powder(P_WARM), 'items/powder_scheelite.png')
+    save(make_powder(P_OCHRE), 'items/powder_scheelite.png')
+    # 角标备选，仅预览
+    corner_mark(make_powder(P_OCHRE)).save(
+        os.path.join(PREVIEW, 'powder_scheelite_marked.png'))
     save(make_cake(P_ACID), 'items/tungstic_acid.png')
     save(make_powder(P_TRIOXIDE), 'items/tungsten_trioxide.png')
     # 流体 GUI 图标：整张纯色（HBM 的做法）
