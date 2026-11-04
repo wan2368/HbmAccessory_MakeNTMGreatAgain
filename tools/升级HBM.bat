@@ -1,7 +1,16 @@
 @echo off
 chcp 936 >nul
 setlocal EnableDelayedExpansion
+rem --- resolve project root (this script may sit in the root or in tools\) ---
 cd /d "%~dp0"
+if not exist "gradlew.bat" if exist "..\gradlew.bat" cd ..
+if not exist "gradlew.bat" (
+  echo [error] gradlew.bat not found in "%~dp0" or its parent.
+  echo         Put this script in the project root or in tools\.
+  pause >nul
+  exit /b 1
+)
+set "ROOT=%CD%"
 
 rem ===========================================================================
 rem  把上游 HBM 源码换成新版本，不动附属代码和打包配置。
