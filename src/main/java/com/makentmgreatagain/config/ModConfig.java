@@ -48,7 +48,7 @@ public final class ModConfig {
      * 配置版本号。<b>改过任何一个 {@code DEF_*} 之后必须 +1</b>，
      * 否则老存档目录里的 worldgen.cfg 还会拿旧值，代码里改了也看不出效果。
      */
-    public static final int CONFIG_VERSION = 2;
+    public static final int CONFIG_VERSION = 3;
 
     // =====================================================================================
     //  默认值（唯一真源）
@@ -94,6 +94,17 @@ public final class ModConfig {
     public static final int     DEF_AGOLD_ATTEMPTS_MAX     = 18;
     public static final int     DEF_AGOLD_MIN_Y            = 15;
     public static final int     DEF_AGOLD_MAX_Y            = 40;
+
+    // ---- 白钨矿（湿法炼钨的起点，只注册 oreScheelite）----
+    public static final boolean DEF_SCHEELITE_ENABLED      = true;
+    public static final int     DEF_SCHEELITE_CHANCE       = 8;
+    public static final int     DEF_SCHEELITE_VEINS_MIN    = 1;
+    public static final int     DEF_SCHEELITE_VEINS_MAX    = 1;
+    public static final int     DEF_SCHEELITE_RADIUS       = 6;
+    public static final int     DEF_SCHEELITE_ATTEMPTS_MIN = 400;
+    public static final int     DEF_SCHEELITE_ATTEMPTS_MAX = 1800;
+    public static final int     DEF_SCHEELITE_MIN_Y        = 10;
+    public static final int     DEF_SCHEELITE_MAX_Y        = 48;
 
     // =====================================================================================
     //  运行时字段（初始值也取自上面，保证两者永不脱节）
@@ -168,6 +179,25 @@ public final class ModConfig {
     public static int refractoryGoldMinY = DEF_AGOLD_MIN_Y;
     /** 含砷金矿：生成高度上限（含） */
     public static int refractoryGoldMaxY = DEF_AGOLD_MAX_Y;
+
+    /** 白钨矿世界生成开关 */
+    public static boolean scheeliteWorldgenEnabled = DEF_SCHEELITE_ENABLED;
+    /** 白钨矿：每区块触发一次的概率（百分比） */
+    public static int scheeliteChunkChancePercent = DEF_SCHEELITE_CHANCE;
+    /** 白钨矿：触发时生成几处矿囊，下限 */
+    public static int scheeliteVeinsPerChunkMin = DEF_SCHEELITE_VEINS_MIN;
+    /** 白钨矿：触发时生成几处矿囊，上限 */
+    public static int scheeliteVeinsPerChunkMax = DEF_SCHEELITE_VEINS_MAX;
+    /** 白钨矿：单处矿囊半径（格，球体） */
+    public static int scheeliteVeinRadius = DEF_SCHEELITE_RADIUS;
+    /** 白钨矿：单处矿囊撒点次数下限 */
+    public static int scheeliteClusterMin = DEF_SCHEELITE_ATTEMPTS_MIN;
+    /** 白钨矿：单处矿囊撒点次数上限 */
+    public static int scheeliteClusterMax = DEF_SCHEELITE_ATTEMPTS_MAX;
+    /** 白钨矿：生成高度下限（含） */
+    public static int scheeliteMinY = DEF_SCHEELITE_MIN_Y;
+    /** 白钨矿：生成高度上限（含） */
+    public static int scheeliteMaxY = DEF_SCHEELITE_MAX_Y;
 
     private static Configuration config;
 
@@ -285,6 +315,45 @@ public final class ModConfig {
         refractoryGoldMaxY = cfgInt("refractoryGoldMaxY", DEF_AGOLD_MAX_Y, 1, 250,
                 "含砷金矿生成高度上限（含）。默认 40。");
 
+        // ---------------- 白钨矿 ----------------
+        scheeliteWorldgenEnabled = cfgBool("enableScheeliteWorldgen", DEF_SCHEELITE_ENABLED,
+                "是否自然生成白钨矿（湿法炼钨的矿石来源）。\n"
+                + "注意：关掉之后白钨矿只能靠创造模式获取，整条湿法链也就没法正常起头。");
+        scheeliteChunkChancePercent = cfgInt("scheeliteChunkChancePercent", DEF_SCHEELITE_CHANCE, 0, 100,
+                "每区块生成白钨矿囊的概率（%）。默认 8。\n"
+                + "【调密度优先改这里】平均间隔 ≈ 100 ÷ 本值 个区块：\n"
+                + "    8 → 平均 12~13 区块 1 条（默认，实际间隔多落在 8~16 区块之间）\n"
+                + "    6 → 平均 17 区块 1 条（更稀）\n"
+                + "   12 → 平均 8 区块 1 条（更密）\n"
+                + "    0 → 不生成。\n"
+                + "它是几何分布，所以偶尔会连着两三个区块都出、也会十几个区块一个都没有，这是正常的。");
+        scheeliteVeinsPerChunkMin = cfgInt("scheeliteVeinsPerChunkMin", DEF_SCHEELITE_VEINS_MIN, 1, 4,
+                "触发时一个区块里生成几处矿囊，下限。默认 1。\n"
+                + "白钨矿单条本来就很大，调成 2 以上会让一个区块里叠出上千格矿石，几乎肯定要削概率。");
+        scheeliteVeinsPerChunkMax = cfgInt("scheeliteVeinsPerChunkMax", DEF_SCHEELITE_VEINS_MAX, 1, 4,
+                "触发时一个区块里生成几处矿囊，上限。默认 1。小于下限时自动等于下限。");
+        scheeliteVeinRadius = cfgInt("scheeliteVeinRadius", DEF_SCHEELITE_RADIUS, 1, 10,
+                "单处矿囊的半径（格）。默认 6，跨 13×13×13 的大矿囊（球内 949 格）。\n"
+                + "【慎调】体积按半径三次方涨：\n"
+                + "   4 → 球内 305 格（小矿囊）\n"
+                + "   6 → 球内 949 格（默认，一条矿脉够跑很久）\n"
+                + "   8 → 球内 2205 格（已经是一整片矿洞了）\n"
+                + "改大之前先确认 scheeliteMaxY - scheeliteMinY 至少是半径的两倍，\n"
+                + "否则球体会被高度区间裁掉，实际产量对不上预期。");
+        scheeliteClusterMin = cfgInt("scheeliteClusterMin", DEF_SCHEELITE_ATTEMPTS_MIN, 1, 4096,
+                "单处矿囊撒点次数下限。默认 400。\n"
+                + "撒点是有放回的，同一格被抽中多次只算一次，所以实际格数总是小于撒点数：\n"
+                + "半径 6 的球撒 400 次 ≈ 落 327 格，撒 1800 次 ≈ 落 785 格。\n"
+                + "这是\"单条矿脉 300~800 块\"这个目标的实现方式，不是靠概率。");
+        scheeliteClusterMax = cfgInt("scheeliteClusterMax", DEF_SCHEELITE_ATTEMPTS_MAX, 1, 4096,
+                "单处矿囊撒点次数上限。默认 1800。小于下限时自动等于下限。\n"
+                + "超过球内格数（默认 949）之后收益急剧递减，再往上加只是在空转。");
+        scheeliteMinY = cfgInt("scheeliteMinY", DEF_SCHEELITE_MIN_Y, 1, 250,
+                "白钨矿生成高度下限（含）。默认 10，比铅锌矿深，和矽卡岩型矿床的产出层位一致。");
+        scheeliteMaxY = cfgInt("scheeliteMaxY", DEF_SCHEELITE_MAX_Y, 1, 250,
+                "白钨矿生成高度上限（含）。默认 48，还在地表以下，不会露出地面。\n"
+                + "矿囊中心会被自动收进 [下限+半径, 上限-半径]，保证球体完整不被裁掉。");
+
         // ---------------- 区间自愈 ----------------
         if(patchRadiusMax < patchRadiusMin) patchRadiusMax = patchRadiusMin;
         if(saltVeinThicknessMax < saltVeinThicknessMin) saltVeinThicknessMax = saltVeinThicknessMin;
@@ -295,6 +364,9 @@ public final class ModConfig {
         if(refractoryGoldVeinsPerChunkMax < refractoryGoldVeinsPerChunkMin) refractoryGoldVeinsPerChunkMax = refractoryGoldVeinsPerChunkMin;
         if(refractoryGoldClusterMax < refractoryGoldClusterMin) refractoryGoldClusterMax = refractoryGoldClusterMin;
         if(refractoryGoldMaxY < refractoryGoldMinY) refractoryGoldMaxY = refractoryGoldMinY;
+        if(scheeliteVeinsPerChunkMax < scheeliteVeinsPerChunkMin) scheeliteVeinsPerChunkMax = scheeliteVeinsPerChunkMin;
+        if(scheeliteClusterMax < scheeliteClusterMin) scheeliteClusterMax = scheeliteClusterMin;
+        if(scheeliteMaxY < scheeliteMinY) scheeliteMaxY = scheeliteMinY;
 
         // 版本号最后写，写的是源码里的版本 —— 于是本次启动之后手改的值会一直保留到下次升版
         cfgInt(VERSION_KEY, CONFIG_VERSION, 0, Integer.MAX_VALUE,
@@ -323,6 +395,18 @@ public final class ModConfig {
                 + ", r=" + refractoryGoldVeinRadius
                 + ", attempts=" + refractoryGoldClusterMin + "~" + refractoryGoldClusterMax
                 + ", y=" + refractoryGoldMinY + "~" + refractoryGoldMaxY);
+        LOG.info("  scheelite: enabled=" + scheeliteWorldgenEnabled
+                + ", chance=" + scheeliteChunkChancePercent + "% (avg " + avgVeinSpacing() + " chunks)"
+                + ", veins=" + scheeliteVeinsPerChunkMin + "~" + scheeliteVeinsPerChunkMax
+                + ", r=" + scheeliteVeinRadius
+                + ", attempts=" + scheeliteClusterMin + "~" + scheeliteClusterMax
+                + ", y=" + scheeliteMinY + "~" + scheeliteMaxY);
+    }
+
+    /** 把「每区块概率」换算成「平均多少个区块一条」，只用于启动日志，方便对配置。 */
+    private static String avgVeinSpacing() {
+        if(scheeliteChunkChancePercent <= 0) return "never";
+        return String.format("%.1f", 100.0 / scheeliteChunkChancePercent);
     }
 
     // =====================================================================================

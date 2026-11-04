@@ -18,9 +18,11 @@ import com.makentmgreatagain.init.ModNetwork;
 import com.makentmgreatagain.config.ModConfig;
 import com.makentmgreatagain.init.ModRecipes;
 import com.makentmgreatagain.recipes.AnvilAssemblyTemplates;
+import com.makentmgreatagain.recipes.ScheeliteRecipes;
 import com.makentmgreatagain.world.WorldGenLeadZincOre;
 import com.makentmgreatagain.world.WorldGenRefractoryGoldOre;
 import com.makentmgreatagain.world.WorldGenSaltBlocks;
+import com.makentmgreatagain.world.WorldGenScheeliteOre;
 import com.makentmgreatagain.proxy.CommonProxy;
 import com.makentmgreatagain.tileentity.TileEntityAlloyShredder;
 import com.makentmgreatagain.tileentity.TileEntityHeatexReborn;
@@ -142,6 +144,9 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 		// 注册自定义 HBM 流体（盐水）。必须在 HBM 的 Fluids.init() 之后，preInit 正好安全
 		ModFluids.init();
 
+		// 白钨矿副产的熔炼：铍精矿 / 锆精矿 一比一出锭（不依赖配方表加载顺序，preInit 直接注册）
+		ScheeliteRecipes.addFurnaceRecipes();
+
 		// 世界生成配置（config/MNGA/worldgen.cfg）+ 注册含盐方块生成
 		ModConfig.init(event.getModConfigurationDirectory());
 		GameRegistry.registerWorldGenerator(new WorldGenSaltBlocks(), 0);
@@ -149,6 +154,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 		GameRegistry.registerWorldGenerator(new WorldGenLeadZincOre(), 0);
 		// 含砷金矿：比铅锌矿浅、更密，硫代硫酸盐浸金的矿石来源
 		GameRegistry.registerWorldGenerator(new WorldGenRefractoryGoldOre(), 0);
+		// 白钨矿：大矿囊、稀生成（默认约 12 区块一条），湿法炼钨的矿石来源
+		GameRegistry.registerWorldGenerator(new WorldGenScheeliteOre(), 0);
 
 		// 注册本模组 GUI 处理器（方块打开界面用）
 		registerGuiHandler();
@@ -182,9 +189,11 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				}
 				if(recipeClassName.equals("PyroOvenRecipes")) {
 					ModRecipes.addSulfurPyroRecipe();// 热解炉：硫粉 + 氧 → 二氧化硫（产量更高）
+					ScheeliteRecipes.addPyroOvenRecipes();// 白钨矿：钨酸焙烧、WO3 氢还原、砷渣脱砷
 				}
 				if(recipeClassName.equals("ChemicalPlantRecipes")) {
 					ModRecipes.addTungstenCarbideRecipe();
+					ScheeliteRecipes.addChemicalPlantRecipes();// 白钨矿：碱浸 / 酸化沉钨 / 渣的三级处理
 					ModRecipes.addCobaltCarbideRecipe();
 					ModRecipes.addSaltWaterRecipe();      // 需要 Mekanism 的 dustSalt，没装则内部自动跳过
 					ModRecipes.addHCLChemicalPlantRecipe();
@@ -236,6 +245,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				}
 				if(recipeClassName.equals("ShredderRecipes")) {
 					ModRecipes.addGraphiteShredderRecipe();
+					ScheeliteRecipes.addShredderRecipes();// 白钨矿：1 矿石 → 2 白钨矿粉
 					ModRecipes.addSaltSandShredderRecipe();
 					ModRecipes.addSaltRedSandShredderRecipe();
 					ModRecipes.addSaltGravelShredderRecipe();// 石墨锭→石墨粉（覆盖自动生成的 dust 配方）

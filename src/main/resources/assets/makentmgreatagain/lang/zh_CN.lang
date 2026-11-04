@@ -175,6 +175,19 @@ makentmgreatagain.leadzinc.cementation=锌粉置换镉
 makentmgreatagain.leadzinc.shaft=铅锌烧结块还原熔炼
 makentmgreatagain.leadzinc.dearsenify=砷料脱砷浸出
 
+# ---- 白钨矿（湿法炼钨）----
+tile.ore_scheelite.name=白钨矿
+item.powder_scheelite.name=白钨矿粉
+item.scheelite_concentrate.name=白钨精矿
+item.scheelite_leach_residue.name=白钨浸出渣
+item.tungstic_acid.name=钨酸
+item.tungsten_trioxide.name=三氧化钨
+item.arsenic_cake.name=砷渣
+item.beryllium_concentrate.name=铍精矿
+item.zirconium_concentrate.name=锆精矿
+hbmfluid.sodium_tungstate=钨酸钠液
+hbmfluid.waste_acid=废酸
+
 # ---- 无氰浸金（硫代硫酸盐法）----
 tile.ore_refractory_gold.name=含砷金矿
 item.arsenical_residue.name=砷浸出渣

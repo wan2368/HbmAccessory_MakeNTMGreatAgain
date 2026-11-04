@@ -12,6 +12,7 @@ import com.makentmgreatagain.blocks.BlockEnvironmentPump;
 import com.makentmgreatagain.blocks.BlockHeatexReborn;
 import com.makentmgreatagain.blocks.BlockOreLeadZinc;
 import com.makentmgreatagain.blocks.BlockOreRefractoryGold;
+import com.makentmgreatagain.blocks.BlockOreScheelite;
 import com.makentmgreatagain.tileentity.TileEntityAlloyShredder;
 import com.makentmgreatagain.tileentity.TileEntityBat9000Reborn;
 import com.makentmgreatagain.tileentity.TileEntityEnvironmentPump;
@@ -35,6 +36,8 @@ public class ModBlocks {
 	public static Block ore_leadzinc;
 	/* ---- 含砷金矿：难处理矿，只注册 oreRefractoryGold，绝不注册 oreGold ---- */
 	public static Block ore_refractory_gold;
+	/* ---- 白钨矿：湿法炼钨的起点，只注册 oreScheelite，绝不注册 oreTungsten ---- */
+	public static Block ore_scheelite;
 	//含盐物品
 	public static Block Block_Salt_Contain_Sand;
 	public static Block Block_Salt_Contain_Red_Sand;
@@ -73,6 +76,18 @@ public class ModBlocks {
 		// 独占矿辞：一旦注册 oreGold，HBM 离心机就会按普通金矿给它 2~3 个金粉，
 		// 这条湿法线当场失去意义。这里的"没人认"是设计的一部分。
 		net.minecraftforge.oredict.OreDictionary.registerOre("oreRefractoryGold", ore_refractory_gold);
+
+		// 白钨矿（CaWO4，湿法炼钨的起点）
+		ore_scheelite = new BlockOreScheelite()
+			.setBlockName("ore_scheelite")
+			.setBlockTextureName("makentmgreatagain:ore_scheelite")
+			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+		// setHarvestLevel 返回 void，不能链式调用，必须单独一行
+		ore_scheelite.setHarvestLevel("pickaxe", 2);
+		GameRegistry.registerBlock(ore_scheelite, "ore_scheelite");
+		// 独占矿辞：一旦注册 oreTungsten，HBM 的结晶器会直接把它结晶成 crystal_tungsten、
+		// 离心机再吐 4 份钨粉，整条碱浸—酸化—焙烧—还原的链当场被跳过。
+		net.minecraftforge.oredict.OreDictionary.registerOre("oreScheelite", ore_scheelite);
 
 		//含盐沙子
 		Block_Salt_Contain_Sand = ((Block) new BlockSaltContainSand())

@@ -43,6 +43,31 @@ public class ModItems {
 	public static Item powder_sodium_sulfate;
 	/* ---- 砷浸出渣：硫代硫酸盐浸金后的废渣，砷与硫富集在这里，回 ⑨ 脱砷再提一次 ---- */
 	public static Item arsenical_residue;
+
+	/* ==================================================================================
+	 *  白钨矿湿法链（CaWO₄ → 钨粉）
+	 *
+	 *  这条链和 HBM 原版钨矿的定位正好相反：原版钨矿丢熔炉直接出锭（SmeltingRecipes:38），
+	 *  白钨矿丢熔炉什么都不会发生。它必须先粉碎，再走碱浸—酸化—焙烧—氢还原四道工序。
+	 *  所以下面这套中间品不是"好看但没用"的过渡物，每一个都是链上不可跳过的实体。
+	 * ================================================================================== */
+
+	/* ---- 白钨矿粉：白钨矿粉碎后的解离产物，湿法链唯一的入口 ---- */
+	public static Item powder_scheelite;
+	/* ---- 白钨精矿：重选富集产物，当前链走的是全粉碱浸，这张先注册留作待用 ---- */
+	public static Item scheelite_concentrate;
+	/* ---- 白钨浸出渣：碱浸后剩下的不溶物，铍、锆、砷全在这里，本身不是废料而是矿源 ---- */
+	public static Item scheelite_leach_residue;
+	/* ---- 钨酸：酸化沉钨得到的黄色水合物 H₂WO₄，焙烧脱水后才是三氧化钨 ---- */
+	public static Item tungstic_acid;
+	/* ---- 三氧化钨：钨酸焙烧产物 WO₃，氢还原的直接原料 ---- */
+	public static Item tungsten_trioxide;
+	/* ---- 砷渣：浸出渣分选后的富砷尾渣，只有热解炉氧化焙烧才出白砷 ---- */
+	public static Item arsenic_cake;
+	/* ---- 铍精矿：浸出渣分选出的绿柱石类精矿，熔炉一比一出铍锭 ---- */
+	public static Item beryllium_concentrate;
+	/* ---- 锆精矿：轻质芳烃萃取才拿得到的锆英石精矿，熔炉一比一出锆锭 ---- */
+	public static Item zirconium_concentrate;
 	/* ---- 石膏 ---- */
 	public static Item gypsum;
 	/* ---- 天青石：盐水加硫酸沉出来的锶矿，硫酸锶。锶线的唯一矿源 ---- */
@@ -295,6 +320,68 @@ public class ModItems {
 		arsenical_residue.setTextureName("makentmgreatagain:arsenical_residue");
 		arsenical_residue.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
 		GameRegistry.registerItem(arsenical_residue, "arsenical_residue");
+
+		// ---------------- 白钨矿湿法链 ----------------
+		// 白钨矿粉：只注册 dustScheelite。
+		// 【红线】绝不注册 dustTungsten —— 一旦注册，玩家就能拿它直接顶替钨粉，
+		// 碱浸、酸化、焙烧、氢还原四道工序全部作废，白钨矿退化成"多一步粉碎的普通钨矿"。
+		powder_scheelite = new ItemWithDesc();
+		powder_scheelite.setUnlocalizedName("powder_scheelite");
+		powder_scheelite.setTextureName("makentmgreatagain:powder_scheelite");
+		powder_scheelite.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(powder_scheelite, "powder_scheelite");
+		net.minecraftforge.oredict.OreDictionary.registerOre("dustScheelite", powder_scheelite);
+
+		// 白钨精矿：浮选/重选的富集产物。当前配方链走全粉碱浸，这张先留着，
+		// 以后要做"精矿再富集"或者给别家模组当中间体时不必再动物品表。
+		scheelite_concentrate = new ItemWithDesc();
+		scheelite_concentrate.setUnlocalizedName("scheelite_concentrate");
+		scheelite_concentrate.setTextureName("makentmgreatagain:scheelite_concentrate");
+		scheelite_concentrate.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(scheelite_concentrate, "scheelite_concentrate");
+
+		// 浸出渣：碱浸的不溶物。它不是废物——铍、锆、砷都在这一堆里，
+		// 三级处理（水洗 / 轻质芳烃萃取 / 氧化焙烧）决定你能从中拿走什么。
+		scheelite_leach_residue = new ItemWithDesc();
+		scheelite_leach_residue.setUnlocalizedName("scheelite_leach_residue");
+		scheelite_leach_residue.setTextureName("makentmgreatagain:scheelite_leach_residue");
+		scheelite_leach_residue.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(scheelite_leach_residue, "scheelite_leach_residue");
+
+		// 钨酸：酸化沉钨的产物，黄色水合物
+		tungstic_acid = new ItemWithDesc();
+		tungstic_acid.setUnlocalizedName("tungstic_acid");
+		tungstic_acid.setTextureName("makentmgreatagain:tungstic_acid");
+		tungstic_acid.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(tungstic_acid, "tungstic_acid");
+
+		// 三氧化钨：焙烧脱水后的 WO₃，整条链里颜色最醒目的一步
+		tungsten_trioxide = new ItemWithDesc();
+		tungsten_trioxide.setUnlocalizedName("tungsten_trioxide");
+		tungsten_trioxide.setTextureName("makentmgreatagain:tungsten_trioxide");
+		tungsten_trioxide.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(tungsten_trioxide, "tungsten_trioxide");
+
+		// 砷渣：注意和上面的 arsenical_residue（含砷金矿的浸出渣）不是同一个东西。
+		// 那个是硫代硫酸盐浸金的废渣，这个专指白钨矿浸出渣分选出来的富砷尾料。
+		arsenic_cake = new ItemWithDesc();
+		arsenic_cake.setUnlocalizedName("arsenic_cake");
+		arsenic_cake.setTextureName("makentmgreatagain:arsenic_cake");
+		arsenic_cake.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(arsenic_cake, "arsenic_cake");
+
+		// 铍精矿 / 锆精矿：都能直接进熔炉烧成锭，1:1，和 HBM 自己的铍矿、锆矿一致
+		beryllium_concentrate = new ItemWithDesc();
+		beryllium_concentrate.setUnlocalizedName("beryllium_concentrate");
+		beryllium_concentrate.setTextureName("makentmgreatagain:beryllium_concentrate");
+		beryllium_concentrate.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(beryllium_concentrate, "beryllium_concentrate");
+
+		zirconium_concentrate = new ItemWithDesc();
+		zirconium_concentrate.setUnlocalizedName("zirconium_concentrate");
+		zirconium_concentrate.setTextureName("makentmgreatagain:zirconium_concentrate");
+		zirconium_concentrate.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(zirconium_concentrate, "zirconium_concentrate");
 
 		// 石膏：海水 + 硫酸 的产物，水泥缓凝剂、回转炉制硫的原料
 		gypsum = new Item();

@@ -39,6 +39,22 @@ P_TRIOXIDE = [(0x3F, 0x46, 0x12), (0x52, 0x5A, 0x18), (0x6C, 0x76, 0x1E), (0x87,
 GOLD_D = (0xB4, 0x8C, 0x3B)
 GOLD_L = (0xDD, 0xB7, 0x60)
 
+# 灰褐：白钨浸出渣。不是"废土色"，而是湿渣那种发暗的褐，带烧过的调子
+P_SLAG = [(0x27, 0x24, 0x1F), (0x34, 0x30, 0x29), (0x43, 0x3D, 0x33), (0x55, 0x4D, 0x40),
+          (0x69, 0x5F, 0x4E), (0x7F, 0x73, 0x5E), (0x96, 0x89, 0x71), (0xAD, 0x9F, 0x85)]
+
+# 灰绿：砷渣。偏冷、偏脏，和浸出渣的暖褐一眼能分开
+P_ARSENIC_CAKE = [(0x25, 0x2B, 0x24), (0x31, 0x39, 0x30), (0x3F, 0x49, 0x3D), (0x50, 0x5C, 0x4D),
+                  (0x63, 0x71, 0x5F), (0x78, 0x88, 0x73), (0x8E, 0x9F, 0x87), (0xA5, 0xB6, 0x9D)]
+
+# 浅灰绿：绿柱石（铍精矿）。绿色是绿柱石的本色，但要压得很淡，避免像铜矿
+P_BERYL = [(0x3A, 0x45, 0x3C), (0x4B, 0x58, 0x4C), (0x5E, 0x6D, 0x5E), (0x73, 0x84, 0x71),
+           (0x8A, 0x9C, 0x86), (0xA3, 0xB4, 0x9C), (0xBD, 0xCB, 0xB4), (0xD6, 0xE0, 0xCB)]
+
+# 浅砂黄：锆英石（锆精矿）。比白钨的暖米白更灰、更"砂"
+P_ZIRCON = [(0x46, 0x3F, 0x33), (0x58, 0x50, 0x41), (0x6C, 0x63, 0x51), (0x82, 0x78, 0x63),
+            (0x99, 0x8E, 0x77), (0xB1, 0xA5, 0x8C), (0xC9, 0xBD, 0xA2), (0xDF, 0xD4, 0xBB)]
+
 
 # ------------------------------------------------------------------ 通用工具
 def smooth(t):
@@ -302,6 +318,52 @@ def make_cake(pal, seed=13):
     return im
 
 
+def make_slag(pal, seed=17, specks=3):
+    """渣：粉堆轮廓 + 粗颗粒跳变 + 散落颗粒。
+
+    轮廓必须和粉末、精矿共用同一套模板——HBM 里所有"一堆东西"都是这个形状，
+    自己另起一套反而出戏。渣和粉的差别放在质地上：
+    粉是细腻渐变，精矿是 3x2 归组的砂粒，渣是 2x2 随机跳档（颗粒粗、成分杂），
+    再加几粒散落在堆外，就是"倒出来的时候撒了一点"的感觉。
+    参照物是同模组的 arsenical_residue（含砷金矿的浸出渣），它也是粉堆 + 散粒。
+    """
+    global LEVEL
+    if LEVEL is None:
+        LEVEL = powder_level_map()
+    rnd = random.Random(seed)
+    im = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
+
+    cell = {}
+    for y in range(16):
+        for x in range(16):
+            v = LEVEL[y][x]
+            if v is None:
+                continue
+            key = (x // 2, y // 2)
+            if key not in cell:
+                cell[key] = rnd.choice((-1, 0, 0, 1))
+            k = max(1, min(6, v + cell[key]))
+            im.putpixel((x, y), pal[k] + (255,))
+
+    # 异相颗粒：亮的像石英，暗的像没反应完的矿
+    cells = [(x, y) for y in range(16) for x in range(16) if LEVEL[y][x] is not None]
+    rnd.shuffle(cells)
+    for i, (x, y) in enumerate(cells):
+        if i % 8 == 0:
+            im.putpixel((x, y), pal[7] + (255,))
+        elif i % 11 == 0:
+            im.putpixel((x, y), pal[2] + (255,))
+
+    # 散落颗粒：只放在堆底以下的空白处，不破坏堆形
+    for _ in range(specks):
+        sx, sy = rnd.randrange(1, 15), rnd.randrange(13, 16)
+        if LEVEL[sy][sx] is None:
+            im.putpixel((sx, sy), pal[4] + (255,))
+            if LEVEL[sy][(sx + 1) % 16] is None:
+                im.putpixel(((sx + 1) % 16, sy), pal[2] + (255,))
+    return im
+
+
 def main():
     os.makedirs(PREVIEW, exist_ok=True)
     out = []
@@ -327,8 +389,15 @@ def main():
         os.path.join(PREVIEW, 'powder_scheelite_marked.png'))
     save(make_cake(P_ACID), 'items/tungstic_acid.png')
     save(make_powder(P_TRIOXIDE), 'items/tungsten_trioxide.png')
+    # 浸出渣 / 砷渣：两块渣饼，靠色调分开（暖褐 vs 冷绿）
+    save(make_slag(P_SLAG, seed=17), 'items/scheelite_leach_residue.png')
+    save(make_slag(P_ARSENIC_CAKE, seed=29), 'items/arsenic_cake.png')
+    # 铍精矿 / 锆精矿：粗颗粒砂感，和精矿同一套形状、只换色板
+    save(make_granular(P_BERYL, seed=11), 'items/beryllium_concentrate.png')
+    save(make_granular(P_ZIRCON, seed=19), 'items/zirconium_concentrate.png')
     # 流体 GUI 图标：整张纯色（HBM 的做法）
     save(Image.new('RGBA', (16, 16), (0xC6, 0xD2, 0xA2, 255)), 'gui/fluids/sodium_tungstate.png')
+    save(Image.new('RGBA', (16, 16), (0x8E, 0x7B, 0x39, 255)), 'gui/fluids/waste_acid.png')
 
     for rel, p in out:
         print('%-40s %s' % (rel, os.path.getsize(p)))

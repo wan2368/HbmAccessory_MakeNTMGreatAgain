@@ -44,6 +44,7 @@ import com.hbm.inventory.recipes.loader.GenericRecipe;
 import com.hbm.inventory.recipes.loader.GenericRecipes.ChanceOutput;
 import com.hbm.inventory.recipes.loader.GenericRecipes.IOutput;
 import com.hbm.items.ItemEnums.EnumChunkType;
+import com.hbm.items.ItemEnums.EnumCokeType;
 import com.hbm.inventory.material.Mats;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.RecipesCommon.ComparableStack;
@@ -668,6 +669,8 @@ public class ModRecipes {
 		FluidType cdLiq = addonFluid(ModFluids.CADMIUM_LIQUOR);
 		FluidType znSol = addonFluid(ModFluids.ZINC_SULFATE);
 		FluidType na2so3 = addonFluid(ModFluids.SODIUM_SULPHITE);
+		FluidType nitrobenzene = addonFluid(ModFluids.NITROBENZENE);
+		FluidType aniline = addonFluid(ModFluids.ANILINE);
 		// 三种流体缺一条整条线就跑不通，宁可整段跳过，也不要在存档里留半条链
 		if(so2 == Fluids.NONE || cdLiq == Fluids.NONE || znSol == Fluids.NONE || na2so3 == Fluids.NONE) return;
 
@@ -697,7 +700,7 @@ public class ModRecipes {
 			ChemicalPlantRecipes.INSTANCE.register(new GenericRecipe("makentmgreatagain.leadzinc.leach")
 				.setupNamed(500, 2_500)
 				.inputItems(new ComparableStack(ModItems.bp_blue_powder, 2))
-				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 500))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 500), new FluidStack(nitrobenzene, 500))
 				.outputFluids(new FluidStack(cdLiq, 500), new FluidStack(znSol, 500)));
 		}
 
@@ -739,10 +742,7 @@ public class ModRecipes {
 		}
 
 		// ⑨ 前置：亚硫酸钠溶液 —— 脱砷真正缺的就是这个还原剂。
-		//    反应：SO2 + 2NaOH → Na2SO3 + H2O，化工厂里就是"碱液吸收烟气"。
-		//    为什么不做成直接吃 SO2 气体：气体只要有硫就能烧，太便宜；而这里的碱液要
-		//    海水 → 浓缩海水 → 电解（1000 浓缩海水 → 1000 氯气 + 400 碱液）才拿得到。
-		//    也就是每做一批亚硫酸钠，玩家都得先把整条氯碱线转起来。
+
 		if(!hasChemRecipe("makentmgreatagain.leadzinc.sulphite")) {
 			ChemicalPlantRecipes.INSTANCE.register(new GenericRecipe("makentmgreatagain.leadzinc.sulphite")
 				.setupNamed(600, 2_500)
@@ -756,7 +756,7 @@ public class ModRecipes {
 			ChemicalPlantRecipes.INSTANCE.register(new GenericRecipe("makentmgreatagain.leadzinc.dearsenify")
 				.setupNamed(800, 4_000)
 				.inputItems(new ComparableStack(ModItems.bp_blue_powder, 2))
-				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 500), new FluidStack(na2so3, 500))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 500), new FluidStack(na2so3, 500), new FluidStack(aniline, 250))
 				.outputItems(new ItemStack(ModItems.arsenic_trioxide, 3))
 				.outputFluids(new FluidStack(cdLiq, 500), new FluidStack(znSol, 400)));
 		}
@@ -835,12 +835,13 @@ public class ModRecipes {
 		}
 
 		// ② 白砷碳热还原：碳把三氧化二砷还原成单质砷，砷以蒸气逸出后冷凝成粒。
-		//    焦炭用 ANY_COKE.gem()，和上面那条保持同一套矿辞，GT 的焦炭也能进。
+
 		if(!hasGenericRecipe(BlastFurnaceRecipesNT.INSTANCE, "makentmgreatagain.leadzinc.arsenicReduction")) {
 			BlastFurnaceRecipesNT.INSTANCE.register((GenericRecipeNoPower) new GenericRecipeNoPower("makentmgreatagain.leadzinc.arsenicReduction")
 				.setNamed()
 				.setDuration(800)
-				.inputItems(new ComparableStack(ModItems.arsenic_trioxide, 3), new OreDictStack(ANY_COKE.gem()))
+				.inputItems(new ComparableStack(ModItems.arsenic_trioxide, 3),
+							new ComparableStack(com.hbm.items.ModItems.coke, 2, EnumCokeType.PETROLEUM))
 				.outputItems(new ItemStack(com.hbm.items.ModItems.nugget_arsenic, 2)));
 		}
 
@@ -924,6 +925,7 @@ public class ModRecipes {
 				.setupNamed(600, 2_500)
 				.inputItems(new ComparableStack(ModItems.powder_zinc_isp, 1))
 				.inputFluids(new FluidStack(auThio, 1_000))
+				.inputFluids(new FluidStack(Fluids.GAS_COKER, 4_000))
 				.outputItems(new ItemStack(com.hbm.items.ModItems.powder_gold, 4),
 							 new ItemStack(com.hbm.items.ModItems.nugget_bismuth, 1))
 				.outputFluids(new FluidStack(thio, 700)));

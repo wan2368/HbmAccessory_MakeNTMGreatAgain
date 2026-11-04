@@ -403,9 +403,6 @@ public final class ModFluids {
 
     /**
      * 二氧化硫：烧结机烟气，无色但带刺激性臭味，NFPA 3-0-1。
-     *
-     * 它是这条线里硫的唯一气态出口：精矿氧化焙烧时 PbS/ZnS/CdS 的硫全进这里，
-     * 再接下面那条接触法（极简版）制酸，硫就重新闭回硫酸，整条线不必外购酸。
      */
     public static final FluidDef SULFUR_DIOXIDE = def("SULFUR_DIOXIDE", 2040, 0xC9C24E, "sulfur_dioxide")
             .gaseous()
@@ -418,8 +415,6 @@ public final class ModFluids {
 
     /**
      * 含镉浸出液：蓝粉加硫酸浸出后富集了镉的那一半，暗金黄。
-     *
-     * 电积时镉在阴极析出、硫酸在阳极再生，所以这一步只吃液、回酸，不需要额外补酸。
      */
     public static final FluidDef CADMIUM_LIQUOR = def("CADMIUM_LIQUOR", 2041, 0xA8853F, "cadmium_liquor")
             .liquid()
@@ -432,9 +427,6 @@ public final class ModFluids {
 
     /**
      * 硫酸锌溶液：同一批浸出液里锌的那一半，无色微浊。
-     *
-     * 单独分出来是为了让锌有回收去处——电积成锌粉后既能在本模组里置换镉，
-     * 也能以 dustZinc 的身份被 GT 的黄铜、镀锌配方直接吃掉。
      */
     public static final FluidDef ZINC_SULFATE = def("ZINC_SULFATE", 2042, 0xBFC9C4, "zinc_sulfate")
             .liquid()
@@ -446,11 +438,6 @@ public final class ModFluids {
 
     /**
      * 亚硫酸钠溶液：碱液吸收二氧化硫得到的还原剂，无色到淡米色、弱碱性。
-     *
-     * <p>它存在的唯一理由是给脱砷提供一个"不是随手就能拿到"的还原剂：
-     * 气体 SO2 只要能烧硫就有，而亚硫酸钠溶液要先把浓缩海水电解出碱液，
-     * 再把 SO2 用碱液吸收 —— 两级上游，卡住了砷的产出速度。
-     * 化学上这是湿法炼锌净化段的标准药剂（Na2SO3 把 As(V) 还原成 As(III) 析出白砷）。</p>
      */
     public static final FluidDef SODIUM_SULPHITE = def("SODIUM_SULPHITE", 2043, 0xE3DCB6, "sodium_sulphite")
             .liquid()
@@ -462,14 +449,6 @@ public final class ModFluids {
 
     /**
      * 硫代硫酸钠溶液（大苏打）：无色透明，微凉感，工业上最常用的无氰还原剂。
-     *
-     * <p>制法是 {@code Na2SO3 + S → Na2S2O3}，现实里硫粉要在 80~100 ℃ 微沸 2~4 小时。
-     * 在本包里它是"硫的第二种形态"：硫粉走复式炼焦炉或热解炉只能变成 SO2 气体，
-     * 而 SO2 一离开设备就得靠罐子装，不方便堆存；变成硫代硫酸钠液之后，
-     * 硫就能以液体形式进管道、进配方，还能拿去浸金。</p>
-     *
-     * <p>它在浸出里会被氧化降解成连四硫酸盐和硫酸盐，这是该工艺最大的成本项，
-     * 所以置换之后只回得来七成，缺的那三成得现补。</p>
      */
     public static final FluidDef SODIUM_THIOSULFATE = def("SODIUM_THIOSULFATE", 2044, 0xDCE4E0, "sodium_thiosulphate")
             .liquid()
@@ -480,12 +459,6 @@ public final class ModFluids {
 
     /**
      * 金硫代硫酸溶液：含金络合物 {@code [Au(S2O3)2]3-} 的淡金色浸出液。
-     *
-     * <p>硫代硫酸根把金氧化溶解成络阴离子，这一步是"无氰"的全部意义所在 ——
-     * 全程不碰氰化物，浸出液本身无毒，尾液可以直接排。
-     * 代价是络合物比氰化体系不稳定，必须靠铜离子催化、而且只能在弱碱性下工作。</p>
-     *
-     * <p>出来后用锌粉置换，机理和铅锌线的镉置换完全一样，只是被置换的金属更贵。</p>
      */
     public static final FluidDef GOLD_THIOSULFATE = def("GOLD_THIOSULFATE", 2045, 0xD9A93C, "gold_thiosulphate")
             .liquid()
@@ -493,6 +466,40 @@ public final class ModFluids {
             .hazard(1, 0, 0, EnumSymbol.NONE)
             .canister(0xD9A93C)
             .tankTexture("tank_GOLD_THIOSULFATE");
+
+    /**
+     * 钨酸钠液：白钨矿碱浸出来的清液，Na₂WO₄。
+     *
+     * <p>整条湿法链的中间载体：碱浸段产出，酸化段消耗（2500 mB 一批，出 4 份钨酸），
+     * 浸出渣的三级处理也各回一点（R1 500、R2 1000）。所以它的总量是守恒的，
+     * 玩家只要不往外倒，系统里循环的就是固定那几千 mB。</p>
+     *
+     * <p>温度标 60：碱浸是热料，出锅就是这个温度，用热交换器还能捞一点余热回来。
+     * 不标腐蚀 —— 它要进铜管、进储罐，标了腐蚀会让前期的管线成本凭空翻倍。</p>
+     */
+    public static final FluidDef SODIUM_TUNGSTATE = def("SODIUM_TUNGSTATE", 2046, 0xC6D2A2, "sodium_tungstate")
+            .liquid()
+            .temp(60)
+            .hazard(1, 0, 0, EnumSymbol.NONE)
+            .canister(0xC6D2A2)
+            .tankTexture("tank_SODIUM_TUNGSTATE");
+
+    /**
+     * 废酸：酸化沉钨之后的母液，硫酸钠 + 残余游离酸。
+     *
+     * <p>这是白钨矿能"零外排"的关键。L2 每批吐 2500 mB 废酸，而 L1 每浸一次
+     * 要 500 mB 工艺水，五次正好 2500 —— 废酸直接顶替工艺水回到碱浸段。
+     * 于是全程只有硫酸是净投入，没有一股废液需要往外倒（也就不会触发污染系统）。</p>
+     *
+     * <p>标腐蚀但伤害低（20）：它确实是酸，进不了普通铁罐，但也不至于像硝酸那样
+     * 一碰就烂。这样玩家在前期就得给它准备耐酸容器，是个合理的小门槛。</p>
+     */
+    public static final FluidDef WASTE_ACID = def("WASTE_ACID", 2047, 0x8E7B39, "waste_acid")
+            .liquid()
+            .temp(40)
+            .hazard(2, 0, 0, EnumSymbol.ACID)
+            .canister(0x8E7B39)
+            .tankTexture("tank_WASTE_ACID");
 
     /**
      * 最简示例（复制这一行改参数即可）：

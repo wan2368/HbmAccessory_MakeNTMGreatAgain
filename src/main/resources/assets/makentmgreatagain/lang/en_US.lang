@@ -154,6 +154,19 @@ makentmgreatagain.pulp.jungle.sulfate=Jungle Pulp (Sulphate Process, Salt Cake)
 makentmgreatagain.chloralkali.dechlor=Sodium Sulphite Dechlorination
 makentmgreatagain.leadzinc.arsenicReduction=Arsenic Trioxide Carbothermic Reduction
 
+# ---- Scheelite (hydrometallurgical tungsten) ----
+tile.ore_scheelite.name=Scheelite Ore
+item.powder_scheelite.name=Scheelite Powder
+item.scheelite_concentrate.name=Scheelite Concentrate
+item.scheelite_leach_residue.name=Scheelite Leach Residue
+item.tungstic_acid.name=Tungstic Acid
+item.tungsten_trioxide.name=Tungsten Trioxide
+item.arsenic_cake.name=Arsenic Cake
+item.beryllium_concentrate.name=Beryllium Concentrate
+item.zirconium_concentrate.name=Zirconium Concentrate
+hbmfluid.sodium_tungstate=Sodium Tungstate
+hbmfluid.waste_acid=Waste Acid
+
 # ---- Cyanide-free gold leaching (thiosulphate) ----
 tile.ore_refractory_gold.name=Arsenical Gold Ore
 item.arsenical_residue.name=Arsenical Leach Residue
