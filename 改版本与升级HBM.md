@@ -13,7 +13,7 @@
 ## 一、日常开发
 
 ```
-改代码 → 跑 gradlew build（或 一键打包附属.bat）→ 进游戏测
+改代码 → IDEA 里点 Run Client（自动重打 jar）→ 进游戏测
 ```
 
 几个必须记住的点：
@@ -23,6 +23,28 @@
 - **旧存档要删 `config/hbmRecipes/_hbmChemicalPlant.json`**，否则 `hasChemRecipe` 命中旧配方，新配方不注册。
 - **矿脉、掉落只影响新生区块**，老区块不会补。
 - `GenericRecipe.power` 是**每 tick** 的耗电，不是总量。
+
+### 在 IDEA 里跑游戏测试
+
+运行配置已经建好（`.idea\runConfigurations\`），Run 下拉框里能看到两条：
+
+| 配置 | 实际执行 | 什么时候用 |
+|---|---|---|
+| **Run Client** | `runClient --offline` | 日常测试。`runClient` 依赖 `jar`，会自动增量重打，不用先手动 build |
+| **Build + Run Client** | `build` + `runClient --offline` | 要连附属包（含 reobf）一起重打时 |
+
+为什么不用 IDEA 的 Application 配置：
+
+- 这个 ForgeGradle 版本（1.2）**不提供 `genIntellijRuns`**，只有老的 `idea` / `cleanIdea` / `openIdea`（IPR 格式），不会生成带 classpath 的运行配置。
+- 1.7.10 的入口是 `LaunchWrapper + FMLTweaker`，classpath 要挂 60 多个 jar + `build\dirtyArtifacts\forgeSrc-*.jar` + AT，还要 `-Dfml.coreMods.load=...`。普通 Application 配置凑不出来，必然 `ClassNotFoundException`。
+- 项目 SDK 现在是 **JDK 21**（`.idea/misc.xml` 的 `project-jdk-name`），而 Gradle 用的是 JDK 8（`.idea/gradle.xml` 的 `gradleJvm`）。真要走 Application 路线，得先把项目 SDK 换成 8，否则 Forge 1.7.10 起不来。
+
+两个坑：
+
+- **必须带 `--offline`**。ForgeGradle 的 classpath 是 `changing = true`，联网会挨个仓库审计（jitpack / cursemaven / ntmr / gregtech），实测卡几分钟没动静。
+- **dev 加载的是 `build\libs` 的 jar，不是 `build\classes`**。日志实证：启动 classpath 末尾是 `build\libs\HBM-NTM-[...].jar`，整份日志里 `build\classes` 出现 0 次。所以改动没生效时，先看 Gradle 面板里 `:jar` 是不是被判定成 UP-TO-DATE。
+
+断点调试：`runClient` 里已经写死 `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005`。先用 Run Client 起游戏，再 `Run → Attach to Process`（或 Remote JVM Debug 连 `localhost:5005`）。
 
 ### 改版本号
 

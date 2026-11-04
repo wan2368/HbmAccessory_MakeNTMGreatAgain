@@ -12,7 +12,10 @@
 /*.ipr
 /*.iws
 /*.iml
-/.idea
+/.idea/*
+!/.idea/runConfigurations/
+/.idea/runConfigurations/*
+!/.idea/runConfigurations/*.xml
 
 # gradle
 /build
