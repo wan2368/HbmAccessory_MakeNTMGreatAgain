@@ -148,6 +148,10 @@ public class BlockBat9000Reborn extends BlockDummyable implements IPersistentInf
 			if(pos == null)
 				return false;
 
+			// 结构异常时核心格可能不是本机 TE，硬转 CCE，先 instanceof 保护
+			if(!(world.getTileEntity(pos[0], pos[1], pos[2]) instanceof TileEntityBat9000Reborn))
+				return false;
+
 			TileEntityBat9000Reborn trialEntity = (TileEntityBat9000Reborn) world.getTileEntity(pos[0], pos[1], pos[2]);
 
 			if(trialEntity != null) {

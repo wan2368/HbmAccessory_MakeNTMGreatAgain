@@ -48,7 +48,7 @@ public final class AnvilTemplateTooltip {
                 list.add(EnumChatFormatting.YELLOW + "Right-click to copy (requires paper)");
             }
             for(String name : pool) {
-                GenericRecipe recipe = GenericRecipes.nameToRecipeGlobal.get(name);
+                GenericRecipe recipe = com.makentmgreatagain.compat.HBMVersionCompat.findRecipeByName(name);
                 if(recipe != null) list.add(recipe.getLocalizedName());
             }
             return;
@@ -80,7 +80,7 @@ public final class AnvilTemplateTooltip {
         list.add(EnumChatFormatting.AQUA + "第 " + (page + 1) + "/" + pages + " 页（" + (from + 1) + "-" + to + " / " + pool.size() + "）");
 
         for(int i = from; i < to; i++) {
-            GenericRecipe recipe = GenericRecipes.nameToRecipeGlobal.get(pool.get(i));
+            GenericRecipe recipe = com.makentmgreatagain.compat.HBMVersionCompat.findRecipeByName(pool.get(i));
             if(recipe != null) list.add(recipe.getLocalizedName());
         }
 

@@ -1,0 +1,23 @@
+{
+	"name": "Riser Rig",
+	"icon": [
+		"makentmgreatagain:riser_rig",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:riser_rig",
+			1,
+			0
+		]
+	],
+	"title": {
+		"en_US": "Offshore Riser Drilling Rig",
+		"zh_CN": "海面立管钻机"
+	},
+	"content": {
+		"en_US": "A 7x7x16 offshore mining platform. It drives a pipe straight down from its centre; when the pipe reaches a deep-sea nodule it stops and starts extracting it.<br><br>1 - Placement<br>A 5x5x5 volume of full solid blocks is required directly underneath (the central 1x1 drill column is exempt), otherwise it will not start. Place it right above an ore patch so the drill goes into the nodule.<br><br>2 - Running<br>Set the fluid ID slot to High-Performance Solvent, pump at least 8,000 mB into the input tank and pull the left lever. While running it draws 50,000 HE/t from the internal 50M buffer. Every 5 seconds it extends the pipe one block down and consumes 1,000 mB of solvent; deep rock and bedrock stop it.<br><br>3 - Extraction<br>When the drill tip meets a nodule it stops and mines once every 20 seconds. A nodule holds 30 extractions.<br><br>Each one yields seawater 8,000 mB, tailings slurry 3,000 mB and heavy sand slurry 1,000 mB, plus a 30% / 40% / 65% chance for cobalt-rich polymetallic, heavy sand and rare earth concentrate.<br><br>Each extraction also costs 16,000 mB of solvent on top of the pipe cost. Keep the input tank topped up, or the progress bar will sit at 100% without advancing.<br><br>Once empty the block becomes a depleted nodule. The rig then keeps mining other nodules within range of that empty block instead of drilling deeper - base range is 5x5, and green upgrades add +3 / +5 / +7. Only when the whole area is cleared does the pipe descend again.<br><br>If the 3x3 output grid is full or any of the three output tanks is full, extraction pauses until space is freed.<br><br>4 - Where to look<br>Nodules spawn only on the seafloor of Water-type biomes in the Overworld, at least 20 blocks below sea level - deep ocean is the best bet.<br><br>They replace the topmost seabed block (sand, gravel, clay, dirt or stone) in one connected patch of roughly 30~48 nodules, up to 13~15 blocks across. Only about 2% of ocean chunks have one, so mark the coordinates when you find it.<br><br>Dive down and look for a grey pebble carpet on the seabed, or simply test with the rig: if the drill bites into stone and deep rock without stopping, there was nothing underneath - move to another patch.<br><br>5 - Automation and upgrades<br>All six ports on the two +-X faces carry power, fluid and items at once. The 3x3 output grid can be pulled out by pipes, and the three can slots under the output tanks fill empty canisters.<br><br>Two upgrade slots accept speed, efficiency and power-saving machine upgrades, tiers 1 to 3; green upgrades also widen the mining range.<br><br>See also:<br>[[Seawater Processing|Seawater Processing]]<br>[[Environment Pump|Environment Pump]]",
+		"zh_CN": "一座 7x7x16 的海上采矿平台。它从中心竖直向下伸出输送管道, 钻到深海结核混合物时停下并开始开采。<br><br>1 - 放置<br>机器正下方需要 5x5x5 的完全实心方块 (中心 1x1 的钻杆通道除外), 否则不会启动。最好直接摆在一片结核矿区的正上方, 让钻头能钻进结核。<br><br>2 - 运行<br>把识别码槽设为高性能溶剂, 往输入罐泵入至少 8,000 mB, 再拉下左侧「采掘」拉杆。运行时从内部 50M 缓冲抽 50,000 HE/t。每 5 秒向下伸出一格管道并消耗 1,000 mB 溶剂, 碰到深层岩石或基岩会停下。<br><br>3 - 开采<br>钻头碰到结核后停下, 每 20 秒采一次。一个结核可采 30 次。<br><br>每次产出海水 8,000 mB、尾砂浆 3,000 mB、重砂浆 1,000 mB, 并各有 30% / 40% / 65% 的概率产出高钴多金属精矿、重砂精矿和稀土精矿。<br><br>每次开采除管道消耗外还要额外消耗 16,000 mB 溶剂。输入罐不足时进度条会停在 100% 不动, 需要及时补充。<br><br>采空后原地变成空深海结核混合物: 只要它周围开采范围内还有结核, 钻机就继续采旁边的, 不再往下钻。基础范围 5x5, 绿色升级分别 +3 / +5 / +7。整片采完才会继续下钻。<br><br>3x3 输出格或三个出料罐任一满时, 开采暂停, 腾出空间才继续。<br><br>4 - 去哪找结核<br>结核只生成在主世界海洋类群系的海床上, 水深至少 20 格, 深海最稳妥。<br><br>它替换海床最表层的沙子、砂砾、黏土、泥土或石头, 一窝连成一片, 约 30~48 格, 最大跨度 13~15 格。但只有约 2% 的海洋区块会有, 找到就值得记下坐标。<br><br>潜下去找海床上一片灰色碎石毯, 或者直接用钻机试: 钻头一路啃石头和深岩不停, 说明底下没东西, 换一片再试。<br><br>5 - 自动化与升级<br>两个 +-X 面上的六个接口同时通电力、流体和物品。3x3 输出格可被管道抽走, 出料罐下方的三个罐槽能给空罐装液。<br><br>两个升级槽收速度、效率、节能机器升级, 1~3 级; 绿色升级还会扩大开采范围。<br><br>另见:<br>[[海水处理|Seawater Processing]]<br>[[环境地下泵|Environment Pump]]"
+	}
+}

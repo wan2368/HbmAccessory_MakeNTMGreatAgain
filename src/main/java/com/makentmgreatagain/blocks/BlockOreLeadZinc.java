@@ -26,10 +26,6 @@ import net.minecraft.world.World;
  * 只是把"必须过一次火"这件事摆回台面上 —— 掉锭等于跳过冶炼，
  * 那 ISP 前面那套烧结、鼓风炉就都没有存在的意义了。</p>
  *
- * <p>这不是为了卡人，而是让"矿"和"金属"分开：挖下来随手熔掉的都是贱金属，
- * 而镉、以及其他伴生的稀有金属全都锁在矿方块里 —— 只有把整块矿送去选矿，
- * 那些东西才出得来。现实里 ISP 厂也确实是"整块矿石进流程"，不是"挖出来就拆成金属"。</p>
- *
  * <p>实现上只重写 {@link #getDrops}：精准采集那一支走的是
  * {@code Block.harvestBlock} 里的 silk 分支（{@code canSilkHarvest()} 默认 true、
  * {@code createStackedBlock} 默认返回自身），根本不会调到 getDrops。

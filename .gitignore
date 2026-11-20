@@ -38,3 +38,10 @@
 
 # workbuddy session data
 /.workbuddy
+
+# local artifacts
+/.gradle-user-home/
+/logs/
+/git_overview.txt
+/java_files_list.txt
+/vibe_images/

@@ -1,0 +1,21 @@
+{
+	"name": "Fluid Cooler",
+	"icon": [
+		"makentmgreatagain:machine_fluid_cooler",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:machine_fluid_cooler"
+		]
+	],
+	"title": {
+		"en_US": "Fluid Cooler",
+		"zh_CN": "流体冷却机"
+	},
+	"content": {
+		"en_US": "3x3x7. Cools a hot fluid with a coolant, no power needed. The port blocks still accept cables but draw nothing.<br><br>Two ID slots: slot 0 is the coolant, slot 1 is the fluid being cooled. Both only accept pairs from the built-in pairing table. An invalid ID does nothing and gives no message - the tank type just stays put.<br><br>Sneak-right-click with an ID sets the COOLANT only; the other one needs the GUI.<br><br>Coolant use is not 1:1 - it scales by the heat ratio of the two fluids. Throughput caps at 16,000 mB/tick, and both sides need at least 1 mB to start.<br><br>See also:<br>[[Large Catalytic Chemical Factory|Large Catalytic Chemical Factory]]<br>[[Large Centrifuge|Large Centrifuge]]",
+		"zh_CN": "用冷却剂给热流体降温, 不耗电。<br><br>两个识别码槽: 0 号是冷却剂, 1 号是被冷却的流体。两槽都只认内置配对表里的流体。插错识别码不会有任何反应也不提示, 罐型保持原样。<br><br>冷却剂消耗不是 1:1, 按两种流体的热量比配平。单 tick 上限 16,000 mB, 两侧都至少要有 1 mB 才启动。<br><br>另见:<br>[[大型催化化工厂|Large Catalytic Chemical Factory]]<br>[[大型离心机|Large Centrifuge]]"
+	}
+}

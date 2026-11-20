@@ -356,7 +356,7 @@ public class GuiQMAW extends GuiScreen {
 
 			if(y + maxHeight > guiTop + 219) break;
 
-			if(line.isEmpty()) y += this.fontRendererObj.FONT_HEIGHT;
+			if(line.isEmpty()) y += this.fontRendererObj.FONT_HEIGHT / 2 + 2;
 
 			for(ManualElement element : line) {
 				int elementX = x + inset;
@@ -368,7 +368,7 @@ public class GuiQMAW extends GuiScreen {
 				inset += element.getWidth();
 			}
 
-			y += maxHeight + 2;
+			y += maxHeight;
 		}
 	}
 

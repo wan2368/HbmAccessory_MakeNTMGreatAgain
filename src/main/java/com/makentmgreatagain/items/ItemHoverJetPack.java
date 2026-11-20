@@ -109,7 +109,7 @@ public class ItemHoverJetPack extends JetpackBase {
 		boolean firing = hover || props.isJetpackActive();       // 悬浮常开；矢量要按住空格
 		if (!firing) return;
 
-		if (!drainArmor(player, cost)) return;                   // 从供电盔甲扣电，扣不动就不飞
+		if (!drainArmor(player, cost)) return;                   // 双端各自扣电：与 HBM 原版背包 useUpFuel 一致
 
 		if (hover)
 			hoverTick(world, player, props.isJetpackActive());
@@ -118,8 +118,8 @@ public class ItemHoverJetPack extends JetpackBase {
 
 		// 真正离地了才算「我飞了」：站着按空格不算
 		if (!world.isRemote && !player.onGround) {
-			com.makentmgreatagain.achievement.AchManager.unlock(
-					player, com.makentmgreatagain.achievement.AchRegistry.HOVER);
+			com.makentmgreatagain.init.ModAchievements.unlock(
+					player, com.makentmgreatagain.init.ModAchievements.hover);
 		}
 
 		ArmorUtil.resetFlightTime(player);

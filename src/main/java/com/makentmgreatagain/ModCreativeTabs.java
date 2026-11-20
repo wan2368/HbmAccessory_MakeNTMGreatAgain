@@ -47,4 +47,24 @@ public class ModCreativeTabs {
             return ModItems.alloy_plate_reborn;
         }
     };
+
+    // 5. 核拓展栏（20 个 gadget_core 同型球，见 ModNukeCores）；图标用野火核心
+    public static final CreativeTabs TAB_NUCLEAR = new CreativeTabs("makentmgreatagain_nuclear") {
+        @Override
+        @SideOnly(Side.CLIENT)
+        public Item getTabIconItem() {
+            Item icon = com.makentmgreatagain.init.ModNukeCores.get("balefire");
+            return icon != null ? icon : Items.iron_ingot;
+        }
+    };
+
+    // 6. 食物与杂项栏（塔可夫系列 17 件，见 ModTarkovFood）；图标用法棍
+    public static final CreativeTabs TAB_FOOD = new CreativeTabs("makentmgreatagain_food") {
+        @Override
+        @SideOnly(Side.CLIENT)
+        public Item getTabIconItem() {
+            Item icon = com.makentmgreatagain.init.ModTarkovFood.get("bread_baguette");
+            return icon != null ? icon : Items.bread;
+        }
+    };
 };

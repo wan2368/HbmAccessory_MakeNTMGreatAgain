@@ -49,9 +49,13 @@ public class BlockHeatexReborn extends BlockDummyable implements ILookOverlay, I
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta) {
 		if(meta >= 12) return new TileEntityHeatexReborn();
-		// 流体口与顶部热面外圈都需要代理：前者接管道，后者供热管从上方抽热
+
+		// 流体口那几格（extra）额外要流体代理，管道才认作接口。
+		// 其余 dummy 也一律挂热源代理：原版加热类方块（电加热器 / 加热炉 / 燃烧室）
+		// 取的是「正下方那格」的 IHeatSource，它们压在这台机器的任意一格顶上时，
+		// 脚下都必须是能拿到核心热量的代理，否则只有正好压在核心上才抽得到。
 		if(hasExtra(meta)) return new TileEntityProxyCombo().fluid().heatSource();
-		return null;
+		return new TileEntityProxyCombo().heatSource();
 	}
 
 	@Override
@@ -167,7 +171,8 @@ public class BlockHeatexReborn extends BlockDummyable implements ILookOverlay, I
 		}
 
 		// 其余位置：热量 + 加热回路两端
-		text.add(EnumChatFormatting.GOLD + String.format(Locale.US, "%,d", heatex.heatEnergy) + " TU");
+		text.add(EnumChatFormatting.GOLD + String.format(Locale.US, "%,d / %,d TU",
+			heatex.heatEnergy, TileEntityHeatexReborn.MAX_HEAT));
 
 		if(heatex.tanks[2].getTankType() == Fluids.NONE) {
 			text.add(EnumChatFormatting.GREEN + I18nUtil.resolveKey("info.heatex_reborn.heated_in"));

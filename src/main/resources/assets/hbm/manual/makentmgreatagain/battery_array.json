@@ -1,0 +1,27 @@
+{
+	"name": "Battery Array",
+	"icon": [
+		"makentmgreatagain:mnga_battery_array_controller",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:mnga_battery_array_controller"
+		],
+		[
+			"makentmgreatagain:mnga_battery_array_casing"
+		],
+		[
+			"makentmgreatagain:mnga_battery_array_port"
+		]
+	],
+	"title": {
+		"en_US": "Battery Array",
+		"zh_CN": "电池矩阵"
+	},
+	"content": {
+		"en_US": "A flood-formed multiblock like the PWR: build the shell, fill it with battery and capacitor blocks, right-click the controller. Failures outline the bad blocks in red for three seconds.<br><br>Shape: a solid box with all three sides at least 3, six faces sealed, no hollow interior. Maximum 4,096 blocks.<br><br>Controller and ports must sit in a face centre - never on an edge or corner.<br><br>Charge and discharge rate is set by the WEAKEST battery in the structure. Adding batteries only adds capacity. Mixing in one weak cell drags the whole array down.<br><br>Capacitors multiply the rate: gold 1.1/1.3, niobium 1.4/1.8, tantalum 1.8/2.5, schrabidate 2.5/5.<br><br>Only formed port shells connect to cables; plain casing does not. Breaking any shell block disassembles the array and returns the parts.<br><br>Battery and capacitor blocks store nothing on their own.<br><br>See also:<br>[[Electric Blast Furnace|Electric Blast Furnace]]",
+		"zh_CN": "和 PWR 一样的成型多方块: 搭外壳、往里塞电池和电容元件、右键控制器成型。失败时会用红框标出错格三秒。<br><br>形状: 三边都至少 3 的实心长方体, 六面封死, 内部不能有空腔, 最多 4,096 格。<br><br>控制器和端口只能放在某个面的内部区域, 不能落在棱或角上。<br><br>充放速率由组内最弱的那块电池决定, 多堆电池只加容量。混进一块弱电池会拖垮整组。<br><br>电池和电容方块单独放着不存电。<br><br>另见:<br>[[电力高炉|Electric Blast Furnace]]"
+	}
+}

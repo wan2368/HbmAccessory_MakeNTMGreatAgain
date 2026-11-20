@@ -1,0 +1,21 @@
+{
+	"name": "Electric Blast Furnace",
+	"icon": [
+		"makentmgreatagain:machine_electric_blast_furnace",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:machine_electric_blast_furnace"
+		]
+	],
+	"title": {
+		"en_US": "Electric Blast Furnace",
+		"zh_CN": "电力高炉"
+	},
+	"content": {
+		"en_US": "5x5x7. An electric crucible with a built-in caster: it melts metals, alloys them by crucible recipe, then casts ingots directly.<br><br>Needs 600,000 TU before it smelts. Heats at 2,000 TU/t on 10,000 HE/t.<br><br>The 20 input slots are five rows of four. Row i only takes items that melt into metal i of the recipe - the wrong row is refused.<br><br>Molten metal caps at 75% (192,000 mB). Each metal gets a share by input ratio, so one full metal blocks the others.<br><br>Put HBM molds in the template slot to cast. Under 9 molds it waits 10 seconds before flushing. Slag casts without a mold.<br><br>A small unmarked GUI button dumps the melt as casting scrap.<br><br>Red upgrades: power x2/x8/x32, heating x2/x4/x8. Green upgrades only speed up alloying.<br><br>See also:<br>[[Battery Array|Battery Array]]",
+		"zh_CN": "带电的坩埚加连续铸造机: 熔金属、按坩埚配方合金, 再直接铸锭。<br><br>攒够 600,000 TU 才开始熔炼。升温 2,000 TU/t, 耗电 10,000 HE/t。<br><br>20 格原料是五排四列。第 i 排只收能熔成配方第 i 种金属的物品, 放错排直接拒收。<br><br>熔融金属上限 75% (192,000 mB)。每种金属按投入比例分额度, 一种灌满就会卡住其他几种。<br><br>模板槽放 HBM 模具才能铸造, 炉渣不用模具。<br><br>GUI 里有个没图标的小按钮, 会把熔融金属当铸造废料倒掉。<br><br>另见:<br>[[电池矩阵|Battery Array]]"
+	}
+}

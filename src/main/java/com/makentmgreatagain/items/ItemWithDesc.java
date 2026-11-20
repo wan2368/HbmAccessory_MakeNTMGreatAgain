@@ -17,58 +17,11 @@ import net.minecraft.util.StatCollector;
 /**
  * 带说明文字与名称颜色的通用物品基类。
  *
- * <p>本附属里原本有三处各抄了一遍 addInformation（{@code ItemAdvancedAlloy}、
- * {@code ItemFluidDestroyer}、{@code ItemCigaretteDrx}），三份逻辑几乎一致却都不完整：
- * 都只能整段灰字、都要在语言文件里手写 {@code $} 换行、都不能给名字上色。
- * 这个类把它们合并掉，并把「描述」和「名称颜色」都做成一行配置。</p>
+ * <p>说明写在语言文件 {@code item.<unlocalizedName>.desc} 里，{@code $} 换行；
+ * 没有这个键时与普通 {@code new Item()} 表现完全一致。</p>
  *
- * <h3>最短用法</h3>
- * <pre>
- * // ModItems 里，原来是 new Item()
- * powder_zinc_isp = new ItemWithDesc();
- * powder_zinc_isp.setUnlocalizedName("powder_zinc_isp");
- *
- * // 语言文件里加一行就有了说明，$ 是换行符
- * item.powder_zinc_isp.desc=第一行$第二行
- * </pre>
- *
- * <h3>改名称颜色</h3>
- * <pre>
- * // 方式一：任意 16 色，链式写法
- * new ItemWithDesc().setNameColor(EnumChatFormatting.GOLD)
- *
- * // 方式二：只改四档稀有度，不污染显示名（见下方「注意」）
- * new ItemWithDesc().setRarity(EnumRarity.rare)
- * </pre>
- *
- * <p><b>注意（名称颜色的代价）</b>：{@code setNameColor} 是往显示名前面拼一个
- * {@code §x} 颜色代码，而 NEI 搜索、按首字母快速匹配、成就与统计都读这份显示名。
- * 所以它会：</p>
- * <ul>
- *   <li>不影响包含式搜索（名字原文还在，拼音搜索也照样能命中）</li>
- *   <li>影响「按首字符」匹配——首字符从原本的字母变成了 {@code §}</li>
- *   <li>服务端侧不会带色（下方用 effectiveSide 挡掉了），成就消息保持干净</li>
- * </ul>
- * <p>如果你在意搜索，用 {@code setRarity}；只在意外观，就用 {@code setNameColor}。</p>
- *
- * <h3>自动换行</h3>
- * <p>语言文件里不想手写一堆 {@code $} 就调 {@code setDescWidth(30)}：</p>
- * <pre>
- * new ItemWithDesc().setDescWidth(30)   // 一行约 15 个汉字
- * </pre>
- * <p>宽度以半角字符为 1、汉字与全角符号为 2 计算，对应物品提示框的实际像素宽度。
- * 手写的 {@code $} 优先级更高，会先按它分段，再对每段自动折行。</p>
- *
- * <h3>多个物品共用一个类但参数不同</h3>
- * <pre>
- * // 销毁罐三种型号，描述里都有 %s 占位，想各自填自己的速率
- * new ItemFluidDestroyer(25, true, false, false)     // 构造函数里自己 setDescArgs(rate)
- * </pre>
- *
- * <h3>不覆盖行为</h3>
- * <p>语言文件里没有 {@code .desc} 条目时，addInformation 直接返回，物品表现与
- * 普通 {@code new Item()} 完全一致；不调 setNameColor 时显示名也与原版一致。
- * 所以可以无脑把所有简单物品换成这个类。</p>
+ * <p>{@code setNameColor} 会往显示名前拼 {@code §x}，影响「按首字符」匹配；
+ * 在意搜索就用 {@code setRarity}。服务端侧不带色，成就消息保持干净。</p>
  */
 public class ItemWithDesc extends Item {
 
@@ -143,14 +96,7 @@ public class ItemWithDesc extends Item {
 		return this.glow || super.hasEffect(stack);
 	}
 
-	/**
-	 * 名称染色。
-	 *
-	 * <p>只在客户端逻辑端拼接颜色代码：服务端拿到的是干净名字，
-	 * 成就广播、死亡消息、统计排行里不会混进 {@code §x} 这种字符。
-	 * 集成服务端里客户端线程与服务器线程同 JVM，{@code getEffectiveSide()}
-	 * 会按当前线程区分，所以单人游戏也能正确工作。</p>
-	 */
+	/** 只在客户端逻辑端染色，服务端（含单人）拿到的名字不带 {@code §x}。 */
 	@Override
 	public String getItemStackDisplayName(ItemStack stack) {
 		String name = super.getItemStackDisplayName(stack);
@@ -159,12 +105,7 @@ public class ItemWithDesc extends Item {
 		return this.nameColor + name;
 	}
 
-	/**
-	 * 说明文字。键名 {@code item.<unlocalizedName>.desc}。
-	 *
-	 * <p>处理顺序：查键 → 缺键直接返回 → 有实参就格式化 → 按 {@code $} 分段
-	 * → 需要时对每段自动折行 → 上色（行内已有 {@code §} 就不覆盖）。</p>
-	 */
+	/** 键名 {@code item.<unlocalizedName>.desc}；缺键时什么都不加。 */
 	@Override
 	@SideOnly(Side.CLIENT)
 	@SuppressWarnings("unchecked")
@@ -200,15 +141,7 @@ public class ItemWithDesc extends Item {
 
 	/* ------------------------------------------------------------------ 自动折行 */
 
-	/**
-	 * 按显示宽度折行。
-	 *
-	 * <p>优先在空格处断（英文描述不会把单词劈开），没有空格可用就按宽度硬断
-	 * （中文本来就该这么断）。{@code §x} 这类颜色代码整对跳过、不占宽度。</p>
-	 *
-	 * @param text     单段文本（已按 $ 切好）
-	 * @param maxWidth 一行允许的最大半角宽度
-	 */
+	/** 按显示宽度折行：优先在空格处断，没有空格就硬断；{@code §x} 不占宽度。 */
 	protected static List<String> wrap(String text, int maxWidth) {
 		List<String> lines = new ArrayList<String>();
 		StringBuilder line = new StringBuilder();
@@ -265,12 +198,7 @@ public class ItemWithDesc extends Item {
 		return width;
 	}
 
-	/**
-	 * 单字符显示宽度：ASCII 记 1，CJK 与全角符号记 2。
-	 *
-	 * <p>MC 的物品提示框里 ASCII 约 6px、汉字约 9px，按 2 倍算虽然略微高估，
-	 * 但折行偏保守比溢出到框外好。</p>
-	 */
+	/** 单字符显示宽度：ASCII 记 1，CJK 与全角符号记 2（略高估，折行偏保守）。 */
 	protected static int charWidth(char c) {
 		if(c < 0x80) return 1;
 		if(c == 0x2329 || c == 0x232A) return 2;

@@ -3,6 +3,9 @@ package com.makentmgreatagain.packet;
 import com.hbm.handler.ArmorModHandler;
 import com.makentmgreatagain.items.ItemHoverJetPack;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
@@ -18,8 +21,27 @@ import net.minecraft.util.EnumChatFormatting;
  * Request（客户端→服务端）：玩家按下了模式键，请求翻转。
  * Ack（服务端→客户端）：服务端定位并写入权威模式后回发，客户端据此刷新显示。
  * 客户端不预改值，以服务端结果为准，避免双端不一致。
+ *
+ * 线程模型：1.7.10 的 SimpleNetworkWrapper handler 跑在 netty 线程，而本版本 Forge
+ * 没有 addScheduledTask / getWorldThread 可用，所以服务端工作体入队，
+ * 由 {@link ServerTaskPump} 在每个服务端 tick 里搬回主线程执行。
  */
 public class HoverJetpackModePacket {
+
+	/** netty 线程投递、服务端主线程执行的任务队列 */
+	private static final ConcurrentLinkedQueue<Runnable> MAIN_THREAD_TASKS =
+			new ConcurrentLinkedQueue<Runnable>();
+
+	/** 服务端 tick 泵：把队列里的任务搬回主线程执行。由 CommonProxy 注册到 FML 总线。 */
+	public static class ServerTaskPump {
+		@cpw.mods.fml.common.eventhandler.SubscribeEvent
+		public void onServerTick(TickEvent.ServerTickEvent event) {
+			Runnable task;
+			while((task = MAIN_THREAD_TASKS.poll()) != null) {
+				task.run();
+			}
+		}
+	}
 
 	/** C → S：请求切换 */
 	public static class Request implements IMessage {
@@ -46,39 +68,56 @@ public class HoverJetpackModePacket {
 	public static class HandlerServer implements IMessageHandler<Request, IMessage> {
 
 		@Override
-		public IMessage onMessage(Request msg, MessageContext ctx) {
+		public IMessage onMessage(Request msg, final MessageContext ctx) {
 
 			if (ctx.side != Side.SERVER) return null;
 
-			EntityPlayer player = ctx.getServerHandler().playerEntity;
+			final EntityPlayer player = ctx.getServerHandler().playerEntity;
 			if (player == null) return null;
 
-			int mode;
+			// 包体工作体：入队，由 ServerTaskPump 在服务端主线程执行
+			MAIN_THREAD_TASKS.add(new Runnable() {
+				@Override
+				public void run() {
+					int mode = applyToggle(player);
+					if(mode < 0) return;
+
+					inform(player, mode);
+					com.hbm.packet.PacketDispatcher.wrapper.sendTo(new Ack(mode),
+							(net.minecraft.entity.player.EntityPlayerMP) player);
+				}
+			});
+
+			return null;
+		}
+
+		/** 定位背包并翻转模式；返回新模式，没找到返回 -1。只在主线程调用。 */
+		private static int applyToggle(EntityPlayer player) {
 
 			ItemStack chest = player.getCurrentArmor(2);     // 2 = 胸甲槽
 
 			if (chest != null && chest.getItem() instanceof ItemHoverJetPack) {
 				// 单穿
-				mode = toggle(chest);
+				int mode = toggle(chest);
 				player.inventoryContainer.detectAndSendChanges();
-			} else if (chest != null && ArmorModHandler.hasMods(chest)) {
+				return mode;
+			}
+			if (chest != null && ArmorModHandler.hasMods(chest)) {
 				// 装在胸甲里：pryMods 得到的是副本，改完必须 applyMod 写回
 				ItemStack[] mods = ArmorModHandler.pryMods(chest);
 				ItemStack jet = mods == null ? null : mods[ArmorModHandler.plate_only];
-				if (jet == null || !(jet.getItem() instanceof ItemHoverJetPack)) return null;
-				mode = toggle(jet);
+				if (jet == null || !(jet.getItem() instanceof ItemHoverJetPack)) return -1;
+				int mode = toggle(jet);
 				ArmorModHandler.applyMod(chest, jet);
 				player.inventoryContainer.detectAndSendChanges();
-			} else {
-				// 没穿在身上：允许改揣在物品栏里的那件
-				ItemStack held = findInInventory(player);
-				if (held == null) return null;
-				mode = toggle(held);
-				player.inventoryContainer.detectAndSendChanges();
+				return mode;
 			}
-
-			inform(player, mode);
-			return new Ack(mode);
+			// 没穿在身上：允许改揣在物品栏里的那件
+			ItemStack held = findInInventory(player);
+			if (held == null) return -1;
+			int mode = toggle(held);
+			player.inventoryContainer.detectAndSendChanges();
+			return mode;
 		}
 
 		/** 切换成功后在左上角提示（复用 HBM 的背包提示槽 ID_JETPACK，与 C 键开关同位置） */

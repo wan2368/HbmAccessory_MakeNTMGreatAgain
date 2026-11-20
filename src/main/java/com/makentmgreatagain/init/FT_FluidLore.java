@@ -54,6 +54,9 @@ public class FT_FluidLore extends FluidTrait {
 
 	@Override
 	public void deserializeJSON(JsonObject obj) {
-		if (obj.has("key")) this.key = obj.get("key").getAsString();
+		// 只认字符串形态的 "key"：畸形 json（对象/数组/数值）直接读会抛 ClassCastException 打断读档
+		if (obj.has("key") && obj.get("key").isJsonPrimitive() && obj.get("key").getAsJsonPrimitive().isString()) {
+			this.key = obj.get("key").getAsString();
+		}
 	}
 }

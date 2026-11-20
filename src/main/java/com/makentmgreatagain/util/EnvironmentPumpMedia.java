@@ -10,7 +10,6 @@ import java.util.Map;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.world.biome.BiomeGenCraterBase;
-import com.hbm.world.biome.BiomeGenNoMansLand;
 
 import com.makentmgreatagain.init.ModFluids;
 
@@ -25,7 +24,9 @@ import net.minecraft.world.biome.BiomeGenBase;
  * 一个 Medium 就是一套「运行配方」：产出什么、产出多少、要吃什么液体、吃多少、每 tick 耗多少电。
  * 群系只负责选出 Medium，群系本身不携带任何数值。
  *
- * 范围限定为 MC 原版群系 + HBM 群系，其余一律落到 WATER（一级抽水）。
+ * 范围限定为 MC 原版群系、维度（下界 / 末地）与 HBM 的辐射坑群系，其余一律落到 WATER（一级抽水）。
+ * 注意：HBM 自建的 No Man's Land 群系在 MainRegistry 里注册被注释掉了，世界里不会生成，
+ * 所以不设任何绑定 —— 绑了也是永远抽不到的介质。
  */
 public final class EnvironmentPumpMedia {
 
@@ -123,8 +124,6 @@ public final class EnvironmentPumpMedia {
 	public static final Medium LYE = add("lye", "lye", Fluids.LYE, 2_000, Fluids.WATER, 5_000, 2_000, 3);
 	/** Ⅲ 岩浆 —— 产 岩浆 2,000｜耗 水 5,000（触水即固化，用于换取下界作业成本）｜实际 5,000 HE/t */
 	public static final Medium LAVA = add("lava", "lava", Fluids.LAVA, 2_000, Fluids.WATER, 5_000, 2_000, 3);
-	/** Ⅲ 水银 —— 产 水银 2,000｜耗 水 5,000｜实际 5,000 HE/t｜无人区土壤里的重金属污染层 */
-	public static final Medium MERCURY = add("mercury", "mercury", Fluids.MERCURY, 2_000, Fluids.WATER, 5_000, 2_000, 3);
 
 	/** Ⅳ 钙溶液 —— 产 钙溶液 500｜耗 水 2,000｜实际 10,500 HE/t（3,500 × 3.0）｜钙的下游用途窄，产量压到同级最低 */
 	public static final Medium CALCIUM = add("calcium", "calcium", Fluids.CALCIUM_SOLUTION, 500, Fluids.WATER, 2_000, 3_500, 4);
@@ -187,8 +186,6 @@ public final class EnvironmentPumpMedia {
 		bind(LYE, "savanna", "savannaplateau");
 		// 下界 → 岩浆（维度判定优先，此行仅作 biomeName 兜底）
 		bind(LAVA, "hell");
-		// HBM 无人区 → 水银
-		bind(MERCURY, "nomansland");
 		// 山地 / 山地边缘 / 山地+ → 钙溶液
 		bind(CALCIUM, "extremehills", "extremehillsedge", "extremehillsplus");
 		// 石滩 → 氦-4（花岗岩基岩中的放射性衰变产物）
@@ -273,7 +270,6 @@ public final class EnvironmentPumpMedia {
 		if(biome instanceof BiomeGenCraterBase.BiomeGenCraterInner) return VITRIOL_INNER;
 		if(biome instanceof BiomeGenCraterBase.BiomeGenCraterOuter) return VITRIOL_OUTER;
 		if(biome instanceof BiomeGenCraterBase) return VITRIOL;
-		if(biome instanceof BiomeGenNoMansLand) return MERCURY;
 
 		Medium m = BY_BIOME.get(normalize(biome.biomeName));
 		return m == null ? WATER : m;

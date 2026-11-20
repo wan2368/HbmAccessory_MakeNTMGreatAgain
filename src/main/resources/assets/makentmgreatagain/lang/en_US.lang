@@ -2,7 +2,56 @@ itemGroup.makentmgreatagain_resources=Make NTM Great Again: Resources
 itemGroup.makentmgreatagain_blocks=Make NTM Great Again: Blocks
 itemGroup.makentmgreatagain_machines=Make NTM Great Again: Machines
 itemGroup.makentmgreatagain_gear=Make NTM Great Again: Gear
+itemGroup.makentmgreatagain_nuclear=Make NTM Great Again: Nuclear Expansion
 item.ingot_advanced_alloy.name=Advanced Alloy Ingot
+
+item.ingot_helicopter.name=Crashproof Alloy Ingot
+item.ingot_helicopter.desc=HeLiCoPtEr
+item.ingot_platinum.name=Platinum Ingot
+item.ingot_erbium.name=Erbium Ingot
+
+# ---- HeLiCoPtEr / Pt / Er parts (textures in textures/items/parts/) ----
+item.plate_helicopter.name=Crashproof Alloy Plate
+item.plate_cast_helicopter.name=Crashproof Alloy Cast Plate
+item.plate_welded_helicopter.name=Crashproof Alloy Welded Plate
+item.wire_helicopter.name=Crashproof Alloy Wire
+item.wire_dense_helicopter.name=Crashproof Alloy Dense Wire
+item.bolt_helicopter.name=Crashproof Alloy Bolt
+item.pipe_helicopter.name=Crashproof Alloy Pipe
+item.shell_helicopter.name=Crashproof Alloy Shell
+
+item.plate_platinum.name=Platinum Plate
+item.plate_cast_platinum.name=Platinum Cast Plate
+item.plate_welded_platinum.name=Platinum Welded Plate
+item.wire_platinum.name=Platinum Wire
+item.wire_dense_platinum.name=Platinum Dense Wire
+item.bolt_platinum.name=Platinum Bolt
+item.pipe_platinum.name=Platinum Pipe
+item.shell_platinum.name=Platinum Shell
+
+item.plate_erbium.name=Erbium Plate
+item.plate_cast_erbium.name=Erbium Cast Plate
+item.plate_welded_erbium.name=Erbium Welded Plate
+item.wire_erbium.name=Erbium Wire
+item.wire_dense_erbium.name=Erbium Dense Wire
+item.bolt_erbium.name=Erbium Bolt
+item.pipe_erbium.name=Erbium Pipe
+item.shell_erbium.name=Erbium Shell
+item.powder_helicopter.name=Crashproof Alloy Dust
+item.powder_erbium.name=Erbium Dust
+item.powder_platinum.name=Platinum Dust
+item.nugget_helicopter.name=Crashproof Alloy Nugget
+item.nugget_erbium.name=Erbium Nugget
+item.nugget_platinum.name=Platinum Nugget
+item.ingot_helium.name=Condensed Helium Ingot
+tile.block_helicopter.name=Crashproof Alloy Block
+tile.block_erbium.name=Erbium Block
+tile.block_platinum.name=Platinum Block
+
+hbmmat.helicopter=Crashproof Alloy
+hbmmat.erbium=Erbium
+hbmmat.platinum=Platinum
+hbmmat.helium=Helium
 item.cmb_.electrode.name=CMB Electrode
 item.cmb_.electrode.desc=An electrode made of CMB Steel and Dineutronium.$Unbreakable
 item.alloy_helmet_reborn.name=Advanced Alloy Helmet
@@ -23,8 +72,6 @@ item.meth_pill.desc.effects=§9Rad-X 3:00 · Haste II 3:00 · Speed I 3:00
 item.meth_pill.desc.weakness=§cWeakness II 5:00
 hbmfluid.methylamine=Methylamine
 hbmfluid.phenylacetone=Phenylacetone
-achievement.escape_abyss=§0Escape from the Abyss
-achievement.escape_abyss.desc=§0You managed to escape... but at what cost?
 container.alloyShredder=Advanced Alloy Shredder
 item.powder_graphite.name=Graphite Powder
 hbmfluid.salt_water=Salt Water
@@ -50,7 +97,10 @@ hbmfluid.tbp_kero=Nitration Kerosene Extractant
 hbmfluid.avgas_ru=High-Octane Avgas
 hbmfluid.n2o4=Nitrogen Tetroxide
 hbmfluid.methanol=Methanol
+hbmfluid.propylene_oxide=Propylene Oxide
 hbmfluid.ammonia=Ammonia
+hbmfluid.bio_crude=Bio Crude
+hbmfluid.raw_synth_oil=Raw Synthetic Oil
 item.gypsum.name=Gypsum
 item.gypsum.desc=Calcium sulfate. Retards the setting of cement.
 item.celestite.name=Celestite
@@ -76,68 +126,121 @@ item.solid_fuel_adv.desc=Oxygen-rich propellant pressed from nitromethane. Burns
 # ---- Electric Hover Work Pack ----
 item.hover_jetpack.name=Electric Hover Work Pack
 item.hover_jetpack.desc=Jetpack and hover pack in one, powered by charge.$Defaults to vectorized mode (hold space to fly along your view); press the mode key to switch into hover mode (space rises, Shift sinks)$On/off still uses the HBM jetpack toggle key (C by default)
-makentmgreatagain.key.group=Make NTM Great Again Keys
-makentmgreatagain.key.hoverMode=Hover Pack - Switch Vectorized/Hover Mode
-makentmgreatagain.key.achievements=Open Achievements
+makentmgreatagain.key.group=Make NTM Great Again: Keys
+makentmgreatagain.key.hoverMode=Hover Pack - toggle vector/hover mode
 
-# ---- Achievements (standalone, not the vanilla page) ----
-mntga.ach.gui.title=Achievements
-mntga.ach.gui.done=Unlocked
-mntga.ach.gui.locked=Locked
-mntga.ach.toast.label=Achievement Get
-mntga.ach.cat.tungsten=Scheelite
-mntga.ach.cat.industry=Seawater & Metallurgy
-mntga.ach.cat.misc=Misc
+# ---- Achievements (vanilla system, own page in the achievement GUI: MNGA) ----
+# Key format: achievement.<name>=title ; achievement.<name>.desc=description
+# <name> is the second argument of new Achievement in ModAchievements.
+achievement.mnga_scheelite_mined=Wu!
+achievement.mnga_scheelite_mined.desc=Your first scheelite ore. It will not smelt into anything. Go crush it.
 
-mntga.ach.scheelite_mined.title=Wu!
-mntga.ach.scheelite_mined.desc=Your first scheelite ore. It will not smelt into anything. Go crush it.
+achievement.mnga_scheelite_acid=Can I Drink This?
+achievement.mnga_scheelite_acid.desc=Tungstic acid. A yellow filter cake, and a terrible beverage.
 
-mntga.ach.scheelite_acid.title=Can I Drink This?
-mntga.ach.scheelite_acid.desc=Tungstic acid. A yellow filter cake, and a terrible beverage.
+achievement.mnga_tungsten_carbide=High Strength Tungsten Carbide
+achievement.mnga_tungsten_carbide.desc=A tungsten carbide ingot. Second highest melting point, hardest thing around.
 
-mntga.ach.beryllium_conc.title=A Buried Story
-mntga.ach.beryllium_conc.desc=You pulled a beryllium concentrate out of the leach residue. Beryllium is rarer than tungsten.
+achievement.mnga_nothing_smelt=Rolling Log?
+achievement.mnga_nothing_smelt.desc=You put scheelite in a furnace. The furnace finished smelting it and handed you nothing at all.
 
-mntga.ach.arsenic_cake.title=Do Not Lick
-mntga.ach.arsenic_cake.desc=Arsenic trioxide, white arsenic. Wash your hands afterwards.
+achievement.mnga_scheelite_300=That Is All Of It
+achievement.mnga_scheelite_300.desc=Three hundred scheelite blocks mined. About half a large vein.
 
-mntga.ach.arsenic_nugget.title=Bought With Blood
-mntga.ach.arsenic_nugget.desc=Reduced white arsenic down to arsenic nuggets. Arsenic bronze and gallium arsenide are waiting.
+achievement.mnga_waste_acid=I Should Soak The World In Acid
+achievement.mnga_waste_acid.desc=Sixteen tungsten acid cakes, roughly ten thousand millibuckets of waste acid. Do not drink it.
 
-mntga.ach.nothing_smelt.title=Rolling Log?
-mntga.ach.nothing_smelt.desc=You put scheelite in a furnace. The furnace finished smelting it and handed you nothing at all.
+achievement.mnga_beryllium_conc=A Buried Story
+achievement.mnga_beryllium_conc.desc=You pulled a beryllium concentrate out of the leach residue. Beryllium is rarer than tungsten.
 
-mntga.ach.waste_acid.title=I Should Soak The World In Acid
-mntga.ach.waste_acid.desc=Sixteen tungsten acid cakes, roughly ten thousand millibuckets of waste acid. Do not drink it.
+achievement.mnga_arsenic_cake=Do Not Lick
+achievement.mnga_arsenic_cake.desc=Arsenic trioxide, white arsenic. Wash your hands afterwards.
 
-mntga.ach.scheelite_300.title=That Is All Of It
-mntga.ach.scheelite_300.desc=Three hundred scheelite blocks mined. About half a large vein.
+achievement.mnga_arsenic_nugget=Bought With Blood
+achievement.mnga_arsenic_nugget.desc=Reduced white arsenic down to arsenic nuggets. Arsenic bronze and gallium arsenide are waiting.
 
-mntga.ach.tungsten_carbide.title=High Strength Tungsten Carbide
-mntga.ach.tungsten_carbide.desc=A tungsten carbide ingot. Second highest melting point, hardest thing around.
+achievement.mnga_seawater=That Is Not Water
+achievement.mnga_seawater.desc=The environmental pump pulled up seawater. It picks its output by biome, not by what is under it.
 
-mntga.ach.seawater.title=That Is Not Water
-mntga.ach.seawater.desc=The environmental pump pulled up seawater. It picks its output by biome, not by what is under it.
+achievement.mnga_chlorine=Both Will Kill You
+achievement.mnga_chlorine.desc=Electrolysed chlorine. Lye comes out the other side. Neither is safe to touch.
 
-mntga.ach.chlorine.title=Both Will Kill You
-mntga.ach.chlorine.desc=Electrolysed chlorine. Lye comes out the other side. Neither is safe to touch.
+achievement.mnga_lithium=It Starts With Lithium
+achievement.mnga_lithium.desc=Lithium powder from ore liquor. Batteries, grease and tritium breeding all start here.
 
-mntga.ach.lithium.title=It Starts With Lithium
-mntga.ach.lithium.desc=Lithium powder from ore liquor. Batteries, grease and tritium breeding all start here.
+achievement.mnga_zinc=My Heart Is In Pieces!
+achievement.mnga_zinc.desc=After the sinter crumbles, the zinc stays behind as oxide in that pile of ash.
 
-mntga.ach.zinc.title=My Heart Is In Pieces!
-mntga.ach.zinc.desc=After the sinter crumbles, the zinc stays behind as oxide in that pile of ash.
+achievement.mnga_hover=I Can Fly
+achievement.mnga_hover.desc=You lifted off with the powered hover pack. It will not hold you forever - the power runs out.
 
-mntga.ach.hover.title=I Can Fly
-mntga.ach.hover.desc=You lifted off with the powered hover pack. It will not hold you forever - the power runs out.
+achievement.mnga_escape_abyss=Escape The Abyss
+achievement.mnga_escape_abyss.desc=Nicotine poisoning. You ascended, or at least skipped the death screen.
 
-mntga.ach.escape_abyss.title=Escape The Abyss
-mntga.ach.escape_abyss.desc=Nicotine poisoning. You ascended, or at least skipped the death screen.
+achievement.mnga_fork_shock=Tingling Sensation
+achievement.mnga_fork_shock.desc=This careless soul fried himself trying to fish like a fish.
+
+achievement.mnga_pump_overworked=A Thankless Job
+achievement.mnga_pump_overworked.desc=She does not look happy. Wonder why?
+
+achievement.mnga_sea_dredge=Sea Scoop
+achievement.mnga_sea_dredge.desc=You hauled a deep sea nodule up from the bottom. Crack it open - it is all metal.
+
+achievement.mnga_big_is_good=Bigger Is Better
+achievement.mnga_big_is_good.desc=Place a large catalytic chemical factory or a hybrid catalytic fraction tower.
+
+achievement.mnga_absolute_zero=Absolute Zero
+achievement.mnga_absolute_zero.desc=Solidify helium into something you can actually hold.
+
+achievement.mnga_helicopter=MAN!
+achievement.mnga_helicopter.desc=You built a helicopter.
+
+achievement.mnga_pump_strike=She Quit
+achievement.mnga_pump_strike.desc=You put her above the clouds. She did the math, decided it wasn't worth it, and sat down.
+
+achievement.mnga_helicopter_elements=HeLiCoPtEr
+achievement.mnga_helicopter_elements.desc=Helium Helium Lithium Cobalt Platinum Erbium. Try saying it. No prize if you get it right.
+
+achievement.mnga_ruin_estate=Ruin Real Estate
+achievement.mnga_ruin_estate.desc=Forty blocks under the lava, a building nobody wanted. You furnished it.
+
 item.armor_battery_mk4.name=Power Armor Battery Pack Mk4
 item.armor_battery_mk4.desc=Triples the charge capacity of the armor it is installed in (+200%).
+item.neutrino_goggles.name=Neutrino Goggles
+item.neutrino_goggles.desc=Night vision and clearer sight while submerged in lava. No power, full set, or fire protection.
+item.neutrino_goggles.toggle=Toggle with the HBM head function key (default V).
+item.neutrino_goggles.locator=Locator key (default G): tap to scan, hold to open target selection.
+makentmgreatagain.key.neutrinoLocator=Neutrino Goggles - block locator
+gui.makentmgreatagain.neutrino_locator.title=Neutrino Locator
+gui.makentmgreatagain.neutrino_locator.search=Search blocks or ore families
+gui.makentmgreatagain.neutrino_locator.empty=No matching targets
+gui.makentmgreatagain.neutrino_locator.confirm=Confirm sample
+gui.makentmgreatagain.neutrino_locator.inventory=Click a block in your inventory to set the sample
+gui.makentmgreatagain.neutrino_locator.sample_slot=Current sample (right-click to clear)
+gui.makentmgreatagain.neutrino_locator.focus_hint=Click or press Tab to search
+gui.makentmgreatagain.neutrino_locator.multiple=%s targets nearby
+gui.makentmgreatagain.neutrino_locator.multiple_min=At least %s targets nearby
+gui.makentmgreatagain.neutrino_locator.ore_family=Ore family: %s
+gui.makentmgreatagain.neutrino_locator.scanning=Locating: %s
+gui.makentmgreatagain.neutrino_locator.no_match=No target found in the scanned area
+gui.makentmgreatagain.neutrino_locator.cooldown=Locator cooling down; try again shortly
+gui.makentmgreatagain.neutrino_locator.disabled=Neutrino goggles are disabled
+gui.makentmgreatagain.neutrino_locator.invalid=This target cannot be scanned
+gui.makentmgreatagain.neutrino_locator.busy=Locator busy; try again shortly
+gui.makentmgreatagain.neutrino_locator.cancelled=Scan cancelled
+gui.makentmgreatagain.neutrino_locator.timeout=Scan timed out; try again
+gui.makentmgreatagain.neutrino_locator.lost=Target moved out of range or was removed
+gui.makentmgreatagain.neutrino_locator.ahead=Ahead
+gui.makentmgreatagain.neutrino_locator.left=Left
+gui.makentmgreatagain.neutrino_locator.right=Right
+gui.makentmgreatagain.neutrino_locator.behind=Behind
+gui.makentmgreatagain.neutrino_locator.reading=%s · %s · %s blocks · %s
+gui.makentmgreatagain.neutrino_locator.level=Same level
+gui.makentmgreatagain.neutrino_locator.above=%s blocks up
+gui.makentmgreatagain.neutrino_locator.below=%s blocks down
 
 tile.environment_pump.name=Environmental Pump
-tile.environment_pump.desc=Extracts a fluid depending on the biome it stands in$Every tier above the first adds another 50% to the base power draw$Going outside the normal altitude band adds a further 25% per 5 blocks$Each step also demands 5% more input and yields 5% less output, reaching zero output at 20 steps$Tier V can draw heavy water and experience juice
+tile.environment_pump.desc=Extracts a fluid depending on the biome it stands in$Every tier above the first adds another 50%% to the base power draw$Going outside the normal altitude band adds a further 25%% per 5 blocks$Each step also demands 5%% more input and yields 5%% less output, reaching zero output at 20 steps$Tier V can draw heavy water and experience juice
 info.environment_pump.biome=Biome
 info.environment_pump.tier=Tier
 info.environment_pump.base_power=base
@@ -164,14 +267,13 @@ nei.environment_pump.tier.3=Tier III - Oil, Gas and Salts
 nei.environment_pump.tier.4=Tier IV - Mineral Solutions
 nei.environment_pump.tier.5=Tier V - Special
 
-
 # ---- Natural gas processing ----
 makentmgreatagain.gas.helium=Natural Gas Cryogenic Helium Extraction
 makentmgreatagain.fus.dd3=Deuterium Plasma (Helium-3 Branch)
 
 # ---- Integrated Heat Exchanger Heater ----
 tile.heatex_reborn.name=Integrated Heat Exchanger Heater
-tile.heatex_reborn.desc=Hot fluid in on one end, chilled fluid out the other, heat drawn off through the 3x3 hot face on top$Recovers 25% more heat than a regular heat exchanger and can use it to heat fluids (Water -> Steam)$The identifier in the GUI only swaps the coolable exchange fluid; sneak-use an identifier on the casing to set the fluid being heated
+tile.heatex_reborn.desc=Hot fluid in on one end, chilled fluid out the other, heat drawn off through the 3x3 hot face on top$Recovers 25%% more heat than a regular heat exchanger and can use it to heat fluids (Water -> Steam)$The identifier in the GUI only swaps the coolable exchange fluid; sneak-use an identifier on the casing to set the fluid being heated
 container.heatex_reborn=Integrated Heat Exchanger Heater
 info.heatex_reborn.input_port=→Input
 info.heatex_reborn.output_port=←Output
@@ -182,6 +284,125 @@ info.heatex_reborn.not_heatable=This fluid cannot be heated
 info.heatex_reborn.heat=Heat
 info.heatex_reborn.amount_per_cycle=Amount per cycle (mB)
 info.heatex_reborn.cycle_delay=Cycle tick delay
+
+# ---- Fluid Cooler ----
+tile.machine_fluid_cooler.name=Fluid Cooler
+container.fluid_cooler=Fluid Cooler
+info.fluid_cooler.coolant_set=Coolant set to
+
+# ---- Small Drain ----
+tile.machine_drain_steel.name=Small Steel Drain
+tile.machine_drain_tungsten.name=Small Tungsten Drain
+
+# ---- Hybrid Catalytic Fractionating Tower ----
+tile.machine_hybrid_catalytic_fraction_tower.name=Hybrid Catalytic Fractionating Tower
+container.hybrid_catalytic_fraction_tower=Hybrid Catalytic Fractionating Tower
+gui.hybrid_catalytic_fraction_tower.title=Fractionating Tower
+nei.hybrid_fraction_tower.name=Hybrid Catalytic Fractionating Tower
+item.platinum_converter.name=Platinum Alloy Catalytic Converter
+item.cmb_converter.name=CMB Catalytic Converter
+
+# ---- Large Catalytic Chemical Factory ----
+tile.machine_large_catalytic_chemical_factory.name=Large Catalytic Chemical Factory
+tile.machine_electric_blast_furnace.name=Electric Blast Furnace
+tile.machine_nuclear_explosion_generator.name=Controllable Nuclear Explosion Generator
+info.core.shift=Hold <LSHIFT> to display core stats
+info.core.header=Core Stats
+info.core.flux=Neutron flux: %s
+info.core.power=Power: %s HE
+info.core.sodium=Liquid sodium: %s mB
+container.nuclear_explosion_generator=Controllable Nuclear Explosion Generator
+gui.nuclear_explosion.no_core=NO CORE
+gui.nuclear_explosion.no_coating=NO COATING
+gui.nuclear_explosion.no_power=NOT ENOUGH POWER
+gui.nuclear_explosion.no_coolant=NOT ENOUGH COOLANT
+gui.nuclear_explosion.no_output_space=NOT ENOUGH OUTPUT SPACE
+gui.nuclear_explosion.non_explosive=CANNOT START
+info.core.non_explosive=§cCannot fission for a nuclear detonation
+gui.nuclear_explosion.no_item=No item to be bred
+gui.nuclear_explosion.breedable=Breedable items:
+gui.nuclear_explosion.need_flux=Required neutron flux: %s
+gui.nuclear_explosion.min_flux=Minimum neutron flux: %s
+gui.nuclear_explosion.flux=Neutron flux: %s / %s (%s%%)
+gui.nuclear_explosion.flux_blocked=Flux ready; output slot is full or mismatched
+gui.nuclear_explosion.output=Product: %s
+gui.nuclear_explosion.cannot_breed=This item cannot be bred
+gui.nuclear_explosion.sodium_in=Sodium consumed: %s mB
+gui.nuclear_explosion.sodium_out=Hot sodium produced: %s mB
+gui.nuclear_explosion.run_tip_cancel=Click again to cancel (does not affect normal mode)
+gui.nuclear_explosion.run_tip_start=Click to start the detonation
+gui.nuclear_explosion.run_tip_auto=Shift+Click to toggle auto mode
+gui.nuclear_explosion.run_tip_auto_ready=In auto mode, when all conditions are met
+gui.nuclear_explosion.run_tip_auto_loop=It will detonate again 10s after each 20s cooldown
+container.electric_blast_furnace=Electric Blast Furnace
+container.large_catalytic_chemical_factory=Large Catalytic Chemical Factory
+
+# ---- Small Electrolyzer ----
+tile.electrolyzer_reborn.name=Small Electrolyzer
+tile.electrolyzer_reborn.desc=2x2x3 multiblock electrolyzer with four fluid/power sockets on the sides$Only item-free electrolysis recipes with two fluid outputs are accepted$Sneak-use a fluid identifier on the casing to switch the recipe; speed and power scale with a Java multiplier
+container.electrolyzer_reborn=Small Electrolyzer
+info.electrolyzer_reborn.changed=Electrolysis recipe changed to
+info.electrolyzer_reborn.no_recipe=No usable recipe (only item-free electrolysis recipes with two fluid outputs are accepted)
+info.electrolyzer_reborn.byproduct=Byproducts
+info.electrolyzer_reborn.power=Power
+
+# ---- Arc Heater ----
+tile.arc_heater.name=Arc Heater
+tile.large_centrifuge.name=Large Centrifuge
+tile.core_lava_extractor.name=Core Lava Extractor
+tile.industrial_gas_turbine.name=Industrial Gas Turbine
+container.industrial_gas_turbine=Industrial Gas Turbine
+mnga.turbine.on=Start Machine
+mnga.turbine.off=Stop Machine
+mnga.turbine.throttle=Flow: %s mB/t
+mnga.turbine.readout.flow=Current flow: %s mB/t
+mnga.turbine.readout.power=Current generation: %s HE/t
+mnga.turbine.upgrade.power=Power output: %s
+mnga.turbine.upgrade.cons=Fuel consumption: %s
+mnga.turbine.title=Gas Turbine
+mnga.turbine.fueleff=Fuel efficiency:
+tile.core_fissure.name=Core Lava Fissure
+container.core_lava_extractor=Core Lava Extractor
+container.large_centrifuge=Large Centrifuge
+container.large_centrifuge.parallel=Parallel Multiplier
+container.large_centrifuge.parallel.1=1x: process 1 recipe at a time (power unchanged, coolant x2)
+container.large_centrifuge.parallel.2=2x: process 2 recipes at once (power unchanged, coolant x2)
+container.large_centrifuge.parallel.3=4x: process 4 recipes at once (power unchanged, coolant x2)
+container.large_centrifuge.parallel.4=8x: process 8 recipes at once (power unchanged, coolant x2)
+tile.arc_heater.desc=3x2 footprint, 3.5 blocks tall arc heating cabinet$Up to 100,000 HE/t and 10,000 TU/t$Use a screwdriver to cycle settings 0-10; the arc window faces the player, power connects at the middle back layer
+container.arc_heater=Arc Heater
+
+# ---- Offshore Riser Drilling Rig ----
+tile.riser_rig.name=Offshore Riser Drilling Rig
+tile.riser_rig.desc=7x7 platform with a 16 block truss derrick$Six universal ports (three on each ±X side), each accepting power and fluid in/out
+container.riser_rig=Offshore Riser Drilling Rig
+container.riser_rig.mining=Mining
+container.riser_rig.mining.tip=Requires >=8000mB High-Performance Solvent; %smB per pipe block
+container.riser_rig.mining.base=Requires a 5x5x5 solid foundation under the machine
+container.riser_rig.mining.output=Requires free space in the 3x3 output grid and none of the three output tanks full
+container.riser_rig.mining.power=Consumes %s HE/t while running
+container.riser_rig.mining.ore_solvent=Consumes %smB High-Performance Solvent per nodule mined
+container.riser_rig.mining.progress=Mining %s%% (%ss per cycle)
+container.riser_rig.mining.nodule=No nodule under the drill bit
+container.riser_rig.crusher=Crusher
+container.riser_rig.crusher.on=Enabled: concentrates are shredded into mixes on site
+container.riser_rig.crusher.off=Disabled: concentrates are output as-is (send them to a shredder)
+tile.riser_pipe.name=Riser Pipe
+tile.empty_deep_sea_nodule.name=Depleted Deep-Sea Nodule
+item.cobalt_polymetallic_concentrate.name=Cobalt-Rich Polymetallic Concentrate
+item.heavy_sand_concentrate.name=Heavy Sand Concentrate
+item.rare_earth_concentrate.name=Rare Earth Concentrate
+hbmfluid.tailings_slurry=Tailings Slurry
+hbmfluid.heavy_sand_slurry=Heavy Sand Slurry
+upgrade.riser_rig.speed=Work speed %s
+upgrade.riser_rig.consumption=Consumption %s
+upgrade.riser_rig.output=Output per cycle %s
+upgrade.riser_rig.range=Mining range %s
+nei.riser_rig.name=Offshore Riser Rig - Deep-Sea Nodule Mining
+nei.riser_rig.cycle=One extraction every 20 seconds; 30 uses per nodule
+nei.nuclear_explosion.name=Subcritical Nuclear Explosion Generator - Breeding
+nei.nuclear_explosion.min=Minimum neutron flux: %s
+nei.nuclear_explosion.req=Required neutron flux: %s
 
 # ---- Lead-zinc smelting (ISP) ----
 tile.ore_leadzinc.name=Lead-Zinc Ore
@@ -208,6 +429,7 @@ makentmgreatagain.leadzinc.sulphite=Sulphite Scrubbing of Sulphur Dioxide
 makentmgreatagain.pulp.jungle.sulfate=Jungle Pulp (Sulphate Process, Salt Cake)
 makentmgreatagain.chloralkali.dechlor=Sodium Sulphite Dechlorination
 makentmgreatagain.leadzinc.arsenicReduction=Arsenic Trioxide Carbothermic Reduction
+makentmgreatagain.leadzinc.arsine=Arsine from Arsenic Trioxide Reduction
 
 # ---- Scheelite (hydrometallurgical tungsten) ----
 tile.ore_scheelite.name=Scheelite Ore
@@ -221,6 +443,7 @@ item.beryllium_concentrate.name=Beryllium Concentrate
 item.zirconium_concentrate.name=Zirconium Concentrate
 hbmfluid.sodium_tungstate=Sodium Tungstate
 hbmfluid.waste_acid=Waste Acid
+hbmfluid.arsine=Arsine
 
 # ---- Cyanide-free gold leaching (thiosulphate) ----
 tile.ore_refractory_gold.name=Arsenical Gold Ore
@@ -229,8 +452,221 @@ item.arsenical_residue.name=Arsenical Leach Residue
 # the fluid is SODIUM_THIOSULFATE (F), so the key is ...thiosulfate, not ...thiosulphate
 hbmfluid.sodium_thiosulfate=Sodium Thiosulphate Solution
 hbmfluid.gold_thiosulfate=Gold Thiosulphate Solution
+
+# ---- Duna variants ----
+tile.ore_leadzinc_duna.name=Duna Lead-Zinc Ore
+tile.ore_refractory_gold_duna.name=Duna Arsenical Gold Ore
+tile.ore_scheelite_duna.name=Duna Scheelite Ore
 makentmgreatagain.gold.thiosulfate=Sodium Thiosulphate Synthesis
 makentmgreatagain.gold.leach=Arsenical Gold Ore Thiosulphate Leaching
 makentmgreatagain.gold.cementation=Zinc Cementation of Gold
 makentmgreatagain.gold.residueRoast=Arsenical Residue Reduction Roast
 makentmgreatagain.chloralkali.thiosulfateDechlor=Sodium Thiosulphate Dechlorination
+
+# ---- Composite tank (leggings armor mod) ----
+item.composite_tank.name=Composite Tank
+desc.composite_tank.1=A proven remedy for explosive tempers and sensitive skin
+desc.composite_tank.2=Once fitted to a pair of leggings, explosive, hydroreactive and pyrophoric items in the inventory no longer go off
+
+# ---- Auto extinguisher (leggings armor mod) ----
+item.auto_extinguisher.name=Auto Extinguisher
+desc.auto_extinguisher.1=Suppresses fire on the wearer and snuffs out flames nearby
+desc.auto_extinguisher.2=Fits on leggings; put it in a fluid tank to refill with carbon dioxide
+desc.auto_extinguisher.3=Carbon dioxide
+desc.auto_extinguisher.4=Does nothing while standing in lava; won't douse block fire if you carry explosive or water-reactive items
+
+# ---- Cobalt-tungsten gear (names were only in zh_CN before) ----
+item.cobalt_tungsten_helmet.name=High-Strength Tungsten Carbide Helmet
+item.cobalt_tungsten_plate.name=High-Strength Tungsten Carbide Chestplate
+item.cobalt_tungsten_legs.name=High-Strength Tungsten Carbide Leggings
+item.cobalt_tungsten_boots.name=High-Strength Tungsten Carbide Boots
+
+item.helicopter_helmet.name=Crashproof Alloy Helmet
+item.helicopter_plate.name=Crashproof Alloy Chestplate
+item.helicopter_legs.name=Crashproof Alloy Leggings
+item.helicopter_boots.name=Crashproof Alloy Boots
+# ---- Crashproof full-set info (used by ItemArmorHelicopter.addInformation, HBM armor.* format) ----
+mnga.armor.heli.nodamage=Immune to all damage except falling
+mnga.armor.heli.fireproof=Fireproof; never catches flame
+mnga.armor.heli.no_debuff=Removes all negative effects (incl. HBM)
+mnga.armor.heli.no_rad=Radiation fully immune
+mnga.armor.heli.stun_punch=Unarmed strikes inflict Stun XXIV
+mnga.armor.heli.manout=Cries MAN OUT! when falling to death
+item.cobalt_tungsten_sword.name=High-Strength Tungsten Carbide Sword
+item.cobalt_tungsten_pickaxe.name=High-Strength Tungsten Carbide Pickaxe
+item.cobalt_tungsten_axe.name=High-Strength Tungsten Carbide Axe
+item.cobalt_tungsten_shovel.name=High-Strength Tungsten Carbide Shovel
+item.cobalt_tungsten_hoe.name=High-Strength Tungsten Carbide Hoe
+item.helicopter_pickaxe.name=Drop-Resistant Alloy Pickaxe
+item.helicopter_axe.name=Drop-Resistant Alloy Axe
+item.powder_cobalt_tungsten_ingot.name=High-Strength Tungsten Carbide Ingot
+item.powder_cobalt_tungsten_mixture.name=High-Strength Tungsten Carbide Powder
+item.powder_carbon_tungsten_mixture.name=Tungsten Carbide Powder
+
+# ---- Items / blocks whose English names were missing ----
+item.powder_oxidate_iron.name=Iron Oxide Powder
+item.powder_salt.name=Salt Powder
+item.alloy_blades_reborn.name=Advanced Alloy Blades
+item.scrap_blades_alloy_reborn.name=Scrap Advanced Alloy Blades
+item.armor_battery_mk5.name=Power Armor Battery Mk5
+item.electric_fork.name=Electric Fork
+item.inf_water_mk3.name=Epic Infinite Water Tank Mk3
+tile.Block_Salt_Contain_Gravel.name=Salt-Containing Gravel
+tile.Block_Salt_Contain_Red_Sand.name=Salt-Containing Red Sand
+tile.Block_Salt_Contain_Sand.name=Salt-Containing Sand
+tile.advanced_block_alloy.name=Advanced Alloy Block
+tile.alloy_shredder.name=Advanced Alloy Shredder
+tile.pipe_anchor_advanced.name=Advanced Pipe Anchor (25m)
+tile.iron_mass_storage.name=Iron Mass Storage Unit (1000)
+container.ironMassStorage=Iron Mass Storage Unit
+tile.deep_sea_nodule.name=Deep Sea Nodule Mixture
+
+tile.mnga_battery.name=Battery (component)
+tile.mnga_battery_lithium.name=Lithium Battery (component)
+tile.mnga_battery_sodium.name=Sodium-Ion Battery (component)
+tile.mnga_battery_schrabidium.name=Schrabidium Battery (component)
+tile.mnga_battery_quantum.name=Quantum Battery (component)
+tile.mnga_capacitor_gold.name=Gold Capacitor (component)
+tile.mnga_capacitor_niobium.name=Niobium Capacitor (component)
+tile.mnga_capacitor_tantalium.name=Tantalum Capacitor (component)
+tile.mnga_capacitor_schrabidate.name=Schrabidate Capacitor (component)
+tile.mnga_battery_array_casing.name=Battery Array Casing
+tile.mnga_battery_array_port.name=Battery Array Port
+tile.mnga_battery_array_controller.name=Battery Array Controller
+tile.mnga_battery_array_shell.name=Battery Array Shell (formed)
+container.mnga_battery_array=Battery Array
+
+death.attack.electricFork=%1$s was turned into charcoal by an electric fork
+hbmfluid.acetic_acid=Acetic Acid
+hbmfluid.ethyl_acetate=Ethyl Acetate
+
+# =====================================================================================
+#  [Hydrometallurgy] Deep-sea nodule wet-process intermediates (12 items + 5 fluids)
+# =====================================================================================
+item.heavy_sand_mix.name=Heavy Sand Mix
+item.thorium_concentrate.name=Thorium Concentrate
+item.pgm_concentrate.name=PGM Concentrate
+item.rare_earth_calcine.name=Rare Earth Calcine
+item.alkali_fused_sand.name=Alkali-Fused Sand
+item.rare_earth_mix.name=Rare Earth Mix
+item.mixed_re_hydroxide.name=Mixed RE Hydroxide
+item.erbium_enriched_powder.name=Erbium-Enriched Powder
+item.polymetallic_mix.name=Polymetallic Mix
+item.cobalt_hydroxide.name=Cobalt Hydroxide
+item.anode_mud.name=Anode Mud
+item.potassium_chloroplatinate.name=Potassium Chloroplatinate
+
+hbmfluid.tailings_chloride=Chlorination Tail Gas
+hbmfluid.tailings_heavy_fraction=Chlorination Heavy Fraction
+hbmfluid.crude_platinum=Crude Platinum Liquor
+hbmfluid.re_mother_liquor=Rare Earth Mother Liquor
+hbmfluid.cobalt_liquor=Cobalt Liquor
+hbmfluid.core_slurry=High-Density Core Slurry
+hbmfluid.core_melt=Molten Core Mixture
+hbmfluid.heavy_slag=Heavy Nuclear Slag
+hbmfluid.ferro_melt=Ferrous Melt Mixture
+hbmfluid.pgm_melt=Platinum-Group Melt Mixture
+
+# 耐摔合金砸落的死亡播报（%1$s 是死者名字）
+death.attack.mnga.helicopter=%1$s was elbowed into the sky by Lao Da...
+gui.recipe.heat=Heat
+gui.recipe.catalyst=Required Catalyst
+makentmgreatagain.gui.recipe.power=Power
+makentmgreatagain.large.balefireQuench=Balefire Quenching
+makentmgreatagain.large.watzTreatment=Toxic Sludge Treatment
+makentmgreatagain.pyro.solidfuel=Solid Fuel Synthesis
+makentmgreatagain.pyro.solidfuel.desc1=The 4 input tanks can hold 4 different fuel-making fluids at once, each converting to solid fuel at its own ratio
+makentmgreatagain.pyro.solidfuel.desc2=Leftover fluid too little for another fuel piece is burned into ash (burn time 100) and ejected along with the fuel
+
+# ---- Electric Boiler (ported from vanilla HBM) ----
+tile.machine_boiler_electric_off.name=Electric Oil Heater
+tile.machine_boiler_electric_on.name=Electric Oil Heater
+container.machineElectricBoiler=Electric Oil Heater
+makentmgreatagain.electric_boiler.heat_info=Heat produced:$  1.5°C/t$  or 30°C/s$Heat consumed:$  0.15°C/t$  or 3.0°C/s (base)$  0.25°C/t$  or 5.0°C/s (once boiling point is reached)$  0.4°C/t$  or 8.0°C/s (per further multiple of boiling point)
+makentmgreatagain.electric_boiler.rate_info=Boiling rate:$  Base rate × amount of full multiples$  of boiling points reached
+makentmgreatagain.electric_boiler.error_info=Error: Liquid can not be boiled!
+item.ingot_threx.name=Threx Ingot
+item.ingot_threx.desc=§cSlowness II while it sits anywhere in your inventory - you don't have to hold it$A Composite Tank (leggings mod) makes you immune
+item.powder_threx.name=Threx Powder
+item.powder_threx.desc=§cSlowness II while it sits anywhere in your inventory - you don't have to hold it$A Composite Tank (leggings mod) makes you immune
+tile.block_threx.name=Block of Threx
+tile.block_threx.desc=§cExtremely high radiation resistance: one block beats ten reinforced CMB steel bricks
+tile.threx_shield_brick.name=Threx Shield Brick
+tile.threx_shield_glass.name=Threx Shield Glass
+
+item.core_uranium_fuel.name=Uranium Fuel Core
+item.core_thorium_fuel.name=Thorium Fuel Core
+item.core_plutonium_fuel.name=Plutonium Fuel Core
+item.core_sr90.name=Strontium-90 Core
+item.core_cs137.name=Caesium-137 Core
+item.core_i131.name=Iodine-131 Core
+item.core_co60.name=Cobalt-60 Core
+item.core_u233.name=Uranium-233 Core
+item.core_u235.name=Uranium-235 Core
+item.core_pu239.name=Plutonium-239 Core
+item.core_pu241.name=Plutonium-241 Core
+item.core_am241.name=Americium-241 Core
+item.core_am242.name=Americium-242 Core
+item.core_schrabidium.name=Schrabidium-326 Core
+item.core_lithium_deuteride.name=Lithium Deuteride Core
+item.core_helium.name=Aerogel Helium Core
+item.core_balefire.name=Balefire Core
+tooltip.makentmgreatagain.edible=§7[Edible]
+tooltip.makentmgreatagain.inedible=§8[Inedible]
+
+# Machine coatings (five tiers, taking over the legacy fusion_shield_* slot)
+item.coating_tungsten.name=Tungsten Metal Coating
+item.coating_cmb.name=CMB Coating (Cast)
+item.coating_threx.name=Threx Coating
+item.coating_chlorophyte.name=Chlorophyte Coating
+item.coating_dnt.name=DNT Coating
+desc.coating.stored=Stored: %s mB
+item.core_sa327.name=Sa327 Core
+item.core_australium_greater.name=Enriched Australium Core
+item.core_mamba.name=Mamba Core
+item.coating_mamba.name=Mamba Coating
+desc.coating.capacity=Fluid capacity: %s mB
+item.core_platinum_residue.name=Dense Core Platinum Residue
+
+# ===== Tarkov food & sundries (17 items, ModTarkovFood) =====
+itemGroup.makentmgreatagain_food=Make NTM Great Again: Food & Sundries
+item.can_gigabeef.name=GigaBeef Canned Beef
+item.can_condensed_milk.name=Canned Condensed Milk
+item.can_tushonka.name=Canned Beef Stew
+item.can_green_peas.name=Canned Green Peas
+item.can_sprats.name=Canned Sprats
+item.can_duck_pate.name=Canned Duck Pate
+item.can_squash.name=Canned Vegetable Puree
+item.bar_alyonka.name=Alyonka Chocolate
+item.bar_slickers.name=Slickers Bar
+item.pack_sugar.name=Sugar Pack
+item.jar_devildog.name=DevilDog Mayo
+item.bottle_moonshine.name=Moonshine
+item.bottle_vodka.name=Vodka
+item.bottle_whiskey.name=Whiskey
+item.bottle_beer.name=Beer
+item.croutons_emelya.name=Emelya Croutons
+item.bread_baguette.name=Baguette
+
+# ===== Tarkov food item descriptions (verbatim in-game text) =====
+desc.can_gigabeef=A special edition, oversized can of GigaBeef, made to a traditional British recipe. Some say a meal of this quality even helps you think more clearly... though results may vary.
+desc.can_condensed_milk=Condensed milk, also called "Sguschyonka" in Russia, once was a part of field ration for the Union soldiers in Civil War, but later reached unprecedented popularity in post-Soviet countries, becoming almost a staple product. Canned, it can be stored for decades and remain just as sweet, tasty and nutritious.
+desc.can_tushonka=A large amount of canned beef stew, commonly referred to as "tushonka", can be stored for years, thus rivaling condensed milk in importance as a food supply for both military and tourists.
+desc.can_green_peas=Can of green peas, rich in vitamins and selenium, which makes it especially valuable in the dubious environmental conditions of the Norvinsk region.
+desc.can_sprats=Delicacy sprats from the Alconafter company.
+desc.can_duck_pate=A spreadable meat product made from cooked ingredients, produced by Norvinsk Poultry Plant. No ducks were harmed in the making. Probably.
+desc.can_squash=A can of squash spread, a little vegetable treasure that goes well with almost anything and boasts an impressive set of vitamins and minerals.
+desc.bar_alyonka=The famous milk chocolate of post-Soviet times, sweet and creamy.
+desc.bar_slickers=A sweet nutritional bar for a quick bite. Well balanced in proteins, fiber, and vitamins, but a bit over the top in sweetness.
+desc.pack_sugar=A packet of lump sugar. A rare thing in conditions of total food shortage. It is also used in brewing.
+desc.jar_devildog=This "DevilDog's" brand mayonnaise is quite famous in Tarkov. Recommended to use with boiled potatoes.
+desc.bottle_moonshine=A first-class moonshine straight from the Hideout. Sixfold distillation, purification, crystallization, and ionization of the boiling process led to the creation of this 79-degree drink. Remember that drinking alcohol can lead to tragic consequences.
+desc.bottle_vodka="Tarkov fire water". It is not recommended to consume it in general, alcohol is harmful and all that, but sometimes it is necessary to relax after the battle. No need to raid area 51 to see them aliens after all.
+desc.bottle_whiskey=The most popular whiskey among the PMCs. The unique filtration of the drink occurs through charcoal obtained from the burning of Samara sugar birch. This is an alcohol drink, and alcohol is harmful. Especially for such a warrior like you.
+desc.bottle_beer=Mmmmm... Pevko. The legendary drink of the streets of Tarkov.
+desc.croutons_emelya=Emelya rye croutons with assorted flavors were a favorite snack for kids and "cracking open a cold one while watching movies" enjoyers. Although, these days you won't find either the kids or any movies in Tarkov.
+desc.bread_baguette=A traditional French baguette baked in full compliance with the 1993 French Bread Decree. Many TerraGroup employees were willing to take quite a detour on their way to work just to pick one up. It's easily recognized by the distinctive "Cocaoo_" stamp the baker marked on every loaf.
+
+# ===== Wireless charging =====
+tile.wireless_station.name=Wireless Charging Station
+item.wireless_connector.name=Wireless Charging Connector

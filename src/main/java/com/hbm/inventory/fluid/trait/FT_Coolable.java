@@ -43,7 +43,7 @@ public class FT_Coolable extends FluidTrait {
 	
 	@Override
 	public void addInfoHidden(List<String> info) {
-		info.add(EnumChatFormatting.RED + I18nUtil.resolveKey("hbmfluid.trait.thermalCapacity") + ": " + heatEnergy + " " + I18nUtil.resolveKey("hbmfluid.trait.perTU") + " " + amountReq + "mB");
+		info.add(EnumChatFormatting.RED + I18nUtil.resolveKey("hbmfluid.trait.thermalCapacity") + ": " + heatEnergy + " TU / " + amountReq + "mB");
 		for(CoolingType type : CoolingType.values()) {
 			
 			double eff = getEfficiency(type);

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.lwjgl.opengl.GL11;
 
@@ -126,6 +127,9 @@ public class ScreenEffectManager {
 
 	/* ---- 文字纹理缓存 ---- */
 	private static final Map<String, TextAtlas> ATLAS_CACHE = new HashMap<>();
+	/** 生成失败的文字集合（对应内容不缓存 null，见 getAtlas） */
+	private static final Set<String> FAILED_TEXTS =
+			java.util.Collections.newSetFromMap(new HashMap<String, Boolean>());
 	private static final Random TEX_RAND = new Random();
 
 	private static class TextAtlas {
@@ -239,6 +243,7 @@ public class ScreenEffectManager {
 		}
 
 		GL11.glEnable(GL11.GL_TEXTURE_2D);
+		GL11.glDisable(GL11.GL_BLEND);
 		GL11.glColor4f(1F, 1F, 1F, 1F);
 	}
 
@@ -407,6 +412,9 @@ public class ScreenEffectManager {
 	private TextAtlas getAtlas(String text) {
 		TextAtlas atlas = ATLAS_CACHE.get(text);
 		if (atlas != null) return atlas;
+		// 失败缓存：生成失败的字串标记后不再重试，否则每帧 renderTextImage + loadTexture，
+		// 还会反复注册纹理（GL 资源泄漏）
+		if (FAILED_TEXTS.contains(text)) return null;
 		try {
 			BufferedImage img = renderTextImage(text);
 			ResourceLocation res = new ResourceLocation("makentmgreatagain",
@@ -417,7 +425,7 @@ public class ScreenEffectManager {
 			return atlas;
 		} catch (Throwable t) {
 			// 字体/纹理生成失败时静默降级：只保留黑幕效果，不打断游戏
-			ATLAS_CACHE.put(text, null);
+			FAILED_TEXTS.add(text);
 			return null;
 		}
 	}

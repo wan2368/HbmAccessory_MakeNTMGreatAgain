@@ -1,0 +1,21 @@
+{
+	"name": "Alloy Shredder",
+	"icon": [
+		"makentmgreatagain:alloy_shredder",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:alloy_shredder"
+		]
+	],
+	"title": {
+		"en_US": "Alloy Shredder",
+		"zh_CN": "高级粉碎机"
+	},
+	"content": {
+		"en_US": "2x2x2. A bigger HBM shredder that reads the same recipe table, with 15 inputs and 24 outputs instead of one of each.<br><br>All four blade slots must hold blades that are not worn out. One missing or fully worn blade stops the whole machine; half-worn blades still work. Every finished recipe adds 1 damage to all four blades at once.<br><br>The upgrade slot takes red speed plugins only: 40/30/27/20 ticks at 5,000 HE/t x (1 + level). It only runs if it can pay for the whole tick.<br><br>The even-split switch rearranges the 15 input slots every 20 ticks. Items that do not fit are dropped at the machine's feet, not eaten.<br><br>Output slots accept nothing - pipes can only pull from them.",
+		"zh_CN": "放大版的 HBM 粉碎机, 读同一张配方表, 输入输出从各 1 格扩到 15 进 24 出。<br><br>升级槽只收红色速度插件: 耗时 40/30/27/20 tick, 耗电 5,000 HE/t x (1+等级)。必须付得起整 tick 的电才会动。<br><br>均分开关开启后每 20 tick 重排 15 格输入。装不下的物品会掉在机器脚下, 不会被吞掉。<br><br>输出槽任何方式都放不进东西, 只能被管道抽走。"
+	}
+}

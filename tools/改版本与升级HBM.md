@@ -1,5 +1,8 @@
 # 改版本 & 升级 HBM 源码
 
+> 本文只讲**版本号、打包、升 HBM**。
+> 「往附属里加物品/方块/配方」看 `tools\新增内容手册.md`。
+
 三个工具，各管一件事：
 
 | 工具 | 干什么 |
@@ -9,6 +12,26 @@
 | `tools\升级HBM.bat <新源码目录>` | 用上游新源码覆盖 HBM 部分，不动附属 |
 
 三个 bat 都放在 `tools\` 里，也可以直接放在项目根目录——脚本会自己往上找 `gradlew.bat` 定位项目根，两种位置都能跑。
+
+### 打包的三种模式
+
+`tools\一键打包附属.bat` 实际跑的是 `buildAddonJar reobf`，按第一个参数选模式：
+
+| 命令 | 做什么 | 什么时候用 |
+|---|---|---|
+| `一键打包附属.bat` | 跳过本体 jar（`-x jar`）+ `--offline` | 日常出包，**最快**，本体 jar 已在 `build\libs` 时用 |
+| `一键打包附属.bat full` | 连本体 jar 一起重打 | 本体源码刚改过 / `build\libs` 里没有本体 jar |
+| `一键打包附属.bat net` | 去掉 `--offline`，联网 | 新增依赖、全新克隆第一次构建 |
+
+产物：`build\libs\MakeNTMGreatAgain-<版本>.jar`，脚本结束时打印文件大小；全量日志在 `build\pack.log`。
+
+三个必须知道的细节：
+
+- **`reobf` 会把两个 jar 一起重混淆**，而且必须拿本体 jar 当输入。所以本体 jar 不在 `build\libs` 时
+  第一次会报 `FileNotFoundException: HBM-NTM-xxx.jar`，脚本会自动补建并重试一次（保持 `--offline`）。
+- **失败时 `build\libs` 里那个附属 jar 是未混淆的**（MCP 名字），进整合包必崩 `AbstractMethodError`。
+  看到 `*** BUILD FAILED ***` 就别发这个包。
+- 想确认版本号改对了，看产物文件名和 `build\libs` 里旧 jar 名是否一致。
 
 ---
 
@@ -25,6 +48,18 @@
 - **旧存档要删 `config/hbmRecipes/_hbmChemicalPlant.json`**，否则 `hasChemRecipe` 命中旧配方，新配方不注册。
 - **矿脉、掉落只影响新生区块**，老区块不会补。
 - `GenericRecipe.power` 是**每 tick** 的耗电，不是总量。
+
+### 改完代码先跑自检
+
+```
+python tools\pinyin_audit.py --all
+```
+
+一次检查三件事：拼音字典缺字、物品/方块的中英 lang 键、贴图 png 是否存在。
+退出码 0 才算干净。这三种问题**都不会在编译期报错**，只会在游戏里变成
+`item.xxx.name`、紫黑格、搜不到。
+
+各字段含义、日志关键字、游戏内验证清单见 `tools\新增内容手册.md` 第 7 节。
 
 ### 在 IDEA 里跑游戏测试
 

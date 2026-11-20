@@ -36,7 +36,15 @@ import net.minecraftforge.common.util.ForgeDirection;
  *   tanks[3] 加热回路输出：加热后的流体（如 蒸汽）
  *
  * 换热回收的热量比原版换热器多 25%（HEAT_BONUS），储存在 heatEnergy 里，
- * 一部分供加热回路消耗，剩下的由顶部 3×3 热面供热管抽取。
+ * 一部分供加热回路消耗，剩下的由顶部热面供热管抽取。
+ *
+ * <h3>热量上限</h3>
+ * <p>原版换热器（{@code TileEntityHeaterHeatex}）的 heatEnergy 没有上限，只是因为它的热量
+ * 每 tick 都被下游抽干才看不出问题。集成机既要自己烧流体、又要对外供热，一旦没有下游，
+ * 24,000 mB × 680 TU/mB × 1.25 ≈ 2,000 万 TU/tick 直接往里灌，int 会在十几秒内溢出成负数。</p>
+ *
+ * <p>所以必须有上限（见 {@link #MAX_HEAT}），满了就不再吃热流体（不浪费燃料）。
+ * 当前取值等于 {@code Integer.MAX_VALUE}，即实际不封顶，理由与溢出风险见字段注释。</p>
  */
 public class TileEntityHeatexReborn extends TileEntityMachineBase implements IHeatSource, IFluidStandardTransceiverMK2, IControlReceiver {
 
@@ -48,6 +56,20 @@ public class TileEntityHeatexReborn extends TileEntityMachineBase implements IHe
 	public static final int HEATED_OUTPUT_CAPACITY = 3_200_000;
 	/** 集成机型的热回收加成：比普通换热器多 25% */
 	public static final double HEAT_BONUS = 1.25D;
+	/**
+	 * 机内热量上限。<b>当前等于 {@code Integer.MAX_VALUE}，即实际不封顶</b>，与下面的历史说明不同，
+	 * 改数值前先读这段。
+	 *
+	 * <p>历史上曾按「原版单周期最大换热 × 2」封顶：原版两罐各 24,000 mB，可冷却流体里热值最高的
+	 * LEAD_HOT 是 680 TU/mB（效率 100%），24,000 × 680 = <b>16,320,000 TU</b>，×2 = 32,640,000。
+	 * 常用的 COOLANT_HOT 只有 300 TU/mB，对应 7,200,000 TU。</p>
+	 *
+	 * <p>溢出风险仍在：{@code heatEnergy} 是 int，单 tick 累加越过 2^31-1 会翻负。
+	 * 现在之所以不出问题，是 {@link #tryConvert()} 每 tick 都把热量往加热回路和下游推，
+	 * 正常机器攒不到临界值。<b>若要恢复硬上限，把这两个常量一起改成 32_640_000。</b></p>
+	 */
+	public static final int VANILLA_MAX_TRANSFER = 2_147_483_647;
+	public static final int MAX_HEAT = VANILLA_MAX_TRANSFER;
 	/** 机内热量超过这个值，站在机器顶部的玩家会被点燃 */
 	public static final int IGNITE_HEAT = 12_800_000;
 
@@ -231,6 +253,10 @@ public class TileEntityHeatexReborn extends TileEntityMachineBase implements IHe
 		if(tickDelay < 1) tickDelay = 1;
 		if(worldObj.getTotalWorldTime() % tickDelay != 0) return;
 
+		// 储热满了就不再吃热流体：让它先供加热回路 / 外部热源，
+		// 免得一边抽干燃料一边把热量丢掉。
+		if(this.heatEnergy >= MAX_HEAT) return;
+
 		FT_Coolable trait = tanks[0].getTankType().getTrait(FT_Coolable.class);
 
 		int inputOps = tanks[0].getFill() / trait.amountReq;
@@ -241,7 +267,10 @@ public class TileEntityHeatexReborn extends TileEntityMachineBase implements IHe
 
 		tanks[0].setFill(tanks[0].getFill() - trait.amountReq * ops);
 		tanks[1].setFill(tanks[1].getFill() + trait.amountProduced * ops);
-		this.heatEnergy += (int) (trait.heatEnergy * ops * trait.getEfficiency(CoolingType.HEATEXCHANGER) * HEAT_BONUS);
+
+		// 用 long 算完再夹到上限，避免 int 溢出成负数
+		long produced = (long) (trait.heatEnergy * (double) ops * trait.getEfficiency(CoolingType.HEATEXCHANGER) * HEAT_BONUS);
+		this.heatEnergy = (int) Math.min((long) MAX_HEAT, (long) this.heatEnergy + produced);
 		this.markChanged();
 	}
 
@@ -274,7 +303,8 @@ public class TileEntityHeatexReborn extends TileEntityMachineBase implements IHe
 		super.readFromNBT(nbt);
 
 		for(int i = 0; i < tanks.length; i++) this.tanks[i].readFromNBT(nbt, String.valueOf(i));
-		this.heatEnergy = nbt.getInteger("heatEnergy");
+		// 老存档里可能已经溢出成负数，读档时就地修回 [0, MAX_HEAT]
+		this.heatEnergy = MathHelper.clamp_int(nbt.getInteger("heatEnergy"), 0, MAX_HEAT);
 		this.amountToCool = nbt.getInteger("toCool");
 		this.tickDelay = nbt.getInteger("delay");
 		if(this.amountToCool <= 0) this.amountToCool = 24_000;

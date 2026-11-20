@@ -19,12 +19,10 @@ import net.minecraft.util.ResourceLocation;
 /**
  * 跨 HBM 版本兼容层（dev X5860 ⇄ 航天版 X5778）。
  *
- * 职责一：补注册"航天版有、dev 版没有"的流体（目前：HCL 盐酸）。
- * 职责二：注入依赖这类流体的机器配方（目前：炼油厂热盐水分解）。
+ * <p>职责：补注册航天版有、dev 版没有的流体（盐酸），并注入依赖它的配方（炼油厂热盐水）。</p>
  *
- * 铁律：本类以及所有后续配方代码引用盐酸时，一律用 HBMCompat.hcl()（内部是
- * Fluids.fromName("HCL")），永远不要写 Fluids.HCL——dev 版源码没有这个字段，
- * 直接引用会编译失败/运行崩溃。
+ * <p><b>铁律</b>：引用盐酸一律用 {@link #hcl()}，永远不要写 {@code Fluids.HCL}——
+ * dev 版源码没有这个字段，直接引用会编译失败。</p>
  */
 public class HBMCompat {
 
@@ -113,6 +111,42 @@ public class HBMCompat {
 		MakeNTMGreatAgain.LOG.info("此 HBM 版本没有盐酸流体，附属已补注册 " + HCL_NAME + " (id " + HCL_ID + ")");
 	}
 
+	/** 四氯化钛的注册名（新版 HBM 原生字段同名），两版通用查找键 */
+	public static final String TICL4_NAME = "TITANIUM_TETRACHLORIDE";
+
+	/** 补注册用 ID：照抄新版原生的 156（旧版该号空闲，已用字节码核实） */
+	private static final int TICL4_ID = 156;
+
+	/**
+	 * 四氯化钛补注册（幂等，可反复调用）：
+	 * - 新版 HBM（X5852+）原生有 TITANIUM_TETRACHLORIDE（id 156）→ 直接复用，不重复注册；
+	 * - 旧版（如 X5687）没有 → 按新版原值补注册一个同名流体，
+	 *   之后 Fluids.fromName("TITANIUM_TETRACHLORIDE") 两版都能拿到有效流体。
+	 * 数值照抄新版注册：色 0xDBF796、毒3/可燃0/反应2、NOWATER 符号、铁罐 0xE1E549。
+	 */
+	public static void ensureTitaniumTetrachloride() {
+		FluidType existing = Fluids.fromName(TICL4_NAME);
+		if (existing != Fluids.NONE) return;   // 新版路径：原生流体已在，直接用
+
+		FluidType fluid = CompatFluidRegistry.registerFluid(
+				TICL4_NAME, TICL4_ID,
+				0xDBF796,                     // 新版原色
+				3, 0, 2,                      // 毒3/可燃0/反应2：与新版逐项一致
+				EnumSymbol.NOWATER,
+				new ResourceLocation("hbm", "textures/gui/fluids/titanium_tetrachloride.png"));
+		fluid.setTemp(20);
+		fluid.addTraits(Fluids.LIQUID);
+		fluid.addContainers(new Fluids.CD_Canister(0xE1E549));
+
+		// 进流体识别码/列表。reloadFluids 回调期间不要加——收尾会统一把 foreignFluids 塞进 metaOrder
+		if (!ModFluids.isDuringReload() && !Fluids.metaOrder.contains(fluid)) {
+			Fluids.metaOrder.add(fluid);
+		}
+
+		MakeNTMGreatAgain.LOG.info("此 HBM 版本没有四氯化钛流体，附属已补注册 " + TICL4_NAME + " (id " + TICL4_ID + ")");
+	}
+
+	/** 氢气、氯气、盐酸、低压蒸汽、钠 */
 	public static void addHotBrineRefineryRecipe() {
 		FluidType in = ModFluids.HOT_SALT_WATER.type;
 		if (in == null) return;                                  // 流体尚未注册（时机异常）

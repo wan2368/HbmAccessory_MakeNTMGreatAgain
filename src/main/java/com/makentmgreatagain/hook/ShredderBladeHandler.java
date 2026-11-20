@@ -23,15 +23,23 @@ import net.minecraft.world.World;
  * 就用 setInventorySlotContents 把它替换成 scrap_blades_alloy_reborn，
  * 该物品没有耐久、是普通物品（粉碎机不再把它当刀片），玩家取出后可直接熔炼回锭。</p>
  *
- * <p>性能：每个 tick 遍历世界已加载的 TileEntity 并 instanceof 判断，
- * 命中才做物品比对；绝大多数 tick 不满足条件，开销可忽略。</p>
+ * <p>性能：每 {@link #SCAN_INTERVAL} tick 遍历一次世界已加载的 TileEntity 并 instanceof 判断，
+ * 命中才做物品比对。</p>
  */
 public class ShredderBladeHandler {
+
+	/** 扫描间隔（tick）：loadedTileEntityList 在大工厂世界动辄上万 TE，每 tick 全扫不值得 */
+	private static final int SCAN_INTERVAL = 40;
+
+	private int tickCounter;
 
 	@SubscribeEvent
 	public void onServerTick(TickEvent.ServerTickEvent event) {
 		if (event.phase != Phase.END) return;
 		if (ModItems.blades_alloy_reborn == null || ModItems.scrap_blades_alloy_reborn == null) return;
+
+		// 降频扫描：刀片磨完晚换 2 秒没有游戏性影响，全量扫 TE 列表的代价却是每 tick 的
+		if (++tickCounter % SCAN_INTERVAL != 0) return;
 
 		MinecraftServer server = MinecraftServer.getServer();
 		if (server == null) return;

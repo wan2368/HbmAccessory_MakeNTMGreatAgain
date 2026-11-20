@@ -40,27 +40,17 @@ public class CigaretteKillHandler {
 	}
 
 	/**
-	 * 对玩家施加必死伤害（含创造模式）。
+	 * 对玩家施加必死伤害。
 	 *
 	 * <p>用 outOfWorld 虚空伤害：忽略护甲且为绝对伤害，Float.MAX_VALUE 保证一击必死。
-	 * 创造模式需临时关闭 disableDamage，之后立即恢复；该调用同步完成，无竞态窗口。</p>
+	 * outOfWorld 自带 canHarmInCreative，创造玩家不需要临时关 disableDamage（原版判定会放行）。</p>
 	 */
 	private static void killPlayer(EntityPlayer player) {
-		boolean creativeImmune = player.capabilities.disableDamage;
-		if (creativeImmune) {
-			player.capabilities.disableDamage = false;
-		}
-		try {
-			player.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
-			// 处决后解锁成就"逃离深渊"。走本模组自己的成就系统，
-			// 不进 Minecraft 原生成就页（见 Achievement 包）。
-			// 注意：不能等 player.isDead —— 死亡动画约20tick后才设该标记，立即判断永远为false。
-			com.makentmgreatagain.achievement.AchManager.unlock(
-					player, com.makentmgreatagain.achievement.AchRegistry.ESCAPE_ABYSS);
-		} finally {
-			if (creativeImmune) {
-				player.capabilities.disableDamage = true;
-			}
+		boolean killed = player.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
+		// 伤害被事件取消时（如其他模组的保护）不算"逃离深渊"，不解锁成就
+		if (killed) {
+			com.makentmgreatagain.init.ModAchievements.unlock(
+					player, com.makentmgreatagain.init.ModAchievements.escape_abyss);
 		}
 	}
 

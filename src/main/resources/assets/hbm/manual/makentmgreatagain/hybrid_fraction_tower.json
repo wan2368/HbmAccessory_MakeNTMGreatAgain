@@ -1,0 +1,23 @@
+{
+	"name": "Hybrid Catalytic Fractionating Tower",
+	"icon": [
+		"makentmgreatagain:machine_hybrid_catalytic_fraction_tower",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:machine_hybrid_catalytic_fraction_tower",
+			1,
+			0
+		]
+	],
+	"title": {
+		"en_US": "Hybrid Catalytic Fractionating Tower",
+		"zh_CN": "混合催化分馏塔"
+	},
+	"content": {
+		"en_US": "5x5x6 multiblock. Eight hatches around the base, two per flat face.<br><br>Ports: each hatch carries fluid and items at once - pipes and conveyors both connect. Fluid into tanks 0/1, drawn from tanks 2-5. Items only enter input slots, pulled from output slots.<br><br>GUI: two input tanks left, one catalyst slot middle, four output tanks plus one item output right. Every tank holds 24,000 mB.<br><br>Running: every 10 ticks consumes 1,000 mB input and produces recipe output. Falls back to 100 mB if not enough for a full batch. Stops completely when any output tank or item output is full.<br><br>Catalysts: three tiers, higher covers lower - converter, then platinum converter, then CMB converter. Any catalyst runs Catalytic Cracker recipes; the CMB converter also runs Radiolysis. Neither route takes steam or makes low-pressure steam.<br><br>When an ID card does nothing: the change is rejected if the two feeds plus the old tanks that still hold fluid would need more than four output tanks. Empty those tanks first. Output tank slots never reshuffle - a tank keeps its type until fully empty, and new products only go into blank tanks. Both input tanks sit at pressure 0, so pressurised fluids can never be fed in.<br><br>Stacking: a tower directly on top merges into one machine. Only the bottom segment changes fluid types; the rest inherit downward. Input splits evenly across the column - N towers each get 1/N. Every segment needs its own catalyst, otherwise it only receives fluid and produces nothing. Products are pushed down, so only the bottom segment outputs.<br><br>See also:<br>[[Seawater Processing|Seawater Processing]]<br>[[Large Catalytic Chemical Factory|Large Catalytic Chemical Factory]]",
+		"zh_CN": "左边两个进料罐, 中间一个催化剂槽, 右边四个出料罐加一个物品输出。每罐 24,000 mB。<br><br>运行: 每 10 tick 消耗 1,000 mB 进料并产出配方结果。凑不满整批时退到 100 mB。任意一个出料罐或物品输出满, 整机立即停机。<br><br>催化剂: 三档, 高档兼容低档, 依次是催化转换器、铂催化转换器、CMB 催化转换器。任意催化剂跑催化裂化配方, 装 CMB 还能跑辐射裂解。两条路线都不吃蒸汽, 不产低压蒸汽。<br><br>识别码为什么放不进去: 两路进料的产物, 加上还存着料、而新组合用不到的旧罐, 一旦超过 4 个出料罐, 整次变更就被整体拒绝。先把那几个旧罐排空再换。出料罐位只增不重排: 罐子一旦定了型就一直用那个位置, 只有彻底排空才释放, 新产物只往空罐里落。两个进料罐压力恒为 0, 带压流体永远进不来。<br><br>堆叠: 正上方再叠一台合并成一部机器。只有最底层能改流体类型, 上方各段继承下方。进料按整列均分。<br><br>叠 N 台每台 1/N。每段都必须自己放催化剂, 缺的那段只能进料不产物。产物往下压, 只在最底层排出。<br><br>另见:<br>[[海水处理|Seawater Processing]]<br>[[大型催化化工厂|Large Catalytic Chemical Factory]]"
+	}
+}

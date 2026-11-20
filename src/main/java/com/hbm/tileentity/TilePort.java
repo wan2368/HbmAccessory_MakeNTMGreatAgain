@@ -185,6 +185,11 @@ public class TilePort {
 		if(this.node == null || this.node.expired || this.node.net == null || !this.node.net.isValid()) return null;
 		return this.node.net;
 	}
+
+	/** 暴露本端口自己的节点，供外部在销毁前安全退网（共享网络只摘链接，避免误毁整条管网） */
+	public GenNode getNode() {
+		return this.node;
+	}
 	
 	public static class PortDef {
 		public BlockPos[] portPositions;

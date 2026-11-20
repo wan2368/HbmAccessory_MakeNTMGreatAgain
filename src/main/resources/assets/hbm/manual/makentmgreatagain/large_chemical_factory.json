@@ -1,0 +1,21 @@
+{
+	"name": "Large Catalytic Chemical Factory",
+	"icon": [
+		"makentmgreatagain:machine_large_catalytic_chemical_factory",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:machine_large_catalytic_chemical_factory"
+		]
+	],
+	"title": {
+		"en_US": "Large Catalytic Chemical Factory",
+		"zh_CN": "大型催化化工厂"
+	},
+	"content": {
+		"en_US": "8x4x8. Runs the chemical plant, pyrolysis and mixer tables together, plus its own high-temperature recipes.<br><br>WARNING: turning the mode knob empties every input and output tank. Drain them first.<br><br>Both electrode slots must hold a working electrode, or it makes no heat and progress resets. Electrodes wear every 80 ticks; CMB electrodes never wear.<br><br>Heating draws 5,000 HE/t for 1,000 Tu/t. Pyrolysis needs 250k-800k Tu, Threx needs 750k. Holding temperature costs heat/5 HE/t extra; without power it loses 500 Tu/t. Overheating does not explode.<br><br>Coolant must be cold tetrafluoromethane: 10 mB/t x power level x batch count. Too little and it silently stops progressing.<br><br>Batch count is not player-set. It steps down from 64 (or 16 in multi-recipe mode) as slots fill.<br><br>Catalyst tiers: converter, platinum, CMB. Higher covers lower. Too low a tier means it will not start, with no warning.<br><br>Red speed upgrades add +100% power per level.<br><br>See also:<br>[[Fluid Cooler|Fluid Cooler]]<br>[[Hybrid Catalytic Fractionating Tower|Hybrid Catalytic Fractionating Tower]]",
+		"zh_CN": "同时跑化工厂、热解炉和搅拌机三张配方表, 另有一批自己的高温独占配方。<br><br>注意: 切模式旋钮会清空全部输入输出罐, 先排空再切。<br><br>两个电极槽都必须插可用电极, 否则完全不产热、进度归零。电极每 80 tick 掉1点耐久。<br><br>加热耗 5,000 HE/t, 产 1,000 Tu/t。热解类配方需 25 万~80 万 Tu。保温额外耗「热量÷5」HE/t。<br><br>冷却剂必须是冷四氟甲烷: 10 mB/t x 功耗档 x 批次。不够就静默停止推进。<br><br>并行不能调整, 会更具输入的数量从 64 (多配方模式 16) 自动往下降。<br><br>催化剂三档: 催化转换器、铂、CMB, 高档兼容低档。档位不够就不开工, 且没有任何提示。<br><br>另见:<br>[[流体冷却机|Fluid Cooler]]<br>[[混合催化分馏塔|Hybrid Catalytic Fractionating Tower]]"
+	}
+}

@@ -1,0 +1,21 @@
+{
+	"name": "Core Lava Extractor",
+	"icon": [
+		"makentmgreatagain:core_lava_extractor",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:core_lava_extractor"
+		]
+	],
+	"title": {
+		"en_US": "Core Lava Extractor",
+		"zh_CN": "地核熔岩开采机"
+	},
+	"content": {
+		"en_US": "5x5x6. Turns hot lead into dense core slurry and molten core mix. Draws 15,000,000 HE/t, takes 20 mB/t in, makes 10 + 5 mB/t out.<br><br>A core fissure must be somewhere directly below it, at any depth. Fissures only generate in the Nether at Y=0, in about 1% of chunks - the fissure block itself is unbreakable, so spot it by the deep rock pile on bedrock.<br><br>Slot 0 must hold a synthetic X crystal, which is not consumed. All three lamps must be green before it starts.<br><br>The input tank is fixed at 5 PU and only takes high-temperature lead at that pressure. Lower-pressure pipes cannot fill it, and there is no bucket slot.<br><br>Any full output tank stops the machine. All ports are on the top layer, facing up.<br><br>See also:<br>[[Ores and Mining|Addon Ores]]<br>[[Subcritical Nuclear Explosion Generator|Nuclear Explosion Generator]]",
+		"zh_CN": "使用高温铅和人造X晶体提取出地核中的原浆和混合物。<br><br>正下方任意高度必须有地核熔岩裂隙。裂隙只在下界 Y=0 生成, 约 1% 的区块。<br><br>必须常驻人造X晶体。三盏灯全绿才允许开机。<br><br>输入罐固定 5 PU, 只收同压的高温铅<br><br>另见:<br>[[矿物与采掘|Addon Ores]]<br>[[次临界核爆发生器|Nuclear Explosion Generator]]"
+	}
+}

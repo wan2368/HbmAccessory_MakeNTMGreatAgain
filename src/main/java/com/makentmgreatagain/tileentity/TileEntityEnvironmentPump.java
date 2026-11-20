@@ -6,6 +6,7 @@ import com.hbm.main.MainRegistry;
 import com.hbm.tileentity.TileEntityLoadedBase;
 import com.hbm.tileentity.TilePort.PortDef;
 import com.hbm.tileentity.TilePortShapes;
+import com.makentmgreatagain.init.ModAchievements;
 import com.makentmgreatagain.util.EnvironmentPumpMedia;
 import com.makentmgreatagain.util.EnvironmentPumpMedia.Medium;
 
@@ -14,6 +15,7 @@ import api.hbm.fluidmk2.IFluidStandardTransceiverMK2;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 
@@ -98,6 +100,10 @@ public class TileEntityEnvironmentPump extends TileEntityLoadedBase
 						this.progress = 0;
 						produce();
 					}
+				} else if(getEffectiveOutputAmount() <= 0) {
+					// 「她罢工了」：必须是「产出被高度惩罚压到 0」这一种停机，
+					// 缺电 / 缺料 / 罐满都不算 —— 那些是玩家没喂饱她，不是她不干。
+					checkStrike();
 				}
 			}
 
@@ -121,7 +127,12 @@ public class TileEntityEnvironmentPump extends TileEntityLoadedBase
 
 	private void updateMedium() {
 		Medium target = EnvironmentPumpMedia.sample(worldObj, xCoord, yCoord, zCoord);
-		if(target == active) return;
+		if(target == active) {
+			// 排空途中群系又变回当前介质：取消换型，否则排空结束后
+			// 会用过期的 pending 把刚切回来的介质再切走一次
+			if(draining) { this.pending = null; this.draining = false; }
+			return;
+		}
 
 		// 同一种流体只换参数（如三种辐射坑），不打断产出
 		if(active != null && active.output == target.output && active.output2 == target.output2) {
@@ -217,6 +228,42 @@ public class TileEntityEnvironmentPump extends TileEntityLoadedBase
 		}
 		add(outputTanks[0], getEffectiveOutputAmount());
 		if(secondaryActive()) add(outputTanks[1], getEffectiveOutput2Amount());
+
+		checkOverworked();
+	}
+
+	/**
+	 * 「吃力不讨好」：偏离工作高度带 10 档以上还在转，且玩家就在 24 格内看着。
+	 *
+	 * <p>挂在结算点上而不是每 tick 判——{@code getClosestPlayer} 要遍历在线玩家，
+	 * 5 秒一次已经足够（玩家总是要站一会儿才会发现产出少了一半）。</p>
+	 */
+	private void checkOverworked() {
+
+		if(EnvironmentPumpMedia.penaltySteps(worldObj, yCoord) < ModAchievements.PUMP_PENALTY_STEPS) return;
+
+		EntityPlayer player = worldObj.getClosestPlayer(
+				xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D, 24D);
+		if(player != null) ModAchievements.unlock(player, ModAchievements.pump_overworked);
+	}
+
+	/**
+	 * 「她罢工了」（隐藏成就）：泵被架到产出归零的档位（20 档 = 偏离高度带 100 格），
+	 * 机器直接停机不干活，且玩家就在 24 格内看着。
+	 *
+	 * <p>与「吃力不讨好」的区别：那条是「还在转但亏」，这条是「彻底不转了」。
+	 * 判据用产出归零而不是单看档数，这样换了配方 / 改了惩罚系数也仍然对得上。</p>
+	 *
+	 * <p>挂在停机分支上，每 tick 都会问一次 {@code getClosestPlayer}。
+	 * 但它只在「产出为 0」这个罕见状态下才走到，正常运行的泵根本不进这里，开销可忽略。</p>
+	 */
+	private void checkStrike() {
+
+		if(EnvironmentPumpMedia.penaltySteps(worldObj, yCoord) < ModAchievements.PUMP_STRIKE_STEPS) return;
+
+		EntityPlayer player = worldObj.getClosestPlayer(
+				xCoord + 0.5D, yCoord + 0.5D, zCoord + 0.5D, 24D);
+		if(player != null) ModAchievements.unlock(player, ModAchievements.pump_strike);
 	}
 
 	private void add(FluidTank tank, int amount) {
@@ -287,6 +334,10 @@ public class TileEntityEnvironmentPump extends TileEntityLoadedBase
 		this.power = nbt.getLong("power");
 		this.progress = nbt.getInteger("progress");
 		this.active = EnvironmentPumpMedia.byId(nbt.getString("medium"));
+		// 排空/换型状态也要落盘：不恢复 pending 的话，排空结束后机器会停在旧介质，
+		// 违背「先排空再换型」的设计；draining 不恢复则读档后立刻恢复产出，旧罐液体直接蒸发
+		if(nbt.hasKey("pending")) this.pending = EnvironmentPumpMedia.byId(nbt.getString("pending"));
+		this.draining = nbt.getBoolean("draining");
 		for(int i = 0; i < inputTanks.length; i++) inputTanks[i].readFromNBT(nbt, "in" + i);
 		for(int i = 0; i < outputTanks.length; i++) outputTanks[i].readFromNBT(nbt, "out" + i);
 	}
@@ -297,6 +348,8 @@ public class TileEntityEnvironmentPump extends TileEntityLoadedBase
 		nbt.setLong("power", power);
 		nbt.setInteger("progress", progress);
 		nbt.setString("medium", active == null ? "water" : active.id);
+		if(pending != null) nbt.setString("pending", pending.id);
+		nbt.setBoolean("draining", draining);
 		for(int i = 0; i < inputTanks.length; i++) inputTanks[i].writeToNBT(nbt, "in" + i);
 		for(int i = 0; i < outputTanks.length; i++) outputTanks[i].writeToNBT(nbt, "out" + i);
 	}

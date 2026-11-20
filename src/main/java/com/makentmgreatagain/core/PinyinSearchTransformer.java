@@ -7,9 +7,14 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 /**
- * 把 GUI / Container 里的 String.contains 换成拼音搜索。
- * 只改 com.hbm.inventory.gui 和 com.hbm.inventory.container 下的类，
- * 不会影响其它模组或 HBM 的其它逻辑。
+ * 把 {@code String.contains(CharSequence)} 换成 {@code PinyinSearch.contains}。
+ *
+ * <p>覆盖范围：{@code com.hbm.inventory.gui.*}、{@code com.hbm.inventory.container.*}
+ * 与 {@code com.hbm.inventory.recipes.loader.GenericRecipe}（配方名）。其它类一律不动。
+ * <b>NEI 不覆盖</b>：它走 {@code Pattern.matcher().find()}，无法用同一处替换兼容。</p>
+ *
+ * <p>只替换签名完全一致的 {@code INVOKEVIRTUAL java/lang/String.contains}；
+ * 命中数为 0 或抛异常时原样返回，不影响启动。</p>
  */
 public class PinyinSearchTransformer implements IClassTransformer {
 

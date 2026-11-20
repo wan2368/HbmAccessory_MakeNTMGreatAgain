@@ -1,0 +1,21 @@
+{
+	"name": "Industrial Gas Turbine",
+	"icon": [
+		"makentmgreatagain:industrial_gas_turbine",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:industrial_gas_turbine"
+		]
+	],
+	"title": {
+		"en_US": "Industrial Gas Turbine",
+		"zh_CN": "工业燃气轮机"
+	},
+	"content": {
+		"en_US": "4x13x4. Burns combustible fluids for power, like HBM's diesel engine but larger and with a throttle.<br><br>You must BOTH flip the switch AND drag the throttle in the GUI. Both start at off/zero, so it makes nothing until you move the throttle. Throttle 0-10 = 0-50 mB/t.<br><br>Fuel efficiency by grade: low 55%, medium 85%, high 100%, aviation 90%, gaseous 85%.<br><br>The lube tank takes lubricating oil or methanol only, and burns 1 mB per 100 mB of fuel. Efficiency: empty 0.85, lubricating oil 1.0, methanol 1.15 - running dry wastes 15%.<br><br>Overdrive upgrades multiply BOTH consumption and output (x1.33/1.5/1.75). Efficiency upgrades add output only (+5/10/15%).<br><br>At 25M HE stored it stops generating but the switch stays on.",
+		"zh_CN": "烧可燃流体发电, 类似 HBM 柴油机但更大、带节流阀。<br><br>GUI 里要同时打开开关并拖动节流阀。两者默认都是关/0, 不拖滑阀就永远不发电。节流阀 0~10 档 = 0~50 mB/t。<br><br>燃料按等级打折: 低 55%、中 85%、高 100%、航空 90%、气体 85%。<br><br>润滑罐只收润滑油或甲醇, 每 100 mB 燃料耗 1 mB。发电效率: 空罐 0.85、润滑油 1.0、甲醇 1.15。<br><br>加力升级同时放大消耗与发电 (x1.33/1.5/1.75), 效率升级只加发电 (+5/10/15%)。<br><br>存满 25M HE 会停止发电, 但开关仍是开的。"
+	}
+}

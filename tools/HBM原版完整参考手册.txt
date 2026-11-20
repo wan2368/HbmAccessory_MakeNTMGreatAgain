@@ -18,7 +18,10 @@
     · 其中 310 条名字在源码里查无此物，单列在 2.29；
      另有 59 个物品 + 29 个方块没中文名，补列在第 8 章 8.3 / 8.4
     · 机器/配方表 49 张（详见第 5 章）
-    · 全文 20 章 / 12700 行：物品方块流体全表 + 配方模板 + 注册教程 + 机器进阶 + 流体系统 + 完整性核对
+    · 全文 23 章 / 15980 行：物品方块流体全表 + 配方模板 + 注册教程 + 机器进阶 + 流体系统
+      + 装备属性全解（护甲 · 危险防护 · 改装件，含可直接编译的完整示例）
+      + 结构生成（NBTStructure / SpawnCondition）+ 掉落物替换自定义实体
+    · 第 21、22 章同样带整文件可编译模板；每处「多种正确写法」都标注了取舍
 
   阅读约定：
     · 注册名规则（重要）：物品 hbm:item.<字段名>、方块 hbm:tile.<字段名>（HBM 用 getUnlocalizedName() 注册，见 1.1）
@@ -55,6 +58,17 @@
   第 17 章  HBM 版本升级自查清单
   第 18 章  流体系统全解：注册 · 流体识别码 · 储罐 · 管道
   第 19 章  附属模组工程结构与砧装配模板系统
+  第 20 章  装备属性全解（护甲 · 危险防护 · 改装件）
+            20.0 六层总览  20.1 材质  20.2 ArmorFSB 17 条  20.3 移动速度  20.4 DT/DR
+            20.5 危险防护  20.6 辐射  20.7 改装件  20.8 特殊子类  20.9 完整流程
+            20.10 全属性模板  20.11 逐条属性完整代码  20.12 完整可编译示例  20.13 坑
+  第 21 章  结构生成：NBTStructure / SpawnCondition 体系
+            21.1 NBT 格式  21.2 叠加语义  21.3 注册五步  21.4 SpawnCondition 字段
+            21.5 JigsawPiece 字段  21.6 密度三通道  21.7 层位与超平坦坑  21.8 生成后填充
+            21.9 wand_* 与数字 ID  21.10 没生成怎么反查  21.11 坑表  21.12 清单
+  第 22 章  掉落物替换：hasCustomEntity / createEntity
+            22.1 钩子调用点  22.2 最小实现（物品+实体）  22.3 自定义渲染器  22.4 状态同步
+            22.5 坑表  22.6 清单
 
 
 ================================================================================================
@@ -378,7 +392,7 @@
   富集奥斯坯料                                   ModItems.billet_australium_greater                  ItemCustomLore
   钙锭                                           ModItems.ingot_calcium                              Item
   钢锭                                           ModItems.ingot_steel                                Item
-  高级合金锭                                     ModItems.ingot_advanced_alloy                       ItemAdvancedAlloy
+  高级合金锭（已移除）                           —（5852 无此物品，见 2.29）
   高浓度Sa326燃料锭                              ModItems.ingot_hes                                  Item
   高浓度Sa326燃料粒                              ModItems.nugget_hes                                 Item
   高浓缩度Sa326燃料坯料                          ModItems.billet_hes                                 Item
@@ -495,7 +509,7 @@
   犽戎龙素坯料                                   ModItems.billet_yharonite                           Item
   一滴水银                                       ModItems.nugget_mercury                             ItemCustomLore
   一块C-4                                        ModItems.ingot_c4                                   ItemLemon
-  一小滴水银                                     ModItems.nugget_mercury_tiny                        Item
+  一小滴水银                                     ModItems.nugget_mercury                             Item  （unlocalized: nugget_mercury_tiny）
   铱锇锭                                         ModItems.ingot_osmiridium                           ItemCustomLore
   铱锇粒                                         ModItems.nugget_osmiridium                          ItemCustomLore
   硬质塑料锭                                     ModItems.ingot_pc                                   ItemCustomLore
@@ -1230,7 +1244,7 @@
   HEN 高浓缩度镎燃料芯块                         ModItems.rbmk_pellet_hen                            ItemRBMKPellet
   HEN RBMK反应堆高浓缩度镎燃料棒                 ModItems.rbmk_fuel_hen                              ItemRBMKRod
   HEP-239 高浓缩度钚-239燃料芯块                 ModItems.rbmk_pellet_hep239                         ItemRBMKPellet
-  HEP-239 RBMK反应堆高浓缩度钚-239燃料棒         ModItems.rbmk_fuel_hep                              ItemRBMKRod
+  HEP-239 RBMK反应堆高浓缩度钚-239燃料棒         ModItems.rbmk_fuel_hep239                           ItemRBMKRod  （unlocalized: rbmk_fuel_hep）
   HEP-241 高浓缩度钚-241燃料芯块                 ModItems.rbmk_pellet_hep241                         ItemRBMKPellet
   HEP-241 RBMK反应堆高浓缩度钚-241燃料棒         ModItems.rbmk_fuel_hep241                           ItemRBMKRod
   HES 高浓缩度Sa-326燃料芯块                     ModItems.rbmk_pellet_hes                            ItemRBMKPellet
@@ -1576,7 +1590,7 @@
   深成石英                                       ModItems.quartz_plutonium                           ItemModQuartz
   渗透者                                         ModItems.gun_g3_infiltrator                         变体 → ModItems.gun_g3（按字段名归属，meta 见该物品的枚举）
   圣龙                                           ModItems.gun_double_barrel_sacred_dragon            ItemGunBaseNT
-  手动覆盖控制                                   ModItems.weapon_pipe_lead                           ModSword
+  手动覆盖控制                                   ModItems.pipe_lead                                  ModSword  （unlocalized: weapon_pipe_lead）
   守护项链                                       ModItems.protection_charm                           ItemModCharm
   双持杠杆式霰弹枪                               ModItems.gun_maresleg_akimbo                        ItemGunBaseNT
   双持乌兹冲锋枪                                 ModItems.gun_uzi_akimbo                             ItemGunBaseNT
@@ -1989,7 +2003,7 @@
   核废土清道夫套装胸甲                           ModItems.liquidator_plate                           ArmorLiquidator
   核废土清道夫套装靴子                           ModItems.liquidator_boots                           ArmorLiquidator
   护目镜                                         ModItems.goggles                                    ArmorModel
-  华丽的帽子                                     ModItems.nossy_hat                                  ArmorHat
+  华丽的帽子                                     ModItems.hat                                        ArmorHat  （unlocalized: nossy_hat）
   凯夫拉插板                                     ModItems.insert_kevlar                              ItemModInsert
   矿工头盔                                       ModItems.no9                                        ArmorNo9
   皮革防毒面具                                   ModItems.gas_mask_olde                              ArmorGasMask
@@ -2179,7 +2193,7 @@
   煤油罐头                                       ModItems.canned_kerosene                            变体 → ModItems.canned_conserve（按字段名归属，meta 见该物品的枚举）
   蘑菇煲罐头                                     ModItems.canned_stew                                变体 → ModItems.canned_conserve（按字段名归属，meta 见该物品的枚举）
   奶酪                                           ModItems.cheese                                     ItemLemon
-  奶酪油炸玉米粉饼                               ModItems.cheese_quesadilla                          ItemLemon
+  奶酪油炸玉米粉饼                               ModItems.quesadilla                                 ItemLemon  （unlocalized: cheese_quesadilla）
   凝固汽油罐头                                   ModItems.canned_napalm                              变体 → ModItems.canned_conserve（按字段名归属，meta 见该物品的枚举）
   凝结马黏液                                     ModItems.canned_slime                               变体 → ModItems.canned_conserve（按字段名归属，meta 见该物品的枚举）
   牛肉罐头                                       ModItems.canned_beef                                变体 → ModItems.canned_conserve（按字段名归属，meta 见该物品的枚举）
@@ -2414,17 +2428,17 @@
   15号液体燃料推进器                             ModItems.mp_thruster_15_kerosene                    ItemCustomMissilePart
   15号HE弹头                                     ModItems.mp_warhead_15_he                           ItemCustomMissilePart
   15号N2炸弹                                     ModItems.mp_warhead_15_n2                           ItemCustomMissilePart
-  1级导弹制导芯片                                ModItems.mp_c_1                                     ItemCustomMissilePart
+  1级导弹制导芯片                                ModItems.mp_chip_1                                  ItemCustomMissilePart  （unlocalized: mp_c_1）
   20号固体燃料推进器                             ModItems.mp_thruster_20_solid                       ItemCustomMissilePart
   20号三十喷管固体燃料推进器                     ModItems.mp_thruster_20_solid_multi                 ItemCustomMissilePart
   20号四十七喷管固体燃料推进器                   ModItems.mp_thruster_20_solid_multier               ItemCustomMissilePart
   20号液体燃料推进器                             ModItems.mp_thruster_20_kerosene                    ItemCustomMissilePart
   20号液体燃料推进器                             ModItems.mp_thruster_20_kerosene_dual               ItemCustomMissilePart
   20号液体燃料推进器                             ModItems.mp_thruster_20_kerosene_triple             ItemCustomMissilePart
-  2级导弹制导芯片                                ModItems.mp_c_2                                     ItemCustomMissilePart
-  3级导弹制导芯片                                ModItems.mp_c_3                                     ItemCustomMissilePart
-  4级导弹制导芯片                                ModItems.mp_c_4                                     ItemCustomMissilePart
-  5级导弹制导芯片                                ModItems.mp_c_5                                     ItemCustomMissilePart
+  2级导弹制导芯片                                ModItems.mp_chip_2                                  ItemCustomMissilePart  （unlocalized: mp_c_2）
+  3级导弹制导芯片                                ModItems.mp_chip_3                                  ItemCustomMissilePart  （unlocalized: mp_c_3）
+  4级导弹制导芯片                                ModItems.mp_chip_4                                  ItemCustomMissilePart  （unlocalized: mp_c_4）
+  5级导弹制导芯片                                ModItems.mp_chip_5                                  ItemCustomMissilePart  （unlocalized: mp_c_5）
   扁钢外壳                                       ModItems.fins_flat                                  Item
   大型弹头                                       ModItems.warhead_generic_large                      Item
   大型钢翼                                       ModItems.fins_tri_steel                             Item
@@ -2450,7 +2464,7 @@
   雷达探测卫星（遗留）                           ModItems.sat_radar                                  ItemSatChip
   联盟-FG运载火箭                                ModItems.missile_soyuz                              ItemSoyuz
   联盟号轨道舱                                   ModItems.missile_soyuz_lander                       ItemCustomLore
-  猎人直升机                                     ModItems.chopper                                    ItemChopper
+  猎人直升机                                     ModItems.spawn_chopper                              ItemChopper  （unlocalized: chopper）
   猎人直升机机枪                                 ModItems.chopper_gun                                变体 → ModItems.chopper（按字段名归属，meta 见该物品的枚举）
   猎人直升机驾驶舱                               ModItems.chopper_head                               变体 → ModItems.chopper（按字段名归属，meta 见该物品的枚举）
   猎人直升机尾部                                 ModItems.chopper_tail                               变体 → ModItems.chopper（按字段名归属，meta 见该物品的枚举）
@@ -2703,7 +2717,7 @@
   基岩矿石原矿                                   ModItems.bedrock_ore_base                           ItemBedrockOreBase
   剂量计                                         ModItems.dosimeter                                  ItemDosimeter
   加强挂锁                                       ModItems.padlock_reinforced                         ItemLock
-  建筑魔杖                                       ModItems.wand_k                                     ItemWand
+  建筑魔杖                                       ModItems.wand                                       ItemWand  （unlocalized: wand_k）
   健康烟壶                                       ModItems.crackpipe                                  ItemCigarette
   胶带                                           ModItems.ducttape                                   Item
   结构魔杖                                       ModItems.wand_s                                     ItemWandS
@@ -3488,6 +3502,21 @@
   · 机器方块放进物品栏就是“机器物品”，new ItemStack(ModBlocks.machine_xxx) 即可。
   · 本文件共列出 1264 个方块名（含 162 个 meta 变体）；源码里实际注册 641 个方块，
     其余是变体显示名与技术方块，核对结果见第 8 章。
+
+  ★ 标「遗留」「[开发中]」的机器行要当心：5852 已经删掉了一批老机器，只剩
+    lang 键（MainRegistry.ignoreMappings 里有记录）。这些行的第 2 列在源码里
+    找不到同名字段，写进代码会直接编译不过。已核实的改名对照（用右边这个）：
+
+        装配机（遗留）      machine_assembler   ->  ModBlocks.machine_assembly_machine
+        装配厂（遗留）      machine_assemfac    ->  ModBlocks.machine_assembly_factory
+        化工厂（遗留）      machine_chemplant   ->  ModBlocks.machine_chemical_plant
+        大型化工厂（遗留）  machine_chemfac     ->  ModBlocks.machine_chemical_factory
+        汽轮机（遗留）      machine_turbine     ->  ModBlocks.machine_turbinegas
+
+    引用任何「遗留 / 开发中」方块前，先跑一句确认字段存在：
+
+        grep -n "public static .* machine_xxx;" src/main/java/com/hbm/blocks/ModBlocks.java
+
   3.0 分类索引
 ------------------------------------------------------------------------------------------------
     [K1]    机器 / 发电机 / 加工设备                                      290 条
@@ -5254,6 +5283,14 @@
   统一写法：XXXRecipes.INSTANCE.register(new GenericRecipe("唯一名字")...);
   名字建议带自己的 modid 前缀，避免和 HBM 自带配方重名（重名会覆盖或被跳过）。
 
+  ★ 一条通用规则（决定了模板要不要分步写）：
+    · 表是 GenericRecipes<GenericRecipe> 或 <CrucibleRecipe> 时，链式能一路走完 ——
+      GenericRecipe 与 CrucibleRecipe 的每个 setter 都返回自身类型。
+    · 表是 <FusionRecipe> / <PlasmaForgeRecipe> / <PUREXRecipe> / <GenericRecipeNoPower> 时，
+      子类只覆写了个别 setter，其余 setter 继承自 GenericRecipe、返回父类型，
+      链式到底会让表达式类型退化成 GenericRecipe，register(子类型) 编译不过。
+      这类一律“先 new 局部变量 → 逐句 set → 再 register”（各模板给了分步 + 一行流两种写法）。
+
   ── 装配机 / 大型装配厂  (AssemblyMachineRecipes) ──
      机器方块：machine_assembly_machine / machine_assembly_factory
      容量    ：输入 12 物品 + 1 流体 / 输出 1 物品 + 1 流体   （配方类 GenericRecipe）
@@ -5269,8 +5306,10 @@
                    new OreDictStack(W.bolt(), 16))
                .outputItems(new ItemStack(ModBlocks.machine_assembly_machine))
                .setPools(GenericRecipes.POOL_PREFIX_ALT + "plates"));   // 可选：蓝图分组
-       // 概率输出：.outputItems(new ChanceOutput(new ItemStack(x), 25))      25%
-       // 多结果：  .outputItems(new ChanceOutputMulti(new ChanceOutput(a,1), new ChanceOutput(b,2)))
+       // 概率输出：.outputItems(new ChanceOutput(new ItemStack(x), 0.25F))   25%
+       // ★ 第二参传 float 才是概率（0~1）；传 int 是 weight（权重），单条输出时必出、不是 25%。
+       // 多结果：  .outputItems(new ChanceOutputMulti(new ChanceOutput(a, 1), new ChanceOutput(b, 2)))
+       //           这里两个 int 是权重 1:2，Multi 内部按权重抽一个，两个 ChanceOutput 自身 chance=1（必出）
 
   ── 化工厂 / 大型化工厂  (ChemicalPlantRecipes) ──
      机器方块：machine_chemical_plant / machine_chemical_factory
@@ -5317,52 +5356,89 @@
      容量    ：输入 2 物品 + 0 流体 / 输出 2 物品 + 0 流体   （配方类 GenericRecipeNoPower）
      json    ：config/hbmRecipes/_hbmBlastFurnace.json
      模板    ：
-       BlastFurnaceRecipesNT.INSTANCE.register(
-           (GenericRecipeNoPower) new GenericRecipeNoPower("mymod.yourBlast")
-               .setDuration(800)                                   // 只在无电机器里用 setDuration
-               .inputItems(new OreDictStack(IRON.ingot(), 2), new OreDictStack(KEY_SAND))
-               .outputItems(new ItemStack(ModItems.ingot_steel, 2),
-                            new ItemStack(ModItems.ingot_raw, 1, Mats.MAT_SLAG.id)));
+       // ★ 子类没覆写链式方法（setDuration/inputItems 返回的是父类 GenericRecipe），
+       //   直接链式再传给 register(GenericRecipeNoPower) 会编译报错：
+       //   "incompatible types: GenericRecipe cannot be converted to GenericRecipeNoPower"
+       //   正确写法 A（推荐，分步）：
+       GenericRecipeNoPower blast = new GenericRecipeNoPower("mymod.yourBlast");
+       blast.setDuration(800);                                  // 无电机器：只给耗时，不给 power
+       blast.inputItems(new OreDictStack(IRON.ingot(), 2), new OreDictStack(KEY_SAND));
+       blast.outputItems(new ItemStack(ModItems.ingot_steel, 2),
+                         new ItemStack(ModItems.ingot_raw, 1, Mats.MAT_SLAG.id));
+       BlastFurnaceRecipesNT.INSTANCE.register(blast);
+
+       // 写法 B（一行流）：强转必须包住“整个表达式”，放在 new 前面没用
+       BlastFurnaceRecipesNT.INSTANCE.register((GenericRecipeNoPower) (
+           new GenericRecipeNoPower("mymod.yourBlast2")
+               .setDuration(800)
+               .inputItems(new OreDictStack(IRON.ingot(), 2))
+               .outputItems(new ItemStack(ModItems.ingot_steel, 2))));
 
   ── PUREX 钚铀还原提取  (PUREXRecipes) ──
      机器方块：machine_purex
      容量    ：输入 3 物品 + 3 流体 / 输出 6 物品 + 1 流体   （配方类 PUREXRecipe）
      json    ：config/hbmRecipes/_hbmPUREX.json
      模板    ：
-       PUREXRecipes.INSTANCE.register(
-           new PUREXRecipe("mymod.yourPurex")
-               .setup(600, 500)
-               .inputItems(new ComparableStack(ModItems.waste_uranium, 4))
-               .inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1000))
-               .outputItems(new ItemStack(ModItems.ingot_plutonium), new ItemStack(ModItems.ingot_u238))
-               .outputFluids(new FluidStack(Fluids.WASTEFLUID, 500)));
+       // 同高炉：PUREXRecipe 只有构造器，链式方法返回 GenericRecipe，必须分步或整体强转
+       PUREXRecipe purex = new PUREXRecipe("mymod.yourPurex");
+       purex.setup(600, 500);
+       purex.inputItems(new ComparableStack(ModItems.waste_uranium, 4));
+       purex.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1000));
+       purex.outputItems(new ItemStack(ModItems.ingot_plutonium), new ItemStack(ModItems.ingot_u238));
+       purex.outputFluids(new FluidStack(Fluids.WASTEFLUID, 500));
+       PUREXRecipes.INSTANCE.register(purex);
+
+       // 一行流（强转包住整个表达式）：
+       // PUREXRecipes.INSTANCE.register((PUREXRecipe) (
+       //     new PUREXRecipe("mymod.yourPurex2").setup(600, 500)
+       //         .inputItems(new ComparableStack(ModItems.waste_uranium, 4))
+       //         .outputItems(new ItemStack(ModItems.ingot_plutonium))));
 
   ── 聚变反应堆  (FusionRecipes) ──
      机器方块：fusion_torus
      容量    ：输入 0 物品 + 3 流体 / 输出 1 物品 + 11 流体   （配方类 FusionRecipe）
      json    ：config/hbmRecipes/_hbmFusion.json
      模板    ：
-       (FusionRecipe) new FusionRecipe("fus.mymod")
-           .setInputEnergy(750_000)                 // 点火所需能量
-           .setOutputEnergy(1_000_000)              // 每次输出能量
-           .setOutputFlux(500)                      // 中子通量（供增殖舱）
-           .setRGB(1F, 0.2F, 0.2F)                  // 等离子体颜色
-           .setNamed().setIcon(new ItemStack(ModItems.gas_full, 1, Fluids.DEUTERIUM.getID()))
-           .setPower(25_000).setDuration(100)       // 25k HE/t，100 tick
-           .inputFluids(new FluidStack(Fluids.DEUTERIUM, 20))
-           .outputFluids(new FluidStack(Fluids.PLASMA_DT, 100)));
+       // FusionRecipe 自己只覆写了 4 个 setter（InputEnergy/OutputEnergy/OutputFlux/RGB），
+       // setNamed/setIcon/setPower/setDuration/inputFluids 全部返回 GenericRecipe，
+       // 所以不能一路链式到底再交给 register —— 必须分步（或整体强转）。
+       FusionRecipe fusion = new FusionRecipe("fus.mymod");
+       fusion.setInputEnergy(750_000);                       // 点火所需能量
+       fusion.setOutputEnergy(1_000_000);                    // 每次输出能量
+       fusion.setOutputFlux(500);                            // 中子通量（供增殖舱）
+       fusion.setRGB(1F, 0.2F, 0.2F);                        // 等离子体颜色
+       fusion.setNamed();                                    // 用自定义语言键 gui.recipe.fus.mymod
+       fusion.setIcon(new ItemStack(ModItems.gas_full, 1, Fluids.DEUTERIUM.getID()));
+       fusion.setPower(25_000);                              // 25k HE/t
+       fusion.setDuration(100);                              // 100 tick
+       fusion.inputFluids(new FluidStack(Fluids.DEUTERIUM, 20));
+       fusion.outputFluids(new FluidStack(Fluids.PLASMA_DT, 100));
+       FusionRecipes.INSTANCE.register(fusion);
+
+       // 一行流：强转包住整个表达式（放 new 前面无效）
+       // FusionRecipes.INSTANCE.register((FusionRecipe) (
+       //     new FusionRecipe("fus.mymod2").setInputEnergy(750_000).setOutputEnergy(1_000_000)
+       //         .setRGB(1F, 0.2F, 0.2F).setPower(25_000).setDuration(100)
+       //         .inputFluids(new FluidStack(Fluids.DEUTERIUM, 20))
+       //         .outputFluids(new FluidStack(Fluids.PLASMA_DT, 100))));
 
   ── 等离子锻炉  (PlasmaForgeRecipes) ──
      机器方块：fusion_plasma_forge
      容量    ：输入 12 物品 + 1 流体 / 输出 1 物品 + 0 流体   （配方类 PlasmaForgeRecipe）
      json    ：config/hbmRecipes/_hbmPlasmaForge.json
      模板    ：
-       PlasmaForgeRecipes.INSTANCE.register(
-           new PlasmaForgeRecipe("mymod.yourForge")
-               .setup(400, 5000)
-               .inputItems(new OreDictStack(STEEL.ingot(), 4))
-               .inputFluids(new FluidStack(Fluids.PLASMA_DT, 100))
-               .outputItems(new ItemStack(ModItems.ingot_advanced_alloy, 2)));
+       // 同样的问题：PlasmaForgeRecipe 只覆写了 setInputEnergy，setup/inputItems/... 返回父类
+       PlasmaForgeRecipe forge = new PlasmaForgeRecipe("mymod.yourForge");
+       forge.setup(400, 5000);                               // 400 tick，5000 HE/t
+       forge.setInputEnergy(1_000_000);                      // 点火阈值（TU），可选
+       forge.inputItems(new OreDictStack(STEEL.ingot(), 4));
+       forge.inputFluids(new FluidStack(Fluids.PLASMA_DT, 100));
+       forge.outputItems(new ItemStack(ModItems.ingot_steel, 2));
+       PlasmaForgeRecipes.INSTANCE.register(forge);
+
+     ★ 不要写 ModItems.ingot_advanced_alloy —— 5852 已把「高级合金」整系移除，
+       ingot/powder/plate/block/coil 只剩 lang 键和 MainRegistry.ignoreMappings 里的记录，
+       源码里没有这个字段，写上去编译不过（见 2.29）。
 
   ── 超级计算机  (SuperComputerRecipes) ──
      机器方块：machine_supercomputer
@@ -5380,11 +5456,11 @@
      容量    ：输入 1 物品 + 0 流体 / 输出 9 物品 + 0 流体   （配方类 GenericRecipeNoPower）
      json    ：config/hbmRecipes/_hbmSpaceAssembler.json
      模板    ：
-       SpaceAssemblerRecipes.INSTANCE.register(
-           (GenericRecipeNoPower) new GenericRecipeNoPower("space.mymodCircuit")
-               .setDuration(3 * 60 * 20)                                 // 3 分钟
-               .inputItems(new ComparableStack(ModItems.orbital_assembly, 1, EnumOrbitalAssembly.CRYSTAL_CIRCUIT))
-               .outputItems(DictFrame.fromOne(ModItems.circuit, EnumCircuitType.CRYSTAL)));
+       GenericRecipeNoPower space = new GenericRecipeNoPower("space.mymodCircuit");
+       space.setDuration(3 * 60 * 20);                                  // 3 分钟（3600 tick）
+       space.inputItems(new ComparableStack(ModItems.orbital_assembly, 1, EnumOrbitalAssembly.CRYSTAL_CIRCUIT));
+       space.outputItems(DictFrame.fromOne(ModItems.circuit, EnumCircuitType.CRYSTAL));
+       SpaceAssemblerRecipes.INSTANCE.register(space);
 
   ── 坩埚（熔融）  (CrucibleRecipes) ──
      机器方块：machine_crucible
@@ -5394,10 +5470,17 @@
        CrucibleRecipes.INSTANCE.register(
            new CrucibleRecipe("crucible.mymodSteel")
                .setup(20, new ItemStack(ModItems.ingot_steel))        // frequency=20，第二个参数是 NEI 图标
-               .inputs(new MaterialStack(Mats.MAT_IRON, 2),
-                       new MaterialStack(Mats.MAT_CARBON, 3))
-               .outputs(new MaterialStack(Mats.MAT_STEEL, 2)));
-       // 输入输出都是 MaterialStack（材料单位），不是 ItemStack；坩埚只认熔融材料。
+               .inputs(new MaterialStack(Mats.MAT_IRON,   MaterialShapes.INGOT.q(2)),
+                       new MaterialStack(Mats.MAT_CARBON, MaterialShapes.INGOT.q(3)))
+               .outputs(new MaterialStack(Mats.MAT_STEEL, MaterialShapes.INGOT.q(5))));
+       // 输入输出都是 MaterialStack；第二个参数是 quanta（1 锭 = 72，用 INGOT.q(n) 换算）。
+       // 坩埚按“熔体总量”匹配：上面 2 锭 + 3 锭进、5 锭出，守恒才不会被当成两套独立配方。
+
+      ★ 重名 = 抛异常，不是覆盖。GenericRecipes.register 先 add 进 recipeOrderedList，
+        再检查 recipeNameMap 重名并抛 IllegalStateException —— 抛的时候列表里已经多了一条。
+        所以凡是挂在 /ntmreload 监听里的注册，必须自己防重入（判个 boolean，或先按名删），
+        否则第二次重载必崩，且崩之前已经污染了配方表。
+      ★ 配方名建议统一加前缀（"mymod.xxx" / "crucible.mymodXxx"），和 HBM 自带的错开。
 
 
   5.3 旧式静态表：一台机器一段（表结构 + 可编译写法）
@@ -5529,10 +5612,12 @@
      模板    ：
        ElectrolyserMetalRecipes.recipes.put(new OreDictStack("ingotBronze"),
                new ElectrolyserMetalRecipes.ElectrolysisMetalRecipe(
-                       new MaterialStack(Mats.MAT_COPPER, 3),
-                       new MaterialStack(Mats.MAT_TIN, 1),
-                       600));
-     注意    ：MaterialStack 的数量单位是材料单位（1 锭 = 1 单位）。
+                       new MaterialStack(Mats.MAT_COPPER, MaterialShapes.INGOT.q(3)),   // 3 锭
+                       new MaterialStack(Mats.MAT_TIN,    MaterialShapes.INGOT.q(1)),   // 1 锭
+                       600));                                                           // 600 tick
+     注意    ：★ MaterialStack 的第二个参数是 quanta（材料单位），不是“锭数”：
+               1 锭 = 72 quanta。写 new MaterialStack(mat, 3) 只代表 3 quanta（1/24 锭），
+               要写几锭就用 MaterialShapes.INGOT.q(n) 或 n * 72。
 
   ── 工业搅拌机  (MixerRecipes) ──
      机器方块：machine_mixer
@@ -5709,9 +5794,10 @@
      写入 API：BlastFurnaceRecipes.addRecipe(Object in1, Object in2, ItemStack out)
      模板    ：
        BlastFurnaceRecipes.addRecipe(ModItems.ingot_red_copper, ModItems.ingot_steel,
-               new ItemStack(ModItems.ingot_advanced_alloy, 2));
+               new ItemStack(ModItems.ingot_steel, 2));
        // 也可以传矿典字符串：BlastFurnaceRecipes.addRecipe("ingotCopper", "ingotSteel", out);
      注意    ：新版高炉请用 BlastFurnaceRecipesNT（见 5.2）。
+               ★ ingot_advanced_alloy 在 5852 已移除，别拿它当输出（编译不过，见 2.29）。
 
   ── 压缩机  (CompressorRecipes) ──
      机器方块：machine_compressor、machine_compressor_compact
@@ -5745,21 +5831,32 @@
      模板    ：
        PyroOvenRecipes.recipes.add(new PyroOvenRecipes.PyroOvenRecipe(10)
                .in(new OreDictStack(COAL.ore()))                  // 也可 .in(new FluidStack(...))
-               .out(new FluidStack(Fluids.COALOIL, 100))          // 也可 .out(new ItemStack(...))，还能继续链式 .out(...)
-     注意    ：in/out 各有物品和流体两个重载，可以物品进流体出，也可以反过来。
+               .out(new FluidStack(Fluids.COALOIL, 100)));        // 也可 .out(new ItemStack(...))
+     注意    ：★ in/out 各有“物品”“流体”两个重载，但内部只有 4 个单值字段
+               （inputItem / inputFluid / outputItem / outputFluid）。
+               重复 .out() 是“覆盖”而不是“追加”，一条配方最多 1 物品 + 1 流体进出。
+               物品进流体出、流体进物品出都行。
 
   ── 结晶器（矿物酸化器）  (CrystallizerRecipes) ──
      机器方块：machine_crystallizer
-     表结构  ：public static HashMap<AStack, CrystallizerRecipe> recipes（用 registerRecipe 写）
+     表结构  ：private static HashMap<Pair<AStack, FluidType>, CrystallizerRecipe> recipes
+               ★ 表是 private，只能走 registerRecipe(...)；不要想着 recipes.put
      容量    ：1 物品 + 1 流体（酸）→ 1 物品
-     写入 API：CrystallizerRecipes.registerRecipe(AStack in, CrystallizerRecipe recipe[, FluidStack])
+     写入 API：CrystallizerRecipes.registerRecipe(AStack in, CrystallizerRecipe recipe[, FluidStack acid])
+               · 2 参版固定用 PEROXIDE 500 mB
+               · 3 参版的 FluidStack 才是“酸种类 + 每件耗酸量”，它会覆盖 recipe.acidAmount
      模板    ：
-       CrystallizerRecipes.registerRecipe(new OreDictStack(URANIUM.ore()),
-               new CrystallizerRecipes.CrystallizerRecipe(new ItemStack(ModItems.crystal_uranium), 200)
-                       .setReq(500)     // 需要的酸量 mB
-                       .prod(0.1F),     // 副产概率
+       // 先建配方对象：产物 + 耗时
+       CrystallizerRecipes.CrystallizerRecipe cr =
+               new CrystallizerRecipes.CrystallizerRecipe(new ItemStack(ModItems.crystal_uranium), 200);
+       cr.itemAmount = 1;        // 每件产物消耗几个输入物品（setReq(n) 改的就是这个）
+       cr.prod(0.1F);            // 副产概率，0~1
+       // 第三参 = 酸种类 + 每件耗酸 mB（内部会写进 acidAmount）
+       CrystallizerRecipes.registerRecipe(new OreDictStack(URANIUM.ore()), cr,
                new FluidStack(Fluids.SULFURIC_ACID, 500));
-     注意    ：CrystallizerRecipe 的 acidAmount/itemAmount 决定酸与物品的配比。
+     注意    ：★ setReq(n) 设的是 itemAmount（物品配比），不是酸量 —— 名字很容易看错。
+               酸量由 registerRecipe 的第三参决定（acidAmount）；想改酸量就改第三参，不要在
+               setReq 里写。表键是 Pair<AStack, 流体>，所以“同一物品 + 不同酸”可以共存两条。
 
   ── 压弹机  (AmmoPressRecipes) ──
      机器方块：machine_ammo_press
@@ -5804,9 +5901,13 @@
      写入 API：recipes.add(new ExposureChamberRecipe(AStack particle, AStack ingredient, ItemStack out))
      模板    ：
        ExposureChamberRecipes.recipes.add(new ExposureChamberRecipes.ExposureChamberRecipe(
-               new ComparableStack(ModItems.particle_aproton),
+               new ComparableStack(ModItems.particle_hydrogen),
                new OreDictStack(IRON.ingot()), new ItemStack(ModItems.ingot_cobalt)));
      注意    ：粒子物品见 2.x 的 B5 类（particle_*）。
+               ★ 可用的只有 particle_empty / hydrogen / copper / lead / amat / aschrab /
+                 higgs / muon / tachyon / strange / dark / sparkticle / digamma / lutece。
+                 particle_aproton、particle_aelectron 在 5852 已移除（只有 lang 键），
+                 写上去编译不过，用 particle_amat 代替「反物质」语义即可。
 
   ── 乏燃料池  (FuelPoolRecipes) ──
      机器方块：machine_waste_drum、machine_storage_drum
@@ -6112,6 +6213,7 @@
      import com.hbm.inventory.recipes.MixerRecipes;
      import com.hbm.inventory.recipes.loader.GenericRecipe;
      import com.hbm.items.ModItems;
+     import com.makentmgreatagain.init.ModFluids;   // ← 本工程私有；通用附属换成你自己的 FluidType
 
      import net.minecraft.item.ItemStack;
 
@@ -6216,8 +6318,10 @@
          .setup(200, 100)
          .inputItems(new OreDictStack("dustIron", 2))
          .outputItems(new ChanceOutput(new ItemStack(ModItems.powder_steel), 80),   // 权重 80
-                      new ChanceOutput(new ItemStack(ModItems.powder_nickel), 20))); // 权重 20
+                      new ChanceOutput(new ItemStack(ModItems.powder_copper), 20))); // 权重 20
      // 百分比写法：new ChanceOutput(stack, 0.25F) = 25%
+     // ★ powder_nickel / powder_advanced_alloy 在 5852 已移除（镍整个材质都没了），
+     //   第二个输出换成 powder_copper / powder_titanium 这类还在的。
 
   ── T5 跨模组物品（矿典 + 存在性判断）───────────────────────────────────
      import cpw.mods.fml.common.Loader;
@@ -6269,11 +6373,16 @@
      GameRegistry.addShapelessRecipe(new ItemStack(ModItems.myItem),
          Items.iron_ingot, Items.gold_ingot);
 
-  ── T10 原版熔炉配方 ───────────────────────────────────────────────────
+  ── T10 原版熔炉配方（两种写法，任选）──────────────────────────────────
+     // 写法 A（推荐：Forge 的封装，方法名稳定，不会被 SRG 名坑）
+     import cpw.mods.fml.common.registry.GameRegistry;
+     GameRegistry.addSmelting(new ItemStack(ModItems.ore_my), new ItemStack(ModItems.ingot_my), 0.5F);
+
+     // 写法 B（直接调原版；1.7.10 的 MCP 名是 func_151394_a，IDE 里也可补全成 addSmelting）
      import net.minecraft.item.crafting.FurnaceRecipes;
-     // 1.7.10 的 MCP 名是 func_151394_a（IDE 里也可补全成 addSmelting）
      FurnaceRecipes.smelting().func_151394_a(
          new ItemStack(ModItems.ore_my), new ItemStack(ModItems.ingot_my), 0.5F);
+     // 最后一个 float 是经验值；同一输入重复注册时后者覆盖前者（原版内部是 Map）。
 
   ── T11 让机器本体能被“装配机”造出来 ────────────────────────────────────
      AssemblyMachineRecipes.INSTANCE.register(new GenericRecipe("mymod.machine")
@@ -6392,6 +6501,39 @@
 
     HBM 里形状名由 com.hbm.inventory.material.MaterialShapes 定义，
     MaterialShapes.INGOT / BLOCK / NUGGET / CASTPLATE … 决定熔融换算（1 锭=1 单位、1 块=9 单位）。
+
+  ── 熔融单位实值（quantity，1 锭 = 72） ──────────────────────────────────────────────
+
+      QUANTUM        1     最小单位，1/72 锭（能整除 2/4/6/8/9/12/24/36）
+      NUGGET         8     粒；TINY / DUSTTINY / FRAGMENT 同值
+      WIRE           9     细线 wireFine —— 不是 72，8 根细线 = 1 锭
+      BOLT           9
+      BILLET        48
+      INGOT         72     粉 / 板 / 致密线 wireDense / 宝石 / 晶体 也全是 72
+      GRIP         144
+      CASTPLATE    216     铸造板
+      PIPE         216     管
+      SHELL        288
+      MECHANISM    288     STOCK 288 / LIGHTRECEIVER 288 / LIGHTBARREL 216
+      WELDEDPLATE  432     焊接板
+      HEAVYBARREL  432     HEAVYRECEIVER 648
+      BLOCK        648     9 锭
+
+    .q(n) = n × quantity，配方里一律用形状算，别手写数字：
+
+      MaterialShapes.INGOT.q(3)           = 216
+      MaterialShapes.CASTPLATE.q(1)       = 216    （一块铸造板 = 3 锭）
+      new MaterialStack(Mats.MAT_STEEL, 216)       能跑，但改版后含义会漂
+
+    ★ 三个反直觉的矿辞前缀（坩埚/铸造按「形态前缀 + 材质名」拼矿辞去查）：
+        CASTPLATE   -> plateTriple      （不是 plateCast）
+        WELDEDPLATE -> plateSextuple    （不是 plateWelded）
+        PIPE        -> ntmpipe          （不是 pipe）
+      要自己拼矿辞时用 MaterialShapes.XXX.name，别按字段名猜。
+
+    ★ 坩埚配方按**熔体量**匹配，不按物品：写「3 锭」的配方，玩家投 216 quanta 的
+      铸造板、或 24 粒（24×8=192）+ 余量，只要凑够熔体就算成立。所以数字必须用
+      .q(n) 表达，否则「板能当 3 锭用」这条规则就被写死了。
 
   6.4 全部材料别名（DictFrame）
 ------------------------------------------------------------------------------------------------
@@ -6695,9 +6837,11 @@
             return null;
         }
 
+        // ★ 客户端界面不在这里 new。CommonProxy 会被专用服务端加载，而 GuiMyMachine
+        //   引用了 net.minecraft.client.*，服务端没有这些类 —— 在这里写 new GuiXxx()
+        //   的后果是服务端一开就 NoClassDefFoundError。实现放 ClientProxy（见下）。
         @Override
         public Object getClientGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
-            if(id == 0) return new GuiMyMachine(player.inventory, world, x, y, z);
             return null;
         }
     }
@@ -6706,12 +6850,24 @@
 
     package com.yourname.mymod;
 
+    import cpw.mods.fml.relauncher.Side;
+    import cpw.mods.fml.relauncher.SideOnly;
+    import net.minecraft.entity.player.EntityPlayer;
+    import net.minecraft.world.World;
+
+    @SideOnly(Side.CLIENT)   // 整个类只在客户端加载，服务端连类都不碰
     public class ClientProxy extends CommonProxy {
         @Override public void preInit() {
             // 注册自定义 Item/Block 的渲染、模型、颜色，例如：
             // MinecraftForgeClient.registerItemRenderer(ModItems.my_item, new RenderMyItem());
         }
         @Override public void init() { super.init(); }
+
+        @Override
+        public Object getClientGuiElement(int id, EntityPlayer player, World world, int x, int y, int z) {
+            if(id == 0) return new GuiMyMachine(player.inventory, world, x, y, z);
+            return null;
+        }
     }
 
   【文件】src/main/resources/mcmod.info
@@ -6940,11 +7096,26 @@
     public class BlockMyBrick extends Block {
         public static final String[] NAMES = { "red", "blue" };
 
+        // ★ 每个 meta 一张图标，必须先声明再在 registerIcons 里填。
+        //   只写 getIcon 而漏掉这两步，进游戏就是 NPE（icons[meta] 为 null）。
+        @SideOnly(Side.CLIENT)
+        private IIcon[] icons;
+
         public BlockMyBrick() {
             super(Material.rock);
             this.setBlockName("my_brick");
             this.setBlockTextureName(MyMod.MODID + ":my_brick");
             this.setHardness(3F);
+        }
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        public void registerIcons(IIconRegister reg) {
+            this.icons = new IIcon[NAMES.length];
+            for(int i = 0; i < NAMES.length; i++) {
+                // assets/mymod/textures/blocks/my_brick_red.png 等
+                this.icons[i] = reg.registerIcon(MyMod.MODID + ":my_brick_" + NAMES[i]);
+            }
         }
 
         @Override
@@ -7079,9 +7250,12 @@
 
             // 例：把输入原样“加工”成 1 个输出（换成你自己的配方判断）
             if(this.slots[1] == null && in.stackSize >= 1) {
-                this.slots[0] = null;
-                this.slots[1] = new ItemStack(in.getItem(), 1, in.getItemDamage());
-                this.markDirty();                                   // 通知客户端/存档
+                ItemStack out = in.copy();                    // ★ copy() 保留 NBT；别写 new ItemStack(item,1,meta)
+                out.stackSize = 1;
+                in.stackSize--;
+                if(in.stackSize <= 0) this.slots[0] = null;
+                this.slots[1] = out;
+                this.markDirty();                             // 通知客户端/存档
             }
         }
 
@@ -7206,6 +7380,10 @@
                     if(!this.mergeItemStack(stack, 0, 1, false)) return null;
                 }
                 if(stack.stackSize == 0) slot.putStack(null); else slot.onSlotChanged();
+                // ★ 这两行不能省：数量一个都没挪动（目标槽满了）时必须返回 null，
+                //   否则客户端会认为“转移成功”并回滚，出现幽灵物品 / Shift 点击卡住。
+                if(stack.stackSize == copy.stackSize) return null;
+                slot.onPickupFromSlot(player, stack);
             }
             return copy;
         }
@@ -7601,7 +7779,7 @@
   7.11 上线前检查清单
 ------------------------------------------------------------------------------------------------
     [ ] 每个 Item/Block 字段都在 init() 里 new 过，且 register() 里注册过
-    [ ] 带 meta 的物品：setHasSubtypes(true) + setMaxDamage(0) + getSubTypes/getUnlocalizedName
+    [ ] 带 meta 的物品：setHasSubtypes(true) + setMaxDamage(0) + getSubItems + getUnlocalizedName(ItemStack)
     [ ] 带 meta 的方块：registerBlock(block, ItemBlockXxx.class, name) + ItemBlock 的 getUnlocalizedName
     [ ] 机器：TE 已注册、createNewTileEntity 不为 null、breakBlock 掉库存、NBT 读写完整
     [ ] lang：每个注册名都有对应 .name，且 modid 与 assets 目录一致
@@ -7630,9 +7808,18 @@
         @Override public long getPower() { return this.power; }
         @Override public void setPower(long power) { this.power = power; }
         @Override public long getMaxPower() { return 100_000L; }
+        @Override public boolean isLoaded() { return !this.isInvalid(); }   // 必须写，见下
     }
 
+  ★ 继承链是 `IEnergyReceiverMK2 -> IEnergyHandlerMK2 -> IEnergyConnectorMK2 + ILoadedTile`，
+    其中 **ILoadedTile#isLoaded() 是抽象方法**，不实现就编译不过（最常踩的坑）。
+    其余都有 default：canConnect(dir)、transferPower(power)、getReceiverSpeed()、
+    getPriority()，不覆盖也能跑。
+    想省掉 isLoaded() 就改成 `extends TileEntityLoadedBase`（它已 implements ILoadedTile），
+    见 12.4。
+
   具体方法签名请直接看 api/hbm/energymk2 下的接口文件，以及 HBM 里任意一个机器 TE 的实现。
+  注意包名是 **api.hbm.energymk2**，不是 com.hbm.api.energymk2。
   这一块 HBM 版本间变化较大，升级 HBM 后要重新对照。
 
 
@@ -7954,6 +8141,40 @@
         · 坐标（PositionedStack 的 x/y）是相对于 NEI 那个 176×166 面板的，不是屏幕坐标。
         · 配方改了记得刷新：NEI 会缓存，重进游戏或 /ntmreload 后再看。
         · 不想写 handler 也行：只要配方进了 HBM 的表，HBM 自带的 handler 会显示它。
+
+      【页签的 mod 名与那三行调试信息】
+        只注册 handler 还不够：鼠标停在自己的页签上，mod 名会显示 Unknown，
+        并且常驻三行调试信息 HandlerName / HandlerID / HandlerOrder。
+        原因：NEI 给每个页面配了一份 HandlerInfo（modName / 尺寸 / 图标），没登记就
+        退回内置的 DEFAULT_HANDLER_INFO，它的 modName 字面量就是 "Unknown"；而
+        GuiRecipeTab#handleTooltip 的判断是
+
+            if(modName.equals("Unknown") || 按住 Shift)   追加那三行
+
+        所以本该「按住 Shift 才出现」的调试行，被 mod 名未知带着一起常驻了。
+        提示里的 HandlerID 来自 getOverlayIdentifier()，没接 overlay 就是 null，正常。
+
+        补一条 IMC 即可。GTNH 的 NEI 没有 API.registerHandlerInfo，只能走 IMC；
+        HBM 本体也是这么发的（com/hbm/handler/imc/IMCHandlerNHNEI）：
+
+          NBTTagCompound nbt = new NBTTagCompound();
+          nbt.setString("handler",      MyHandler.class.getName());  // 必须类全名
+          nbt.setString("handlerID",    "mymod.myHandler");          // = handler 的 KEY
+          nbt.setString("modName",      "My Mod");
+          nbt.setString("modId",        "mymod");
+          nbt.setBoolean("modRequired", true);
+          FMLInterModComms.sendMessage("NotEnoughItems", "registerHandlerInfo", nbt);
+          // 客户端 init 阶段发（NEI 的 loadHandlerInfo 更晚，来得及）
+
+        · handler 必须填类全名：NEI 拿 IRecipeHandler.getHandlerId() 当 key 查表，
+          而它的默认实现就是 getClass().getName()；写 KEY 或短类名都匹配不上，静默无效。
+        · 只发 modName/modId 时版面完全不变（缺省 166×65、yShift 0、每页 1 条）。
+          带 handlerHeight/handlerWidth/yShift/maxRecipesPerPage 才会挪版面 ——
+          maxRecipesPerPage > 1 等价于 multipleWidgetsAllowed=true，一页摆多条。
+        · itemName 可控页签图标，格式 "modid:注册名"。注意本模组注册方块传的是短名，
+          所以要用 Block.blockRegistry.getNameForObject(block)，不能照抄 HBM 的
+          "hbm:" + getUnlocalizedName()（那样拼出来是 makentmgreatagain:tile.xxx，错）。
+        · 本模组的实现：compat/nei/NEIHandlerInfos.java，在 ClientProxy.init() 末尾调用。
 
   10.8 批量生成配方 JSON（不写 Java，一次加几百条）
 ------------------------------------------------------------------------------------------------
@@ -8391,6 +8612,21 @@
             @Override public long getMaxPower() { return maxPower; }
         }
 
+    这四行就是全部 —— 因为：
+      · TileEntityLoadedBase 已经 implements ILoadedTile（isLoaded() 有了）；
+      · canConnect / transferPower / getReceiverSpeed / getPriority 都是 default。
+    换成 `extends TileEntity` 就必须自己补 `public boolean isLoaded()`，否则编译不过。
+
+    import 清单（包名注意是 api.hbm，不是 com.hbm.api）：
+
+        import api.hbm.energymk2.IEnergyReceiverMK2;
+        import com.hbm.tileentity.TileEntityLoadedBase;
+        import com.hbm.tileentity.TilePort.PortDef;        // PortDef 是 TilePort 的内部类
+        import com.hbm.tileentity.TilePortShapes;
+
+    ★ 想限流就覆盖 getReceiverSpeed()：默认返回 getMaxPower()，等于「一根线一 tick 就能
+      把空电容灌满」。常见写法是 `return 1_000L;`（=1k HE/t）。
+
     然后每 tick 让端口去连网络（HBM 现有机器就是这么写的）：
 
         this.setupPowerPorts(getPorts());   // 声明哪些面是电口
@@ -8402,6 +8638,12 @@
             if(cachedPorts == null) cachedPorts = TilePortShapes.around(xCoord, yCoord, zCoord);
             return cachedPorts;
         }
+
+    三个方法的真实签名（都在 TileEntityLoadedBase，均标了 @Deprecated）：
+
+        setupPowerPorts(PortDef[] ports)   // 幂等：powerPorts != null 就直接 return
+        updateAllPorts()                   // 电口 + 流体口一起刷
+        receivePower()                     // 只有 this instanceof IEnergyReceiverMK2 才订阅
 
     ★ 这套 setupPowerPorts / receivePower 在源码里标了 @Deprecated（HBM 正在迁移到
       com.hbm.uninos 的 NodeNet 体系），但目前所有机器都还在用，附属照抄即可；
@@ -8740,6 +8982,20 @@
     常用写法：addEntry(类型, 等级) / addEntry(类型, 等级, true)（override = 覆盖矿典继承来的数据）；
     也可以 addEntry(new HazardEntry(类型, 数值))。
 
+    register 的第一个参数是 Object，内部按类型分派，五种都收：
+
+        register("ingotMyMetal", data)                  -> oreMap（按矿典，所有带该矿典的物品都吃）
+        register(ModItems.my_ingot, data)               -> itemMap
+        register(ModBlocks.my_block, data)              -> itemMap（内部转 Item.getItemFromBlock）
+        register(new ItemStack(ModItems.my_ingot, 1, 3), data)   -> stackMap（只对这一种 meta）
+        register(new ComparableStack(...), data)        -> stackMap
+
+    ★ 传 Block 那条分支会调 Item.getItemFromBlock，所以**方块必须先注册过**，
+      否则拿到的 item 是 null，数据挂在 null 上等于没注册。
+
+    查完之后想整体豁免（比如你的「净化版」材料）：
+        HazardSystem.blacklist(ModItems.my_safe_ingot);   // 或 "ingotMyMetal"
+
     查询（比如你的机器要判断输入物是否危险）：
       float rad = HazardSystem.getHazardLevelFromStack(stack, HazardRegistry.RADIATION);
       List<HazardEntry> list = HazardSystem.getHazardsFromStack(stack);
@@ -8813,19 +9069,50 @@
 
   ── 15.5 伤害源（ModDamageSource）──────────────────────────────────────────
 
-    自定义伤害类型（死亡信息会显示对应语言键）：
+    这个类里**混着两种完全不同的东西**，最容易用错：
+
+    (1) DamageSource 对象（小写、无 s_ 前缀）—— 直接传给 attackEntityFrom：
 
       import com.hbm.lib.ModDamageSource;
-      entity.attackEntityFrom(ModDamageSource.s_radiation, 5F);
+      entity.attackEntityFrom(ModDamageSource.radiation, 5F);
 
-    常用常量：s_radiation / s_acid / s_laser / s_bullet / s_flamethrower / s_emp / s_plasma …
-    完整清单见 com/hbm/lib/ModDamageSource.java（都是 public static final String）。
+      常用：radiation / digamma / acid / asbestos / monoxide / blacklung /
+            microwave / electricity / exhaust / lunar / vacuum / overdose /
+            meteorite / blackhole / tauBlast / bang / pc / cloud / lead …
+      多数带 .setDamageBypassesArmor()，digamma 还带 setDamageIsAbsolute() +
+      setDamageAllowedInCreativeMode()（即创造模式也会死）。
+
+    (2) 字符串常量（s_ 前缀）—— **不是** DamageSource，是「死亡播报用的伤害类型名」：
+
+      public static final String s_bullet = "revolverBullet";
+      public static final String s_acid   = "acidPlayer";
+      public static final String s_laser  = "laser";
+      public static final String s_flamethrower = "flamethrower";
+      public static final String s_emp = "electrified";
+      …
+
+      它要么塞进 EntityDamageSource 包一层，要么作为 damageType 记录：
+
+      // 抛射物那种「有来源」的伤害
+      target.attackEntityFrom(
+              new EntityDamageSourceIndirect(ModDamageSource.s_acid, acidBomb, thrower), 4F);
+
+      // 只记类型名（HBM 的子弹配置就是这么用的）
+      public String damageType = ModDamageSource.s_bullet;
+
+    ★ 写成 `attackEntityFrom(ModDamageSource.s_radiation, 5F)` 编译不过：
+      s_radiation 这个字段根本不存在（辐射是 `radiation`，没有 s_ 前缀），
+      而所有 s_* 都是 String，不是 DamageSource。
 
   ── 15.6 注意点 ────────────────────────────────────────────────────────────
 
-    · 危害注册要在物品注册之后（init 里），否则 HazardSystem 找不到 Item；
+    · 危害注册要在物品/方块注册之后（init 里），否则 register 拿到的是 null 字段；
     · 危害数据会影响 NEI tooltip 和玩家背包检测，别给普通材料乱加；
-    · 污染/爆炸都是服务端逻辑，客户端调用无效（world.isRemote 判断）；
+    · 污染（PollutionHandler）和爆炸（ExplosionNT#explode）是**服务端**逻辑，
+      客户端调用无效，照例先 `if(world.isRemote) return;`；
+    · 但 ExplosionCreator / ExplosionLarge 的 **spawn* 系列特效是客户端**的
+      （底层走 World.spawnParticle，服务端那份是空实现），调用点要反过来判
+      `if(!world.isRemote)` 或者干脆只在客户端类里调；
     · 大当量爆炸会炸区块/卡服，测试时把强度调小。
 
 
@@ -12097,6 +12384,16 @@
       new FluidStack(Fluids.WATER, 1000, 0)     // 第三个参数是压力 0~5（默认 0）
       new FluidStack(Fluids.HOTSTEAM, 500, 2)   // 高压流体：机器压力不匹配就不收
 
+    ★ FluidStack 在 com.hbm.inventory，不在 com.hbm.inventory.fluid（容易找错包）。
+      它有两个「参数顺序相反」的构造器：
+
+        FluidStack(FluidType type, int fill)                // 用这个
+        FluidStack(FluidType type, int fill, int pressure)  // 用这个
+        @Deprecated FluidStack(int fill, FluidType type)    // 旧格式，还能编译，别用
+
+      两边都是 (int, 对象) / (对象, int) 的组合，混着写会静默编到旧的那个上；
+      idea 里看到删除线就说明选错了。
+
     全部 155 种见第 4 章（含 ID、颜色、特性）。
 
   ── 18.4 自定义流体（三种方式）────────────────────────────────────────────
@@ -12585,7 +12882,10 @@
 ------------------------------------------------------------------------------------------------
     资源：assets/makentmgreatagain/pinyin.tsv
       格式：汉字<TAB>读音1,读音2
-    生成：docs/templates/gen_pinyin.py（需要 pypinyin）。
+    生成 / 补齐：tools/pinyin_audit.py --fix（需要 pypinyin）
+       · python tools/pinyin_audit.py            只查拼音（退出码 1 = 有缺字）
+       · python tools/pinyin_audit.py --all      拼音 + lang 键 + 贴图，一次全查
+       · python tools/pinyin_audit.py --fix      用 pypinyin 自动补字典
 
     算法（util/PinyinSearch.java）：
       · 原版 String.contains 优先；
@@ -12634,7 +12934,70 @@
     · 128 个材料拆成 64+64 两格。
     · 模板按住 Shift 查看配方，每页 9 条，Shift+X / Shift+Z 翻页。
 
-  19.7 检查清单
+  19.7 本模组现有内容索引（加新东西前先看这里，别重复实现）
+------------------------------------------------------------------------------------------------
+  机器 / 方块（init/ModBlocks + blocks/ + tileentity/）
+
+      block_alloy_shredder                     合金粉碎机      TileEntityAlloyShredder
+      block_bat9000_reborn                     蓄电池 BAT-9000  TileEntityBat9000Reborn
+      environment_pump                         环境泵          TileEntityEnvironmentPump
+      heatex_reborn                            换热器          TileEntityHeatexReborn
+      machine_fluid_cooler                     流体冷却器      TileEntityFluidCooler
+      machine_hybrid_catalytic_fraction_tower  混合催化分馏塔  TileEntityHybridCatalyticFractionTower
+      machine_large_catalytic_chemical_factory 大型催化化工厂  TileEntityLargeCatalyticChemicalFactory
+                                                               + ModuleLargeChemicalFactory
+      electrolyzer_reborn                      电解机          TileEntityElectrolyzerReborn
+      arc_heater                               电弧炉          TileEntityArcHeater
+      pipe_anchor_advanced                     高级管道锚点    TileEntityPipeAnchorAdvanced
+      riser_rig / riser_pipe                   立管钻机 / 立管 TileEntityRiserRig / TileEntityRiserPipe
+      iron_mass_storage                        铁质储罐        TileEntityIronMassStorage
+      block_advanced_alloy / block_helicopter  材质块
+      block_xxx                                占位符，不要用
+      deep_sea_nodule / empty_deep_sea_nodule  深海结核 / 空壳
+      Block_Salt_Contain_{Sand,Red_Sand,Gravel} 盐层方块
+
+  矿石（blocks/BlockOre*）
+
+      ore_leadzinc          铅锌矿（ISP 线，镉等伴生金属必须走选矿）
+      ore_refractory_gold   难处理金矿（硫代硫酸盐无氰提金）
+      ore_scheelite         白钨矿
+      *_duna                以上三种的 Duna 适配变体
+
+  材质（init/MNGAMetals + MNGAMaterials）
+
+      MAT_PLATINUM  MAT_COBALT  MAT_LITHIUM  MAT_ERBIUM  MAT_TITANIUM
+      MAT_HELICOPTER（耐摔合金）  MAT_HELIUM（氦）  MAT_SLAG（炉渣）
+
+  配方（recipes/ + init/ModRecipes、ModPlatinumRecipes）
+
+      HybridFractionRecipes        混合催化分馏塔
+      LargeChemicalFactoryRecipes  大型催化化工厂
+      HeatChemicalRecipe           放热化学反应
+      FluidCoolerRecipes           流体冷却
+      ScheeliteRecipes             白钨矿处理
+      AnvilAssemblyTemplates       砧 → 装配机模板
+      RecipeLedger                 配方登记（防重复注册）
+
+  世界与实体
+
+      world/AddonStructures        地心实验室（第 21 章）
+      entity/EntityItemHelicopter  自旋升空掉落物（第 22 章）
+
+  客户端与兼容
+
+      util/PinyinSearch + core/PinyinSearchTransformer   拼音搜索
+      core/AnvilTemplateTransformer                      模板 tooltip
+      compat/nei/*                                       4 个配方页 + 3 个 NEI 配置
+      render/*                                           TESR / 物品渲染
+
+  工具脚本（tools/）
+
+      pinyin_audit.py         拼音字典缺字审计（--fix 自动补）
+      structure_air_tool.py   结构 NBT 按包围盒补空气
+      structure_find.py       存档反查已生成的结构 + 落点预测
+      blockid_probe.py        存档反查方块数字 ID
+
+  19.8 检查清单
 ------------------------------------------------------------------------------------------------
     [ ] 新物品有字段、注册、贴图、语言键；
     [ ] 新方块有 Block/TE/Container/GUI 并在 GUI Handler 注册；
@@ -12645,6 +13008,2973 @@
     [ ] buildAddonJar reobf 产物包含新资源。
 
   第 19 章结束
+
+
+
+================================================================================================
+  第 20 章  装备属性全解（护甲 · 危险防护 · 改装件）
+================================================================================================
+
+  本章回答四个问题：
+    ① HBM 的“装备属性”到底有哪些（一层一层拆开，一条不漏）；
+    ② 每一条写在哪个类、哪个方法、什么单位、怎么生效；
+    ③ 每一类防御（物理 / 火焰 / 爆炸 / 能量 / 摔落 / 其它）的完整可粘贴代码
+       —— 第 20.11 节，含“哪些伤害其实削不动”的源码级核对；
+    ④ 一份整份文件、已编译验证过的完整示例 —— 第 20.12 节，可直接改包名使用。
+
+  如果只想复制代码：先读 20.11.1 的分类表，再抄 20.11.8 或 20.12.1。
+
+  重要前提：HBM 的护甲不是“一个属性表”，而是六套互相独立的系统，外加一条实体属性
+  （移动速度）叠加。
+    只看 ItemArmor 的 tooltip 会漏掉一大半，改配置又改不到另一半。
+    下面按“从下到上”的顺序拆，这个顺序也正好是数据流的顺序。
+
+
+------------------------------------------------------------------------------------------------
+  20.0 六层结构总览（外加第 ⑦ 项：移动速度）
+------------------------------------------------------------------------------------------------
+
+    层  负责什么                        代码入口                          作用时机
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    ①   耐久 / 护甲点 / 附魔性           ArmorMaterial（EnumHelper 创建）   物品构造时定死
+    ②   全套效果 / 音效 / HUD / 模型     ArmorFSB 的链式 setter             hasFSBArmor() 成立时
+    ③   伤害阈值 DT / 减伤 DR            DamageResistanceHandler             LivingAttack + LivingHurt
+    ④   气体 · 微粒 · 光 的布尔防护      ArmorRegistry.HazardClass          每个 tick / 每次接触
+    ⑤   辐射衰减系数                     HazmatRegistry                     calculateRadiationMod()
+    ⑥   改装件（9 槽）附加属性           ItemArmorMod + ArmorModHandler     每 tick / 受击 / 换装
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    ⑦   移动速度（加速 / 减速）           AttributeModifier / PotionEffect   属性系统每 tick 结算
+        ★ 第 ⑦ 项是例外：它既不在 ArmorFSB 的字段里，也没有任何注册表，只能自己挂属性修饰符
+          或给药水。写“全套属性”时最容易漏掉的就是它，单独见 20.3。
+
+    一句话记法：
+      ①给“面板数字”，②给“特殊能力”，③给“硬减伤”，④给“能不能呼吸”，⑤给“吃多少 rad”，
+      ⑥给“插槽加成”，⑦给“走多快”。
+
+    新手最容易犯的三个错，先摆在这里：
+      · 只在头盔上写了套装属性，忘了 cloneStats 给另外三件 → 属性完全不触发（第 20.2 节）；
+      · 把 HazardClass 写到胸甲上 → 白写，HBM 只查头盔槽（第 20.5 节）；
+      · 用 setRadResist 建了护甲，但创建时机晚于 HazmatRegistry.registerHazmats() → 辐射抗性丢失（20.6）。
+
+
+------------------------------------------------------------------------------------------------
+  20.1 ① 材质层：ArmorMaterial 的六个真实参数
+------------------------------------------------------------------------------------------------
+
+  构造签名（Forge 的 EnumHelper，1.7.10）：
+
+      public static ArmorMaterial addArmorMaterial(
+              String name,            // 唯一名，重名会互相覆盖，建议 "你的MODID_XXX"
+              int durabilityFactor,   // 【不是耐久！】是耐久因子
+              int[] reductionAmounts, // {头, 胸, 腿, 靴} 护甲点
+              int enchantability)     // 附魔性
+
+  耐久真值（1.7.10 原版写死在 ItemArmor 里）：
+
+      实际耐久 = durabilityFactor × 部位系数
+      部位系数 = { 头 11, 胸 16, 腿 15, 靴 13 }
+
+      例：durabilityFactor = 30 → 头 330 / 胸 480 / 腿 450 / 靴 390，全套 1650。
+      例：HBM 的 aMatEuph = 15,000,000 → 头盔单件耐久 1.65 亿，等于不可损坏。
+
+      源码位置：net.minecraft.item.ItemArmor 的 maxDamageArray = {11, 16, 15, 13}，
+                第 319 行 getDurability(type) = maxDamageArray[type] * maxDamageFactor。
+
+  护甲点（原版盾牌值）：
+
+      每 1 点 = 4% 减伤；原版上限 20 点 = 80%。
+      全套 {3,8,6,3} = 20 点 = 80%，这是 HBM 绝大多数动力甲的取值（等于原版铁甲）。
+      全套 {2,5,4,1} = 12 点 = 48%，防化服用。
+      全套 {1,4,3,1} =  9 点 = 36%，石棉服用。
+      全套 {1,1,1,1} =  4 点 = 16%，布甲/双聚态中子素“玩具甲”用。
+
+      注意：护甲点是“原版那一层”，和 20.4 的 DT/DR 是两层，实际减伤是相乘关系。
+
+  附魔性：直接影响附魔台能出什么等级的保护/耐久，0 表示几乎不可附魔（HBM 的 T-51、AJR、
+          BJ、HEV、Fau、DNS 全部是 0，这是刻意设计——动力甲不靠附魔）。
+
+  修理材料：材质对象的 customCraftingMaterial 字段，决定铁砧修理用什么。
+
+      MAT_EXAMPLE.customCraftingMaterial = ModItems.plate_steel;
+
+  ── 表 20-1  HBM 内置材质全表（28 个，按源码出现顺序）─────────────────────────────────────
+
+    材质常量            注册名              因子      实际耐久 头/胸/腿/靴        护甲点 附魔
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    aMatSchrab          HBM_SCHRABIDIUM     100       1100/1600/1500/1300     20     50
+    aMatEuph            HBM_EUPHEMIUM       15000000  1.65亿/2.4亿/2.25亿/1.95亿  20   100
+    aMatHaz             HBM_HAZMAT          60        660/960/900/780         12      5
+    aMatHaz2            HBM_HAZMAT2         60        660/960/900/780         12      5
+    aMatHaz3            HBM_HAZMAT3         60        660/960/900/780         12      5
+    aMatSteel           HBM_STEEL           30        330/480/450/390         20      5
+    aMatAlloy           HBM_ALLOY           40        440/640/600/520         20     12   （@Deprecated）
+    aMatAsbestos        HBM_ASBESTOS        20        220/320/300/260          9      5
+    aMatTitan           HBM_TITANIUM        25        275/400/375/325         20      9
+    aMatPaa             HBM_PAA             75        825/1200/1125/975       20     25
+    aMatCMB             HBM_CMB             60        660/960/900/780         20     50
+    aMatAus3            HBM_AUSIII          375       4125/6000/5625/4875     15      0
+    aMatSecurity        HBM_SECURITY        100       1100/1600/1500/1300     20     15
+    aMatCobalt          HBM_COBALT          70        770/1120/1050/910       20     60
+    aMatStarmetal       HBM_STARMETAL       150       1650/2400/2250/1950     20    100
+    aMatBismuth         HBM_BISMUTH         100       1100/1600/1500/1300     20    100
+    aMatRags            HBM_RAGS            150       1650/2400/2250/1950      4      0   （ModItemsArmor 内局部）
+    aMatZirconium       HBM_ZIRCONIUM       1000      11000/16000/15000/13000 11   1000
+    aMatDNT             HBM_DNT_LOLOLOL     3         33/48/45/39              4      0
+    aMatT51             HBM_T51             150       1650/2400/2250/1950     20      0
+    aMatDesh            HBM_DESH            150       1650/2400/2250/1950     20      0
+    aMatDiesel          HBM_BNUUY           150       1650/2400/2250/1950     20      0
+    aMatAJR             HBM_T45AJR          150       1650/2400/2250/1950     20      0
+    aMatBJ              HBM_BLACKJACK        150       1650/2400/2250/1950     20      0
+    aMatEnv             HBM_ENV             150       1650/2400/2250/1950     20     10
+    aMatHEV             HBM_HEV             150       1650/2400/2250/1950     20      0
+    aMatFau             HBM_DIGAMMA         150       1650/2400/2250/1950     20      0
+    aMatDNS             HBM_DNT_NANO        150       1650/2400/2250/1950     20      0
+    aMatTaurun          HBM_TRENCH          150       1650/2400/2250/1950     20     10   （“陶跑”）
+    aMatTrench          HBM_TRENCH          150       1650/2400/2250/1950     20      0   （战壕王者，重名！）
+    aMatLiquidator      HBM_LIQUIDATOR      750       8250/12000/11250/9750   20     10
+
+    原版五个（可复用，不必新建）：
+      ArmorMaterial.CLOTH    5   {1,3,2,1}  15     布（休闲兜帽/护目镜走的不是这个）
+      ArmorMaterial.CHAIN    15   {2,5,4,1}  12     → robes_*（休闲套装）
+      ArmorMaterial.IRON     15   {2,6,5,2}   9     → goggles / ashglasses / mask_of_infamy
+      ArmorMaterial.GOLD      7   {2,5,3,1}  25
+      ArmorMaterial.DIAMOND  33   {3,8,6,3}  10
+
+    两个坑：
+      · aMatTaurun 和 aMatTrench 用了同一个名字 "HBM_TRENCH"。EnumHelper 会造出两个同名枚举值，
+        ArmorMaterial.valueOf("HBM_TRENCH") 只能拿到其中一个，靠名字反查会串。
+        自己写材质时，名字务必唯一。
+      · 材质实例必须被同一套的四件共享（ArmorFSB.hasFSBArmor 用 == 比较 getArmorMaterial()）。
+        写成四份 new 会永久不触发全套效果。
+
+
+------------------------------------------------------------------------------------------------
+  20.2 ② 本体层：ArmorFSB 的 17 条属性（全套效果的核心）
+------------------------------------------------------------------------------------------------
+
+  ArmorFSB = “有全套效果（Full Set Bonus）的护甲”。HBM 90% 的护甲都继承它。
+  它的属性全部是链式 setter，写完返回 this，可以一路点下去。
+
+  构造：new ArmorFSB(ArmorMaterial material, int slot, String texturePath)
+        slot    0=头盔 1=胸甲 2=护腿 3=靴子    ← 和 armorType 是同一个数
+        texture 穿在身上的模型贴图，完整路径，如 "hbm:textures/armor/steel_1.png"
+                约定：_1 给头/胸/靴，_2 给腿。写错不会崩，只是变成紫黑格。
+
+  ── 表 20-2  ArmorFSB 属性全表 ──────────────────────────────────────────────────────────────
+
+    字段            setter                      类型      默认      生效条件 / 说明
+    ──────────────────────────────────────────────────────────────────────────────────────────
+    effects         addEffect(PotionEffect)     List      空        全套时每 tick 续一次，
+                                                                  duration 写 20 即可无缝。
+                                                                  amplifier 0 = I 级。
+                                                                  ★ 只读“胸甲上的那份”，
+                                                                    必须 cloneStats 传过去。
+    noHelmet        setNoHelmet(boolean)         boolean   false     全套判定只查 3 件（胸/腿/靴）。
+                                                                  用于 PaA 这种没有头盔的套装。
+                                                                  ★ 同样由胸甲决定。
+    vats            enableVATS(boolean)          boolean   false     敌对生物 HUD（红色描边）。
+    thermal         enableThermalSight(boolean)  boolean   false     热成像（全屏着色）。
+    geigerSound     setHasGeigerSound(boolean)   boolean   false     胸甲内置盖革“咔哒”声，
+                                                                  玩家背包里有盖革计数器/剂量计时静音。
+    customGeiger    setHasCustomGeiger(boolean)  boolean   false     自绘盖革 HUD（HEV 用）。
+                                                                  ⚠ 系统里叫 geigerHUD 的文案，
+                                                                  但字段名是 customGeiger，别写反。
+    hardLanding     setHasHardLanding(boolean)   boolean   false     坠落 > 10 格落地时，
+                                                                  把周围 3 格内非掉落物实体
+                                                                  击退并造成 (3-距离)*10 的无视护甲伤害。
+                                                                  ★ 只读胸甲。
+    dashCount       setDashCount(int)            int       0         冲刺次数（配合体力条，每冲 30 体力）。
+    stepSize        setStepSize(int)             int       0         tooltip 显示“步长：N”。
+                                                                  纯展示，无实际功能。
+    step            setStep(String)              String    null      行走脚步声，如 "hbm:step.metal"。
+                                                                  仅客户端、仅着地时播放。
+    jump            setJump(String)              String    null      跳跃音效 "hbm:step.iron_jump"。
+                                                                  ★ 只读胸甲。
+    fall            setFall(String)              String    null      坠落音效 "hbm:step.iron_land"。
+                                                                  ★ 只读胸甲。
+    overlay         setOverlay(String path)      Resource   null     全屏叠加层（石棉头盔的纤维纹）。
+                                                                  ⚠ 只对头盔位生效，
+                                                                    且 cloneStats 不复制它。
+    radResist       setRadResist(double)         double    0         辐射抗性“全套值”，
+                                                                  内部自动按部位权重
+                                                                  （头 .2 / 胸 .4 / 腿 .3 / 靴 .1）
+                                                                  拆开注册进 HazmatRegistry。
+                                                                  ★ 这条 cloneStats 会复制，
+                                                                    而且每件各注册一次，
+                                                                    所以全套合计正好等于原值。
+    hazardClass     setHazardClass(HazardClass…) 数组      空        危险防护，直接写进
+                                                                  ArmorUtil.external，
+                                                                  需在 ArmorUtil.register()
+                                                                  之前完成。
+                                                                  ⚠ 不会被 cloneStats 复制；
+                                                                    但 HBM 只查头盔槽，
+                                                                    所以本来就只需写在头盔上。
+    hides           hides(EnumPlayerPart…)       Set       空        隐藏玩家模型部件：
+                                                                  HEAD/HAT/BODY/
+                                                                  LEFT_ARM/RIGHT_ARM/
+                                                                  LEFT_LEG/RIGHT_LEG。
+                                                                  动力甲普遍 hides(HAT)
+                                                                  （不显示头顶皮肤层）。
+    needsFullSet    setFullSetForHide()          boolean   false     隐藏部件要等全套成立才生效。
+
+  全套判定 ArmorFSB.hasFSBArmor(player) 的四个条件（缺一不可）：
+
+      1. 胸甲槽（armorInventory[2]）的物品是 ArmorFSB；
+      2. 循环 armorInventory[0..(noHelmet?2:3)]，每一件都必须是 ArmorFSB；
+         （数组顺序是 0=靴 1=腿 2=胸 3=头，所以 noHelmet 跳过的是头）
+      3. 每件的 getArmorMaterial() 与胸甲 == 相等；
+      4. 每件 isArmorEnabled(stack) 为真。
+         ArmorFSBPowered → charge > 0；
+         ArmorFSBFueled → fuel > 0；
+         普通 ArmorFSB → 恒 true。
+
+      另有 hasFSBArmorIgnoreCharge(player)：跳过第 4 条，用于“没电也要算穿戴”（BJ 头盔自动脱落、
+      bj_plate_jetpack 判定）。
+
+  cloneStats 的精确行为（这一节最该记）：
+
+      cloneStats(ArmorFSB original) 复制：effects、noHelmet、vats、thermal、geigerSound、
+      customGeiger、hardLanding、dashCount、stepSize、step、jump、fall、radResist。
+      不复制：overlay（头盔专用）、hides/needsFullSet（各部位本来就可以不同）、hazardClass。
+
+      → 标准写法永远是：属性写在头盔上，然后胸/腿/靴 .cloneStats((ArmorFSB) 头盔)。
+      → 因为 effects / noHelmet / hardLanding / step / jump / fall 这七项在运行时只从胸甲读，
+        只给头盔写而不 clone，等于没写。
+
+  tooltip 自动生成规则（addInformation）：
+
+      effects 非空 → 青色一行列出药水名（中间用 ", " 连接）
+      geigerSound  → 金色 "盖革计数器警报"
+      customGeiger → 金色 "盖革计数器HUD"
+      vats         → 红色 "敌对生物HUD"
+      thermal      → 红色 "热成像"
+      hardLanding  → 红色 "硬着陆"
+      stepSize≠0   → 蓝色 "步长：N"
+      dashCount>0  → 青色 "给予 N 次冲刺"
+      以上任意一条存在时，先输出金色 "全套效果:"。
+
+      这些文案键都在 zh_CN.lang 的 armor.* 段（140–166 行），不用自己写。
+
+
+------------------------------------------------------------------------------------------------
+  20.3 移动速度：加速 / 减速（不在 ArmorFSB 的 17 条里）
+------------------------------------------------------------------------------------------------
+
+  ★ 这一节是本手册第 20 章唯一一处「属性不在 ArmorFSB 字段里」的内容，
+    之前漏掉的就是它：ArmorFSB 没有 speed 字段，17 条属性没有任何一条能改移动速度。
+
+  移动速度是实体属性 SharedMonsterAttributes.movementSpeed，玩家基础值 0.1 格/tick
+  （约 4.3 格/秒），疾跑时原版再乘 1.3。改它只有两条路：给药水，或挂 AttributeModifier。
+  「全套才生效」这件事 ArmorFSB 只对 effects 免费提供，精确百分比必须自己管。
+
+  ── 20.3.1 路线 A：药水效果（一行链接上，天然全套限定） ───────────────────────────────────────
+
+      .addEffect(new PotionEffect(Potion.moveSpeed.id,    20, 0))   // 加速 I  = +20%
+      .addEffect(new PotionEffect(Potion.moveSlowdown.id, 20, 0))   // 减速 I  = -15%
+
+    · ArmorFSB.handleTick 只在 hasFSBArmor(player) 成立时才施加，所以写上去就是「全套才有」；
+    · duration 写 20、每 tick 续一次，脱下后 1 秒内自然过期，不存在残留；
+    · 减速还能叠：moveSlowdown I = -15%，II = -30%，III = -45%；加速 I/II = +20%/+40%；
+    · 缺点 1：只能整数档，−10% 这种精确值做不到；
+    · 缺点 2：视野会跟着变（减速时 FOV 内收），ambient=true 时粒子很淡但仍看得见；
+    · 缺点 3：和玩家自己喝的同类药水取「等级更高者」，不叠加；喝牛奶只清掉一瞬，下一 tick 续上。
+
+  ── 20.3.2 路线 B：getItemAttributeModifiers（每件生效，原版自动增删） ────────────────────────
+
+      @Override
+      public Multimap getItemAttributeModifiers() {            // 1.7.10 签名：无参数
+          Multimap multimap = HashMultimap.create();
+          multimap.put(SharedMonsterAttributes.movementSpeed.getAttributeUnlocalizedName(),
+                  new AttributeModifier(
+                          ArmorModHandler.fixedUUIDs[this.armorType],  // ★ 固定 UUID
+                          "Armor modifier",
+                          -0.1D,                                        // 数值，见下表
+                          1));                                         // operation 1 = 乘基础值
+          return multimap;
+      }
+
+    HBM 里的真实用例，比例可以直接照抄：
+
+    ── 表 20-3  内置护甲的移动速度修饰符 ───────────────────────────────────────────────────────
+
+      装备                数值      op   实际效果
+      ──────────────────────────────────────────────────────────────────────────────────────────
+      liquidator 四件     -0.1       1    每件 −10% 基础速度，四件 −40%
+      steamsuit (Desh)    -0.025     1    每件 −2.5%，四件 −10%
+      ncrpa 四件          +0.1       0    每件 +0.1 绝对值（基础 0.1 → 直接翻倍）
+      dnt 四件            +0.25      0    每件 +0.25 绝对值，几乎是飞行
+      item_mod_cloud      +0.125     2    ×1.125 总速度（改装件用 op 2）
+      ──────────────────────────────────────────────────────────────────────────────────────────
+
+    operation 三种含义（1.7.10 AttributeModifier.Operation）：
+      0  加法         X += 数值              （+0.1 → 0.1 变 0.2，翻倍，慎用）
+      1  乘基础值     X += 基础 × 数值        （−0.1 → −10%，最符合直觉，HBM 减速都用这个）
+      2  乘总值       X *= 1 + 数值           （+0.1 → +10%，与其他加成叠乘）
+
+    ★ UUID 必须是固定的。HBM 用 ArmorModHandler.fixedUUIDs[armorType] 这 4 个写死的 UUID；
+      自己 new 一个 UUID.randomUUID() 的话，每次重算属性都会多挂一条，穿久了会跑出离谱速度。
+    ★ 这条路线是「每件各算各的」：穿 2 件就是 2 份，做不出「必须穿齐才加速」。
+    ★ 好处是原版在换装时自动增删，死亡、换维度、被塞进箱子都不会残留。
+
+  ── 20.3.3 路线 C：全套限定 + 精确百分比（自己管 apply / remove） ─────────────────────────────
+
+    要「只有穿齐才 +10%」，ArmorFSB 没有现成字段，只能在 tick 里手动挂：
+
+      private static final UUID SET_SPEED =
+              UUID.fromString("7c3f2b1e-5a44-4c07-9a5e-1d2f8b6c0913");
+
+      @Override
+      public void onArmorTick(World world, EntityPlayer player, ItemStack stack) {
+          if (this.armorType != 1) return;            // ★ 只让胸甲那一件管，否则四件各挂一次
+          IAttributeInstance attr =
+                  player.getEntityAttribute(SharedMonsterAttributes.movementSpeed);
+          AttributeModifier old = attr.getModifier(SET_SPEED);
+          if (old != null) attr.removeModifier(old);  // ★ 先无条件摘掉，再按条件挂
+          if (hasFSBArmor(player)) {
+              attr.applyModifier(new AttributeModifier(SET_SPEED, "set speed", 0.10D, 2));
+          }
+      }
+
+    · 「每 tick 先 remove 再按条件 apply」是这套写法成立的前提，顺序反了就是叠加或残留；
+    · 但 onArmorTick 只在你穿着这一件时才被调用 —— 胸甲一脱，这段代码不再执行，
+      上一次挂上去的修饰符就永远摘不掉。HBM 的 envsuit_plate 正是这个毛病
+      （冲刺加速，脱掉胸甲后加成还在，直到重进世界）；
+    · 所以更稳的写法是把这段逻辑搬到 PlayerTickEvent 里：每 tick 无条件对每个玩家算一次
+      「现在应该加多少」，与现有值不一致就重设。这样脱甲、死亡、换维度、掉线全部自愈。
+      本模组的 com.makentmgreatagain.hook.ArmorSpeedHandler 就是这个实现，可直接参考。
+
+  ── 20.3.4 三条路线怎么选 ─────────────────────────────────────────────────────────────────────
+
+      需求                                          选哪条
+      ──────────────────────────────────────────────────────────────────────────────────────────
+      只要「全套快一点 / 慢一点」，不在乎整数百分比    A，一行 addEffect
+      每件都要有速度差异，随穿随生效                   B，重写 getItemAttributeModifiers
+      全套才生效，且要精确 +10% / −10%                 C，PlayerTick 统一管理
+      既要全套加成，又要能和敏捷/药水叠乘              C，且 operation 用 2
+      ──────────────────────────────────────────────────────────────────────────────────────────
+
+    ⚠ 别和减伤搞混：这一层只改移动速度，不减伤；减伤走 20.4 的 DT/DR。
+    ⚠ 也别指望「负速度」把玩家钉住：movementSpeed 降到 0 只是不能走，跳跃与击退照旧。
+
+
+------------------------------------------------------------------------------------------------
+
+  20.4 ③ 伤害抗性：DT / DR 双参数系统
+------------------------------------------------------------------------------------------------
+
+  这是 HBM 自己的一套减伤，独立于原版护甲点。类：com.hbm.util.DamageResistanceHandler。
+
+  本节讲机制；每一类的完整、可粘贴代码在 20.11，整份文件在 20.12。
+
+  ── 20.4.1 公式 ─────────────────────────────────────────────────────────────────────────────
+
+      最终伤害 = max(0, 伤害 - DT) × (1 - DR)
+
+      DT（threshold，阈值）：先扣的固定值。DT ≥ 伤害时完全免疫。
+      DR（resistance，减伤率）：扣完 DT 后再乘的百分比，0.5 = 再减 50%。
+
+      多层来源“相加”而不是相乘：
+        总 DT = 套装 DT + 各单件 DT + 实体先天 DT
+        总 DR = 套装 DR + 各单件 DR + 实体先天 DR
+        → DR 相加很容易 > 1，>1 就是完全免疫（Euphemium 的 other 1,000,000 / 100% 就是这么来的）。
+
+      护甲穿透：
+        攻击方带 DT 穿透（pierceDT）时，先减掉这部分 DT；
+        带百分比穿透（pierce）时，DR 按 (1 - pierce) 缩放，且允许 pierce 为负
+        （最多 -1，等于把 DR 翻倍）。
+
+      isDamageAbsolute() 的伤害（虚空、/kill）完全绕过本系统。
+
+  ── 20.4.2 伤害分类 ─────────────────────────────────────────────────────────────────────────
+
+     四个字符串常量（不是枚举，别写成 DamageClass）：
+
+         DamageResistanceHandler.CATEGORY_PHYSICAL = "PHYS"   物理
+         DamageResistanceHandler.CATEGORY_FIRE     = "FIRE"   火焰
+         DamageResistanceHandler.CATEGORY_EXPLOSION= "EXPL"   爆炸
+         DamageResistanceHandler.CATEGORY_ENERGY   = "EN"     能量（激光/等离子/微波/电/亚原子）
+
+     typeToCategory() 的判定顺序（前者优先）：
+
+         isExplosion()        → EXPL
+         isFireDamage()       → FIRE
+         isProjectile()       → PHYS     ★ 箭/子弹先算物理，哪怕它是火焰箭
+         LASER / PLASMA / MICROWAVE / SUBATOMIC / ELECTRIC → EN
+         DamageSource.cactus  → PHYS
+         ModDamageSource.spikes     → PHYS
+         ModDamageSource.electricity→ EN
+         ModDamageSource.microwave  → EN
+         其它 EntityDamageSource    → PHYS
+         兜底：直接用 damageType 字符串（此时只有 exact 能命中）
+
+     exact 表：按 DamageSource.damageType 小写精确匹配，优先于 category。
+        常用键（lang 里配了中文的）：fall / drown / onfire / laser
+        （见 zh_CN.lang 的 damage.exact.*，共 4 条；其它键会显示原始键名）
+        addExact 内部会 toLowerCase，所以写 "onFire" 与 "onfire" 等价。
+
+     other：category 也没命中时的兜底。
+        ⚠ source.isUnblockable() 为真时不使用 other（但仍可使用 exact/category）。
+
+     ★ 上表有三处“看着能命中、实际命中不了”的地方，写抗性时必须知道：
+
+        ① SUBATOMIC("subatomic") 永远比不过 HBM 的亚原子伤害类型
+           —— causeSubatomicDamage 生成的 damageType 是 "subAtomic1".."subAtomic5"，
+           DamageClass.isApplicable 用的是整串 equals。而且这条源还 setProjectile()，
+           会在第 3 步就先被判成 PHYS。结论：亚原子伤害算物理，写 EN 没用。
+        ② DamageClass.ELECTRIC("electric") 与 ModDamageSource.electricity("electricity")
+           不是一个串，匹配不上；后者靠下面那行硬编码兜底，而且它是 absolute，走不到。
+        ③ DamageClass.MICROWAVE 同理，命中的是那行硬编码，但 microwave 也是 absolute。
+
+        这三条的现实影响：HBM 的能量（EN）抗性，日常真正吃得到的只有 laser 与 plasma。
+        逐条核对表见 20.11.1。
+
+  ── 20.4.3 注册 API ─────────────────────────────────────────────────────────────────────────
+
+      // 整套（推荐）：4 件必须全部穿在同一实体身上才触发
+      DamageResistanceHandler.registerSet(helmet, plate, legs, boots, stats);
+
+      // 单件：任何槽位穿它都算
+      DamageResistanceHandler.itemStats.put(item, stats);
+
+      // 实体先天抗性（例如核苦力怕对爆炸）
+      DamageResistanceHandler.entityStats.put(EntityCreeper.class, stats);
+
+      // 构造 stats（三个方法可以任意组合、链式）
+      new DamageResistanceHandler.ResistanceStats()
+            .addCategory(CATEGORY_PHYSICAL, 5F, 0.5F)   // DT 5，DR 50%
+            .addCategory(CATEGORY_FIRE,     2F, 0.25F)
+            .addExact("fall",               0F, 1F)     // 摔落完全免疫
+            .setOther(2F, 0.15F);                       // 其余伤害 DT2 / 15%
+
+      registerSet 的 4 个参数类型是 Item（不是 ItemStack），允许传 null（表示该槽位留空），
+      JSON 里对应写 null。itemStats 的 key 与 entityStats 的 key 也都是对象本身，不是字符串。
+
+      这两张表的区别（写之前必须先决定用哪张）：
+        itemStats   —— 每件各注册一份，穿几件算几件，掉一件不至于全废；
+        setStats    —— 四件齐了才加一份，任一件缺失立即失效，用来做“差一件就白搭”的套装。
+
+  ── 20.4.4 配置文件覆盖 ─────────────────────────────────────────────────────────────────────
+
+      config/hbm/hbmArmor.json（模板文件 _hbmArmor.json，去掉下划线生效）
+      一旦存在，initDefaults() 完全不执行，全部以 JSON 为准。
+
+      结构（数组套数组，一眼看不出含义，这里给全注释）：
+
+        {
+          "itemStats": [
+            [ "hbm:item.jackt",            // 模板里是 null，写物品注册名
+              { "category": [ ["PHYS", 1.0, 0.2] ] } ]   // [分类, DT, DR]
+          ],
+          "setStats": [
+            [ "hbm:item.steel_helmet", "hbm:item.steel_plate",
+              "hbm:item.steel_legs",   "hbm:item.steel_boots",
+              { "category": [ ["PHYS", 2.0, 0.1] ],
+                "exact":    [ ["fall", 0.0, 1.0] ],
+                "other":    [ 0.0, 0.1 ] } ]
+          ],
+          "entityStats": [
+            [ "com.hbm.entity.mob.EntityCreeperNuclear",
+              { "category": [ ["EXPL", 5.0, 0.35] ] } ]
+          ]
+        }
+
+      注意：setStats 里四个物品的顺序是 头、胸、腿、靴，与 registerSet 参数顺序一致，
+            与 armorInventory 的 0..3 相反（内部比较时会转换，你照头胸腿靴写就对了）。
+
+  ── 表 20-4  内置套装 DT / DR 全表（initDefaults 原值）──────────────────────────────────────
+
+    套装                物理        火焰        爆炸        能量      摔落     其它
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    steel_*             2 / 10%     —           —           —         —        —
+    titanium_*          3 / 10%     —           —           —         —        —
+    alloy_*             2 / 10%     —           —           —         —        —
+    cobalt_*            2 / 10%     —           —           —         —        —
+    starmetal_*         3 / 25%     —           —           —         —        1 / 10%
+    cmb_*               5 / 50%     —           —           —         —        5 / 25%
+    schrabidium_*      10 / 65%     —           —           —         —        5 / 50%
+    security_*          5 / 50%     —           2 / 25%     —         —        —
+    steamsuit_*         2 / 15%     0.5 / 25%   —           —       5 / 25%    0 / 10%
+    dieselsuit_*        1 / 15%     0.5 / 50%   2 / 15%     —         —        0 / 10%
+    t51_*               2 / 15%     0.5 / 35%   5 / 25%     —        0 / 100%   0 / 10%
+    ajr_* / ajro_*      4 / 15%     0.5 / 35%   7.5 / 25%   —        0 / 100%   0 / 15%
+    rpa_*              50 / 75%    25 / 90%    15 / 25%   30 / 80%   0 / 100%  15 / 45%
+    ncrpa_*            25 / 65%    10 / 90%    15 / 25%   10 / 50%   0 / 100%  15 / 25%
+    bj_*                5 / 50%     2.5 / 50%  10 / 25%     —        0 / 100%   2 / 15%
+    envsuit_*           —           2 / 75%     —           —        5 / 75%    0 / 10%
+      └ 额外：溺水 0 / 100%
+    hev_*               2 / 25%     0.5 / 50%   5 / 25%     —       10 / 0%     2 / 25%
+      └ 额外：灼烧（onfire）0 / 100%
+    bismuth_*           2 / 15%      5 / 50%    5 / 25%     —        0 / 100%   2 / 25%
+    fau_*             100 / 99%    100 / 100%  50 / 95%     —        0 / 100% 100 / 99%
+      └ 额外：激光（laser）25 / 95%
+    dns_*            1000 / 100%     0 / 100% 100 / 99%     —         —     1000 / 100%
+    taurun_*            2 / 15%      0 / 25%    0 / 25%     —        4 / 50%    2 / 10%
+    trenchmaster_*      5 / 50%      5 / 50%    5 / 25%     —       10 / 50%    5 / 25%
+      └ 额外：激光（laser）15 / 90%
+    euphemium_*         —           —           —           —         —     1e6 / 100%
+    hazmat_* / liquidator_* / hazmat_paa_* / asbestos_*：只有辐射/危险防护，DT/DR 全空
+      └ 例外：asbestos_* 火焰 10 / 90%
+    robes_*            （空 stats，仅为占位）
+    zirconium_legs     other 0 / 100%  ← 四件都填了同一个 legs，实际永远匹配不上，等于死配置
+
+    单件（itemStats，不看套装）：
+      jackt   PHYS 1 / 20%
+      jackt2  PHYS 2 / 25%
+
+    实体先天：
+      EntityCreeper         EXPL 2 / 25%
+      EntityCreeperNuclear  EXPL 5 / 35%
+
+    表里“—”表示该分类未注册，命中时走 other；other 也没有就该伤害原样承受。
+
+  ── 20.4.5 与原版护甲点的叠加顺序 ───────────────────────────────────────────────────────────
+
+      1. LivingAttackEvent      → DamageResistanceHandler 判 DT/DR 是否完全吸收；
+                                  吸收则 cancel，并把这次伤害交给
+                                  EntityDamageUtil.damageArmorNT()。
+                                  ★ 1.7.10 里这个方法体是空的（源码第 232 行），
+                                    所以“完全免疫”实际上既不扣血、也不磨护甲。
+      2. EntityLivingBase.damageEntity 内部 → 原版护甲点 + 保护附魔计算。
+      3. LivingHurtEvent        → DamageResistanceHandler 再次按 DT/DR 修正 amount；
+                                   接着遍历 9 个改装件槽调用 modDamage(event, armor)。
+      4. 实际扣血。
+
+      所以“护甲点”和“DT/DR”是两层，同时生效。改了一层不要以为另一层也跟着变。
+
+      写 hook 时注意 1.7.10 的字段拼写是 event.ammount（双 m），不是 amount。
+
+
+------------------------------------------------------------------------------------------------
+  20.5 ④ 危险防护：ArmorRegistry.HazardClass
+------------------------------------------------------------------------------------------------
+
+  这是“能不能呼吸 / 会不会被亮瞎”的布尔开关，和辐射数值是两回事。
+
+  ── 表 20-5  九个 HazardClass ───────────────────────────────────────────────────────────────
+
+    枚举值              语言键                    中文            源码注释要点
+    ──────────────────────────────────────────────────────────────────────────────────────────
+    GAS_LUNG            hazard.gasChlorine        化学气体        也伤眼睛 → 半面罩无效
+    GAS_MONOXIDE        hazard.gasMonoxide        一氧化碳        只伤肺
+    GAS_INERT           hazard.gasInert           惰性气体/沥青   低危
+    PARTICLE_COARSE     hazard.particleCoarse     空气微粒        只伤肺（煤尘、烟炱）
+    PARTICLE_FINE       hazard.particleFine       微粒            只伤肺（石棉、铅尘、氢爆）
+    BACTERIA            hazard.bacteria           细菌/气溶胶     半面罩无效
+    GAS_BLISTERING      hazard.corrosive          腐蚀性烟雾      也伤皮肤
+    SAND                hazard.sand               眼睛刺激物      致盲类
+    LIGHT               hazard.light              亮光            致盲类（闪光）
+
+    已被注释掉的：NERVE_AGENT（神经毒剂），写代码时不要引用。
+
+  ── 20.5.1 三种来源，会被递归合并 ───────────────────────────────────────────────────────────
+
+      ArmorRegistry.getProtectionFromItem(stack, entity) 依次收集：
+
+        ① 物品本身：hazardClasses.get(item)
+        ② 若实现 IGasMask：取 getFilter() 的滤罐防护，再减去 getBlacklist() 拉黑的分类
+           （所以“防毒面具 + 滤罐”才是完整防护，单面具只防 SAND/LIGHT）
+        ③ 若该护甲装了改装件：对每个改装件递归执行本方法
+           （所以 gasmask 改装件、带滤芯的改装件也能提供防护）
+
+  ── 20.5.2 判定 API ─────────────────────────────────────────────────────────────────────────
+
+      ArmorRegistry.hasProtection(entity, slot, clazz)      单类
+      ArmorRegistry.hasAllProtection(entity, slot, clazz…)  全部命中
+      ArmorRegistry.hasAnyProtection(entity, slot, clazz…)  任一命中
+
+      slot 是 0..3（靴/腿/胸/头），内部换算成 getEquipmentInSlot(slot + 1)。
+
+      ★★ 在 HBM 源码中抽查的 20 余处调用（各种气体方块、辐射处理、煤尘/石棉/致盲
+         危害、毒素流体）里，slot 一律传 3（头盔）。
+         也就是说：危险防护只查头盔槽。
+         写在胸甲/护腿/靴子上不会报错，但永远不会被读到。
+
+  ── 20.5.3 两组预置数组（直接拿来用）─────────────────────────────────────────────────────
+
+      ArmorUtil.FULL_NO_LIGHT = { PARTICLE_COARSE, PARTICLE_FINE, GAS_LUNG, BACTERIA,
+                                  GAS_BLISTERING, GAS_MONOXIDE, SAND }
+          → 除 LIGHT 外全防。T-51 用这组（保留“会被闪光晃到”的弱点）。
+
+      ArmorUtil.FULL_PACKAGE  = 上面 7 个 + LIGHT
+          → 真正全防。AJR/AJRO/RPA/NCRPA/环境服/HEV/Fau/DNS/陶跑/战壕王者/蒸汽服 用这组。
+
+  ── 表 20-6  物品级危险防护注册表（ArmorUtil.register 原值）────────────────────────────────
+
+    物品                        防护分类
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    schrabidium_helmet          FULL_PACKAGE（8 类）
+    euphemium_helmet            FULL_PACKAGE（8 类）
+    gas_mask                    SAND, LIGHT
+    gas_mask_m65                SAND
+    mask_rag                    PARTICLE_COARSE
+    mask_piss                   PARTICLE_COARSE, GAS_LUNG
+    goggles                     LIGHT, SAND
+    ashglasses                  LIGHT, SAND
+    attachment_mask             SAND
+    asbestos_helmet             SAND, LIGHT
+    hazmat_helmet               SAND
+    hazmat_helmet_red           SAND
+    hazmat_helmet_grey          SAND
+    hazmat_paa_helmet           LIGHT, SAND
+    liquidator_helmet           LIGHT, SAND
+    gas_mask_filter             COARSE, FINE, GAS_LUNG, GAS_BLISTERING, BACTERIA
+    gas_mask_filter_mono        COARSE, GAS_MONOXIDE
+    gas_mask_filter_combo       COARSE, FINE, GAS_LUNG, GAS_BLISTERING, BACTERIA, MONOXIDE
+    gas_mask_filter_rag         COARSE
+    gas_mask_filter_piss        COARSE, GAS_LUNG
+
+    另外：如果装了 GT6，ArmorUtil 会用 Compat.tryLoadItem 把 GT 的三顶工业防化头
+    也注册成 FULL_PACKAGE（gt.armor.hazmat.universal/biochemgas/radiation.head）。
+
+  ── 20.5.4 扩展入口 ─────────────────────────────────────────────────────────────────────────
+
+      // 方式一：注册表直接塞（任何时刻都行，但要在玩家穿上之前）
+      ArmorRegistry.registerHazard(myHelmet, HazardClass.GAS_LUNG, HazardClass.PARTICLE_FINE);
+
+      // 方式二：ArmorFSB 链式（写进 ArmorUtil.external，ArmorUtil.register() 时统一注册）
+      .setHazardClass(new HazardClass[] { HazardClass.GAS_LUNG, HazardClass.SAND })
+
+      ⚠ 方式二必须在 ArmorUtil.register() 被调用之前完成构造。
+        HBM 在它自己的 init 阶段（MainRegistry.load → ArmorUtil.register）调它，
+        你的物品在 preInit 建好就安全；若晚于这一刻构造，防护会静默丢失。
+
+      // 方式三：实现 IGasMask，一个面具 + 换滤芯
+      public class ItemMyMask extends ArmorFSB implements IGasMask {
+          public ArrayList<HazardClass> getBlacklist(ItemStack s, EntityLivingBase e) { … }
+          public ItemStack getFilter(ItemStack s, EntityLivingBase e) { … }
+          public void installFilter(ItemStack s, EntityLivingBase e, ItemStack f) { … }
+          public void damageFilter(ItemStack s, EntityLivingBase e, int dmg) { … }
+          public boolean isFilterApplicable(ItemStack s, EntityLivingBase e, ItemStack f) { … }
+          public ItemStack onItemRightClick(ItemStack s, World w, EntityPlayer p) { … }
+      }
+
+
+------------------------------------------------------------------------------------------------
+  20.6 ⑤ 辐射抗性：HazmatRegistry
+------------------------------------------------------------------------------------------------
+
+  相关：
+    第 20.5 节讲的 HazardClass 是“布尔开关”（能不能呼吸、会不会致盲）；
+    本节讲的 HazmatRegistry 是“连续数值”（把环境辐射乘以一个小于 1 的系数）。
+    两者互不替代，需要分别注册。
+
+  ── 20.6.1 公式 ─────────────────────────────────────────────────────────────────────────────
+
+      辐射系数 = 10 ^ (-res)
+
+      其中 res = 该玩家四个护甲部位的抗性之和，最后的实际受辐量要再乘上这个系数。
+      折算成“减伤百分比”：1 - 10^(-res)
+
+  ── 20.6.2 res 的累加规则 ───────────────────────────────────────────────────────────────────
+
+      float res = 0;
+      for (int i = 0; i < 4; i++) res += HazmatRegistry.getResistance(armorInventory[i]);
+      if (player.isPotionActive(HbmPotion.radx)) res += 0.2F;   // 抗辐射药
+      // 另外有一个特定 UUID 的玩家天生 +0.4F（ShadyUtil 里的开发账号），与自己无关
+
+      单件抗性 = 注册值 + 覆层（cladding）加成
+      覆层取值：直接读饰品 cladding 槽里 ItemModCladding.rad；或者读 NBT 浮点 "hfr_cladding"。
+
+  部位权重（ArmorFSB.setRadResist 内部使用）：
+
+      头盔 0.2   胸甲 0.4   护腿 0.3   靴子 0.1   （合计 1.0）
+
+  ── 表 20-7  res → 减伤对照 ────────────────────────────────────────────────────────────────
+
+    res      减伤      典型来源
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    0.0225   5.0%      原版铁/金护甲
+    0.045    9.8%      钢套、钛套
+    0.07     14.9%     高级合金套
+    0.1      20.7%     防弹夹克（单件胸甲）
+    0.125    25.0%     钴套、陶跑套
+    0.2      36.9%     —
+    0.3      49.9%     —
+    0.4      60.2%     —
+    0.6      74.9%     防辐射服（黄）★ 源码注释写的是“50%”，与公式不符，以公式为准
+    0.825    85.0%     防护服（security）
+    1.0      90.0%     防辐射服（红）、星辉套、T-51、黑杰克、环境服、战壕王者
+    1.3      95.0%     CMB 套、蒸汽服、AJR/AJRO
+    1.7      98.0%     PaA 套、NCR 游侠动力甲
+    2.0      99.0%     防辐射服（灰）、RPA
+    2.3      99.5%     HEV Mk.IV
+    2.4      99.6%     清道夫套
+    3.0      99.9%     Sa326 套
+    4.0      99.99%    Fau 套
+    5.0      99.999%   DNS（双聚态中子素纳米）套
+    10.0     ≈100%     Ep 套
+
+  ── 20.6.3 两种注册方式 ─────────────────────────────────────────────────────────────────────
+
+      方式一（推荐，ArmorFSB 专用）：写“全套总抗性”，系统自动拆到四个部位。
+
+          new ArmorFSB(MAT, 0, "…").setRadResist(1.3D)   // 95%
+          // 内部：头 1.3×0.2=0.26，胸 1.3×0.4=0.52，腿 1.3×0.3=0.39，靴 1.3×0.1=0.13
+          //       → 四件齐全时合计 1.3，玩家 res=1.3
+          // 每件 cloneStats 时会各自再注册一次，数值天然正确。
+
+      方式二（普通 ItemArmor / ModArmor 用）：逐件写绝对值。
+
+          HazmatRegistry.registerHazmat(ModItems.hazmat_helmet, 0.6 * 0.2);
+          HazmatRegistry.registerHazmat(ModItems.hazmat_plate,  0.6 * 0.4);
+          HazmatRegistry.registerHazmat(ModItems.hazmat_legs,   0.6 * 0.3);
+          HazmatRegistry.registerHazmat(ModItems.hazmat_boots,  0.6 * 0.1);
+
+      ★ 时序坑：setRadResist 只是往 HazmatRegistry.external 这个 List 里塞一个 (Item, 值)，
+        真正写进表是在 HazmatRegistry.registerHazmats() 里调 initDefault() 的时候。
+        物品若在该调用之后才创建，注册会永久丢失（不报错，只是没抗性）。
+        HBM 在 preInit 里注册物品、在 load 阶段读配置，所以你跟它一样早就没问题。
+
+  ── 20.6.4 配置文件 ───────────────────────────────────────────────────────────────────────
+
+      config/hbm/hbmRadResist.json（模板 _hbmRadResist.json）
+
+        { "entries": [
+            { "item": "hbm:item.hazmat_helmet", "resistance": 0.12 },
+            { "item": "hbm:item.hazmat_plate",  "resistance": 0.24 }
+        ] }
+
+      注意这里存的是“该部位最终值”，不是全套值，也不是百分比。
+
+  ── 表 20-8  ArmorFSB 护甲的 setRadResist 原值 ─────────────────────────────────────────────
+
+    护甲（以头盔字段代表整套）        setRadResist   减伤      写法
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    t51_helmet                       1.0            90%       setRadResist(1D)
+    steamsuit_helmet                 1.3            95%       setRadResist(1.3D)
+    ajr_helmet / ajro_helmet         1.3            95%       setRadResist(1.3D)
+    rpa_helmet                       2.0            99%       setRadResist(2D)
+    ncrpa_helmet                     1.7            98%       setRadResist(1.7D)
+    bj_helmet                        1.0            90%       setRadResist(1D)
+    envsuit_helmet                   1.0            90%       setRadResist(1.0D)
+    hev_helmet                       2.3            99.5%     setRadResist(2.3D)
+    fau_helmet                       4.0            99.99%    setRadResist(4D)
+    dns_helmet                       5.0            99.999%   setRadResist(5D)
+    taurun_helmet                    0.125          25%       setRadResist(0.125D)
+    trenchmaster_helmet              1.0            90%       setRadResist(1D)
+    dieselsuit_helmet                0              0         未设置
+    schrabidium/euphemium/hazmat 系   —              —         走 HazmatRegistry 直接注册
+
+    注意注释里的百分比是 HBM 作者手写的近似值，多数和公式一致，个别（0.6 标 50%）不一致。
+
+
+------------------------------------------------------------------------------------------------
+  20.7 ⑥ 改装件：ItemArmorMod + ArmorModHandler
+------------------------------------------------------------------------------------------------
+
+  装甲改装台（machine_armor_table）把改装件插进护甲的 NBT，一件护甲 9 个槽。
+
+  ── 表 20-9  九个槽位 ──────────────────────────────────────────────────────────────────────
+
+    常量                   值   中文        允许部位        说明
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    helmet_only             0   头盔        头盔           卡牌、护符、夜视、防毒面具
+    plate_only              1   胸甲        胸甲           特斯拉、云朵冲刺、喷气背包
+    legs_only               2   护腿        护腿           复活（带价）
+    boots_only              3   靴子        靴子           缓冲垫
+    servos                  4   伺服电机    胸甲/护腿      力量与速度
+    cladding                5   覆层        全 4 部位      辐射抗性、击退抗性、不毁
+    kevlar                  6   插板        胸甲           减伤 + 耐久（会被打坏）
+    extra                   7   特殊        随件           各种杂项效果
+    battery                 8   电池        全 4 部位      ArmorFSBPowered 电量上限倍率
+
+    MOD_SLOTS = 9。
+
+  ── 20.7.1 NBT 结构 ────────────────────────────────────────────────────────────────────────
+
+      护甲根 NBT
+        └ ntm_armor_mods          (CompoundTag，常量 MOD_COMPOUND_KEY)
+            ├ mod_slot_0          (CompoundTag，就是一个完整 ItemStack 的 NBT)
+            ├ mod_slot_1
+            └ … mod_slot_8
+
+      MOD_SLOT_KEY = "mod_slot_"（注意有下划线结尾）。
+
+  ── 20.7.2 API ─────────────────────────────────────────────────────────────────────────────
+
+      boolean isApplicable(ItemStack armor, ItemStack mod)
+          检查装甲类型与 mod 的 helmet/chestplate/leggings/boots 四个布尔。
+
+      void applyMod(ItemStack armor, ItemStack mod)
+          写入对应槽；会覆盖同槽已有件，所以要先移除。
+
+      void removeMod(ItemStack armor, int slot)
+          删单槽；删空后自动 clearMods。
+
+      void clearMods(ItemStack armor)
+      boolean hasMods(ItemStack armor)
+      ItemStack[] pryMods(ItemStack armor)      // 长度 9，空槽为 null，顺手清掉失效件
+      ItemStack pryMod(ItemStack armor, int slot)
+
+  ── 20.7.3 五个可覆写钩子 ───────────────────────────────────────────────────────────────────
+
+      addInformation(stack, player, list, bool)        自己的 tooltip
+      addDesc(list, stack, armor)                      在护甲 tooltip 里显示“已装 X”
+      modUpdate(EntityLivingBase, ItemStack armor)     每 tick（ModEventHandler 里调用）
+      modDamage(LivingHurtEvent, ItemStack armor)      受击时（LivingHurtEvent，LOWEST 优先级前）
+      getModifiers(ItemStack armor)                    返回 Multimap 属性，仅在该槽位物品变化时
+                                                       apply/remove —— 换装才生效，改 NBT 不重算
+      modRender(SetArmorModel, ItemStack armor)        客户端，自定义渲染（喷气背包等）
+
+  属性修饰符的 UUID 复用：
+
+      ArmorModHandler.UUIDs[armorType]       给“随件变化的属性”（速度/攻击/生命）
+      ArmorModHandler.fixedUUIDs[armorType]  给“护甲本体固有属性”（如清道夫的移速惩罚）
+
+      同一部位、同一 UUID 只能存在一个 Modifier：后加的会覆盖先加的。
+      → 一件胸甲插两个加速度的件，只有最后 apply 的那个生效。
+
+  ── 表 20-10  内置改装件全表 ───────────────────────────────────────────────────────────────
+
+    字段                 槽位        构造参数                              实际效果
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    servo_set            servos      ItemModServos()                       胸: 急迫I / 近战+50%
+                                                                            腿: 速度+25% / 跳跃II
+    servo_set_desh       servos      ItemModServos()                       胸: 急迫III / 近战+150%
+                                                                            腿: 速度+50% / 跳跃III
+    two_kick             servos      ItemModTwoKick()                      拳击发射 12 号霰弹
+    pads_rubber          boots_only  ItemModPads(0.5F)                     摔落伤害 -50%
+    pads_slime           boots_only  ItemModPads(0.25F)                    摔落 -75%
+    pads_static          boots_only  ItemModPads(0.75F)                    摔落 -25%，
+                                                                            走路给电动甲充电
+                                                                            每步 drain/2 或 consumption/40
+    cladding_paint       cladding    ItemModCladding(0.025)                rad +0.025
+    cladding_rubber      cladding    ItemModCladding(0.005)                rad +0.005
+    cladding_lead        cladding    ItemModCladding(0.1)                  rad +0.1
+    cladding_desh        cladding    ItemModCladding(0.2)                  rad +0.2
+    cladding_ghiorsium   cladding    ItemModCladding(0.5)                  rad +0.5
+    cladding_iron        cladding    ItemModIron()                          击退抗性 +0.5
+    cladding_obsidian    cladding    ItemModObsidian()                      掉落的护甲不消失
+    insert_kevlar        kevlar      ItemModInsert(1500, 1F, 0.90F, 1F, 1F)  弹射物 -10%，1500 耐久
+    insert_sapi          kevlar      ItemModInsert(1750, 1F, 0.85F, 1F, 1F)  弹射物 -15%
+    insert_esapi         kevlar      ItemModInsert(2000, 0.95F, 0.80F, 1F, 1F) 全伤 -5%，弹射物 -20%
+    insert_xsapi         kevlar      ItemModInsert(2500, 0.90F, 0.75F, 1F, 1F) 全伤 -10%，弹射物 -25%
+    insert_steel         kevlar      ItemModInsert(1000, 1F, 0.95F, 0.75F, 0.95F) 爆炸 -25%，速度 -5%
+    insert_du            kevlar      ItemModInsert(1500, 0.90F, 0.85F, 0.50F, 0.90F) 爆炸 -50%
+    insert_polonium      kevlar      ItemModInsert(500, 0.90F, 1F, 0.95F, 0.90F) +100 rad/s 自伤
+    insert_ghiorsium     kevlar      ItemModInsert(2000, 0.80F, 0.75F, 0.35F, 0.90F) 爆炸 -65%
+    insert_era            kevlar     ItemModInsert(25, 0.50F, 1F, 0.25F, 1F)   被打就小爆炸
+    insert_yharonite     kevlar      ItemModInsert(9999, 0.01F, 1F, 1F, 1F)   全伤 -99%
+    insert_doxium        kevlar      ItemModInsert(9999, 5.0F, 1F, 1F, 1F)    全伤 ×5（负面）
+    australium_iii       kevlar      ItemModShield(25F)                     +25 护盾值
+                                                                          （受击先扣盾，再扣血）
+    armor_battery        battery     ItemModBattery(1.25D)                   电量上限 ×1.25
+    armor_battery_mk2    battery     ItemModBattery(1.5D)                    电量上限 ×1.5
+    armor_battery_mk3    battery     ItemModBattery(2D)                      电量上限 ×2
+    heart_piece          extra       ItemModHealth(5F)                      +5 最大生命
+    heart_container      extra       ItemModHealth(20F)                     +20
+    heart_booster        extra       ItemModHealth(40F)                     +40
+    heart_fab            extra       ItemModHealth(60F)                     +60
+    black_diamond        extra       ItemModHealth(40F)                     +40（带彩蛋文本）
+    armor_polish         extra       ItemModPolish()                        5% 概率免伤
+    ink                  extra       ItemModInk()                           10% 概率免伤 + 花瓣
+    bandaid              extra       ItemModBandaid()                       3% 概率受伤回满
+    bathwater            extra       ItemModBathwater()                     受击使攻击者中毒
+    milk                 extra       ItemModMilk()                          持续清除负面效果
+    serum                extra       ItemModSerum()                         中毒转力量
+    quartz               extra       ItemModQuartz()                        受击 -10 rad
+    morning_glory        extra       ItemModMorningGlory()                 5% 受击得抗性，免疫凋零
+    injector_5htp        extra       ItemModAuto()                         消耗 5 digamma 治疗 20 + 稳定
+    injector_knife       extra       ItemModKnife()                        每 50 tick 永久扣 2 最大生命
+    revive               extra       ItemModRevive(int)                    额外复活次数（护腿槽）
+    shackles             extra       ItemModShackles()                     无限复活（护腿槽）
+    wd40                 extra       ItemModWD40()                         护甲磨损 -80%，+2 生命
+    lodestone            extra       ItemModLodestone(5)                   吸取 5 格内掉落物
+    horseshoe_magnet     extra       ItemModLodestone(8)                   8 格
+    industrial_magnet    extra       ItemModLodestone(12)                  12 格
+    defuser_gold         extra       ItemModDefuser()                      拆解附近的苦力怕
+    sensor               extra       ItemModSensor()                       靠近危险气体时报警
+    protection_charm     helmet_only ItemModCharm()                       广播塔伤害 ×0.5
+                                                                          （仅 broadcast 源）
+    meteor_charm         helmet_only ItemModCharm()                       广播塔伤害归零
+                                                                          另改陨石生成/破坏行为
+    card_aos             helmet_only ItemModCard()                        33% 不耗弹 / 33% 无上限承伤
+    neutrino_lens        extra       ItemModLens()                         共振频率显示
+    night_vision         helmet_only ItemModNightVision()                 夜视
+    gasmask              helmet_only ItemModGasmask()                     防毒面具（可装滤芯）
+    cloud                plate_only  ItemModCloud()                        水平冲刺
+    tesla                plate_only  ItemModTesla()                       电击附近实体（需全套电甲）
+    jetpack_boost        plate_only  JetpackBooster(BALEFIRE, 32000)      烈焰喷射背包
+    jetpack_break        plate_only  JetpackBreak(KEROSENE, 12000)        刹车背包
+    jetpack_fly          plate_only  JetpackRegular(KEROSENE, 12000)      飞行背包
+    jetpack_vector       plate_only  JetpackVectorized(KEROSENE, 16000)   矢量背包
+
+    插板（kevlar）的减伤是“乘”在 LivingHurtEvent 的 amount 上，与 DT/DR 相乘叠加，
+    而它本身有耐久，每挡一次 -1，耐久归零自动脱落。
+
+  ── 20.7.4 自定义改装件的最小骨架 ─────────────────────────────────────────────────────────
+
+      public class ItemModExample extends ItemArmorMod {
+
+          public ItemModExample() {
+              super(ArmorModHandler.extra, true, true, true, true);  // 槽位, 头, 胸, 腿, 靴
+          }
+
+          @Override public void addInformation(ItemStack s, EntityPlayer p, List l, boolean b) {
+              l.add(EnumChatFormatting.AQUA + "+0.1 DT");
+              l.add("");
+              super.addInformation(s, p, l, b);           // 让“适用于/槽位”自动补上
+          }
+
+          @Override public void modDamage(LivingHurtEvent e, ItemStack armor) {
+              e.ammount = Math.max(0F, e.ammount - 0.1F);
+          }
+
+          @Override public Multimap getModifiers(ItemStack armor) { return null; }
+      }
+
+
+------------------------------------------------------------------------------------------------
+  20.8 不在通用字段里的特殊装备（这些只能继承对应子类）
+------------------------------------------------------------------------------------------------
+
+  ── 表 20-11  子类专属能力 ────────────────────────────────────────────────────────────────
+
+    类                    父类              独有能力
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    ArmorEuphemium        ItemArmor         完全免疫伤害，耐久锁定（setDamage 空实现），
+                                            稀有度 EPIC，永不损坏。
+    ArmorNo9              ArmorModel        +0.5 固定 DT；≤0.5 的伤害直接取消；
+                                            抑制黑肺病（上限 90%，并缓慢自愈）；
+                                            按 HUD 键打开“矿灯”，沿视线照亮前方方块。
+    ArmorLiquidator       ArmorFSB          击退抗性 +100（完全免疫击退），移速 -10%。
+    ArmorTrenchmaster     ArmorFSB          全套时 1/3 概率完全免伤；自爆免疫；
+                                            “更多弹药”（moreAmmo）。
+    ArmorTaurun           ArmorFSB          无脑力士：只有数值，没有额外逻辑。
+    ArmorDNT（=dns_*）     ArmorFSBPowered   全套时除爆炸外全部伤害归零，爆炸 ×0.001；
+                                            冲刺时移速 +25%；喷气背包 + 快速下落 + 冲刺加速。
+    ArmorEnvsuit          ArmorFSBPowered   水下补气（setAir(300)）、水下夜视、水中推进；
+                                            冲刺时移速 +10%。
+    ArmorBJ               ArmorFSBPowered   电量耗尽时头盔自动脱下并造成 1000 点 lunar 伤害
+                                            （“不许裸奔”）。
+    ArmorBJJetpack        ArmorBJ           电动喷气背包 + 滑翔。
+    ArmorRPA / ArmorNCRPA ArmorFSBPowered   IPAWeaponsProvider：穿戴时可用动力甲近战武器
+                                            （ArmorRPAMelee / ArmorNCRPAMelee 提供动作）。
+    ArmorHEV              ArmorFSBPowered   自绘盖革 HUD + 全屏护目镜 overaly。
+    ArmorDigamma          ArmorFSBPowered   Fau：整套 hides(HAT/双腿)，半透明渲染。
+    ArmorHazmat           ArmorFSB          头盔位叠加防化面罩贴图。
+    ArmorHazmatMask       ArmorHazmat+IGasMask  可装滤芯的防化头盔。
+    ArmorGasMask          ItemArmor+IGasMask    防毒面具（滤芯 + 黑名单）。
+    ArmorAsbestos         ItemArmor+ISpecialArmor  走原版 ISpecialArmor 通道，
+                                            火焰 10/90%；头盔叠加纤维 overlay。
+    ArmorDesh             ArmorFSBFueled    蒸汽动力：每件移速 -2.5%（level 1 惩罚）。
+    ArmorDiesel           ArmorFSBFueled    柴油动力：击退抗性 +0.25；护腿每 3 tick 喷粒子。
+    ArmorT51/AJR/AJRO     ArmorFSBPowered   纯数值（属性全在 ArmorFSB 字段里）。
+
+  ── 20.8.1 能源类护甲的四个构造参数 ───────────────────────────────────────────────────────
+
+    ArmorFSBPowered(material, slot, texture,
+                    long maxPower,     // 满电
+                    long chargeRate,   // 每 tick 可充入
+                    long consumption,  // 每点耐久伤害对应的耗电（原版护甲被打时扣）
+                    long drain)        // 每 tick 常驻耗电
+
+      isArmorEnabled = charge > 0 → 没电就整套失效（不再算全套）。
+      setDamage(dmg) 被重写为 dischargeBattery(dmg * consumption)。
+      showDurabilityBar 显示电量而不是耐久条。
+      装 battery 改装件时 getMaxCharge 会乘以 ItemModBattery.mod。
+      ⚠ 受 ELECTRIC 类伤害时，若胸甲是 ArmorFSBPowered，伤害 ×5（导电惩罚）。
+
+    ArmorFSBFueled(material, slot, texture,
+                   FluidType fuelType, int maxFuel, int fillRate, int consumption, int drain)
+
+      燃料是 HBM 流体（Fluids.STEAM / Fluids.DIESEL …），不是 Forge Fluid。
+      每 10 tick 扣一次 drain（Powered 是每 tick）。
+      可被流体装载器/泵直接灌装（实现 IFillableItem）。
+
+  ── 表 20-12  能源/燃料护甲原值 ──────────────────────────────────────────────────────────
+
+    护甲               类型      满值         充速      消耗      常驻
+    ────────────────────────────────────────────────────────────────────────────────────────────
+    t51_*              Powered   1,000,000    10,000    1,000     5
+    ajr_* / ajro_*     Powered   2,500,000    10,000    2,000     25
+    rpa_* / ncrpa_*    Powered   2,500,000    10,000    2,000     25
+    bj_* / bj_jetpack  Powered   10,000,000   10,000    1,000     100
+    envsuit_*          Powered   100,000      1,000     250       0
+    hev_*              Powered   1,000,000    10,000    2,500     0
+    fau_*              Powered   10,000,000   10,000    2,500     0
+    dns_*              Powered   1,000,000,000 1,000,000 100,000  115
+    steamsuit_*        Fueled    64,000 蒸汽  500       50        1
+    dieselsuit_*       Fueled    64,000 柴油  500       50        1
+
+
+------------------------------------------------------------------------------------------------
+  20.9 写装备的完整流程（按顺序做，不会漏）
+------------------------------------------------------------------------------------------------
+
+    第 1 步  定材质
+        问自己三件事：耐久给多少（factor）、护甲点给哪一档、要不要能附魔。
+        同一套四件共用一个 static 实例，名字全局唯一。
+
+    第 2 步  建头盔（承载全部“整套属性”）
+        构造 → setUnlocalizedName → setTextureName → 依次链式 setter。
+
+    第 3 步  建另外三件
+        .cloneStats((ArmorFSB) 头盔) 必须写在链上，且必须在 setUnlocalizedName 之前或之后都行，
+        但一定要写。另外三件的贴图按 _1/_2 约定给。
+
+    第 4 步  补“不会被 clone 的属性”
+        radResist（clone 会复制，不用补）
+        hazardClass（不 clone，但只查头盔，所以只写头盔就对了）
+        overlay（只头盔）
+        hides（每件按需，动力甲一般头盔 hides(HAT)）
+
+    第 5 步  移动速度（要改速度才做，不改就跳过）
+        路线 A：链上加 .addEffect(new PotionEffect(Potion.moveSpeed.id, 20, 0))，全套自动生效；
+        路线 B：重写 getItemAttributeModifiers()，每件都生效，精确百分比；
+        路线 C：PlayerTick 里统一挂固定 UUID 的 AttributeModifier，全套限定且不会残留。
+        三条路线的差别与坑见 20.3，别在这里自由发挥。
+
+    第 6 步  注册 DT/DR
+        DamageResistanceHandler.registerSet(...)，四个参数按 头/胸/腿/靴。
+        ★ 必须放在 postInit：HBM 的 init 会 clearSystem() 清表（20.12.2）。
+        ★ 每个分类能不能真的削到伤害，先看 20.11.1 的核对表再定数值。
+
+    第 7 步  注册物品
+        GameRegistry.registerItem(item, item.getUnlocalizedName())
+
+    第 8 步  资源
+        穿戴贴图：assets/<modid>/textures/armor/xxx_1.png（头/胸/靴）、xxx_2.png（腿），
+                  尺寸 64×32 布局，与原版一致。
+        物品图标：assets/<modid>/textures/items/xxx_helmet.png，16×16。
+        语言键：  item.xxx_helmet.name=中文名（放在你的 lang 里，不要写进 hbm 的）
+
+    第 9 步  可选
+        配方（ArmorRecipes 风格或普通有序合成）
+        改装件（20.7）
+        创造页（MainRegistry.combatTab / 自己的页）
+
+
+------------------------------------------------------------------------------------------------
+  ── 20.10 全属性模板（展示用：把所有 setter 摆一遍）
+------------------------------------------------------------------------------------------------
+
+  说明：
+    · 包名/类名按你的附属改；
+    · 这里用 ModItems（HBM 的）拿修理材料，附属里应换成自己的物品；
+    · 四件套 + 一个改装件 + 一条移动速度 + 一份 DT/DR + 一份危险防护，
+      覆盖了 20.1–20.7（含 20.3 的移动速度）的全部写法；
+    · 注释里标 ★ 的是“最容易忘”的行；
+    · 这一份是“词典”，用来查某个 setter 长什么样。要一份能直接跑、已编译验证过、
+      并且把单件/全套 DT/DR 拆开讲清楚的整份文件，看 20.12。
+
+································································································
+  package com.example.addon.items;
+
+  import com.hbm.handler.ArmorModHandler;
+  import com.hbm.items.armor.ArmorFSB;
+  import com.hbm.items.armor.ArmorFSBPowered;
+  import com.hbm.items.armor.IArmorDisableModel.EnumPlayerPart;
+  import com.hbm.items.armor.ItemArmorMod;
+  import com.hbm.util.ArmorRegistry.HazardClass;
+  import com.hbm.util.ArmorUtil;
+  import com.hbm.util.DamageResistanceHandler;
+  import com.hbm.util.DamageResistanceHandler.ResistanceStats;
+
+  import cpw.mods.fml.common.registry.GameRegistry;
+  import net.minecraft.entity.player.EntityPlayer;
+  import net.minecraft.item.ItemArmor.ArmorMaterial;
+  import net.minecraft.item.ItemStack;
+  import net.minecraft.potion.Potion;
+  import net.minecraft.potion.PotionEffect;
+  import net.minecraft.util.EnumChatFormatting;
+  import net.minecraftforge.common.util.EnumHelper;
+  import net.minecraftforge.event.entity.living.LivingHurtEvent;
+
+  import java.util.List;
+
+  public class ModArmorExample {
+
+      /* ==========================================================================================
+       * ① 材质：一套四件必须共用这一个实例
+       * ========================================================================================== */
+      public static ArmorMaterial MAT_EXAMPLE = EnumHelper.addArmorMaterial(
+              "EXAMPLE_POWERED",        // 名字必须全局唯一（HBM 自己就有两个 HBM_TRENCH 撞了）
+              150,                      // 耐久因子 → 实际 1650/2400/2250/1950
+              new int[] { 3, 8, 6, 3 }, // 头/胸/腿/靴 护甲点，合计 20 = 80% 减伤
+              10);                      // 附魔性，动力甲习惯给 0～10
+
+      static {
+          // 铁砧修理用什么（不设就用原版默认）
+          MAT_EXAMPLE.customCraftingMaterial = com.hbm.items.ModItems.plate_steel;
+      }
+
+      public static ArmorFSBPowered example_helmet;
+      public static ArmorFSBPowered example_plate;
+      public static ArmorFSBPowered example_legs;
+      public static ArmorFSBPowered example_boots;
+
+      public static ItemArmorMod mod_example;
+
+      public static void init() {
+
+          /* ======================================================================================
+           * ② 头盔：所有“整套属性”都写在这里，然后 clone 给另外三件
+           * ====================================================================================== */
+          example_helmet = (ArmorFSBPowered) new ArmorFSBPowered(
+                  MAT_EXAMPLE,
+                  0,                                                    // 0=头盔 1=胸 2=腿 3=靴
+                  "example:textures/armor/example_1.png",               // 穿在身上的贴图
+                  2_500_000,                                            // maxPower 满电
+                  10_000,                                               // chargeRate 每 tick 充入
+                  2_000,                                                // consumption 每点耐久伤害耗电
+                  25)                                                   // drain 每 tick 常驻耗电
+
+                  /* —— 药水：全套时每 tick 续一次，duration 20 才能无缝 —— */
+                  .addEffect(new PotionEffect(Potion.damageBoost.id, 20, 0))   // amplifier 0 = I
+                  .addEffect(new PotionEffect(Potion.resistance.id, 20, 0))
+
+                  /* —— HUD / 感官 —— */
+                  .enableVATS(true)                 // 敌对生物描边
+                  .enableThermalSight(true)         // 热成像
+                  .setHasGeigerSound(true)           // 盖革“咔哒”（背包有盖革计时自动静音）
+                  .setHasCustomGeiger(false)         // 自绘盖革 HUD，一般给高阶甲用
+                  .setHasHardLanding(true)           // 落地砸飞周围实体
+
+                  /* —— 位移 —— */
+                  .setDashCount(2)                   // 冲刺次数（每冲 30 体力）
+                  .setStepSize(1)                    // 只影响 tooltip 文案
+
+                  /* —— 移动速度：★ ArmorFSB 没有这个字段，17 条里没有一条改得了速度 ——
+                   *   下面走路线 A（药水）：全套自动生效，代价是只有整数档、视野会变。
+                   *   要精确 +10% / −10% 且“必须穿齐” → 路线 C（PlayerTick 挂 AttributeModifier）。
+                   *   要每件各算一份、随穿随生效 → 路线 B（重写 getItemAttributeModifiers）。
+                   *   三条路线的完整代码与坑见 20.3，这里只演示最省事的一条。 */
+                  .addEffect(new PotionEffect(Potion.moveSpeed.id, 20, 0))     // 全套 +20%
+                  // .addEffect(new PotionEffect(Potion.moveSlowdown.id, 20, 0)) // 全套 −15%（二选一）
+
+                  /* —— 音效（★ 运行时只读胸甲上的这份，必须 clone）—— */
+                  .setStep("hbm:step.metal")
+                  .setJump("hbm:step.iron_jump")
+                  .setFall("hbm:step.iron_land")
+
+                  /* —— 全屏 overlay：★ 只对头盔位生效，且 cloneStats 不复制 —— */
+                  .setOverlay("example:textures/misc/overlay_example.png")
+
+                  /* —— 危险防护：★ 不 clone，但 HBM 只查头盔槽，所以只写这里就够 —— */
+                  .setHazardClass(ArmorUtil.FULL_PACKAGE)   // 或 FULL_NO_LIGHT（不防强光）
+
+                  /* —— 辐射抗性：★ clone 会复制，并且每件按部位权重各注册一次 —— */
+                  .setRadResist(2.0D)                       // 全套 res=2.0 → 99%
+
+                  /* —— 隐藏玩家模型部件 —— */
+                  .hides(EnumPlayerPart.HAT)                // 不显示头顶第二层皮肤
+                  .setFullSetForHide()                      // 但要求穿齐才隐藏
+
+                  .setUnlocalizedName("example_helmet")     // 语言键 item.example_helmet.name
+                  .setTextureName("example:example_helmet") // 物品栏图标
+                  .setMaxStackSize(1);
+
+          /* ======================================================================================
+           * ③ 另外三件：cloneStats 是“全套效果能不能触发”的生死线
+           *    ★ 不 clone 的话：effects / hardLanding / noHelmet / step / jump / fall 全部失效，
+           *      因为运行时这七项只从胸甲读。
+           * ====================================================================================== */
+          example_plate = (ArmorFSBPowered) new ArmorFSBPowered(
+                  MAT_EXAMPLE, 1, "example:textures/armor/example_1.png",
+                  2_500_000, 10_000, 2_000, 25)
+                  .cloneStats(example_helmet)
+                  .setUnlocalizedName("example_plate")
+                  .setTextureName("example:example_plate")
+                  .setMaxStackSize(1);
+
+          example_legs = (ArmorFSBPowered) new ArmorFSBPowered(
+                  MAT_EXAMPLE, 2, "example:textures/armor/example_2.png",   // 腿用 _2
+                  2_500_000, 10_000, 2_000, 25)
+                  .cloneStats(example_helmet)
+                  .setUnlocalizedName("example_legs")
+                  .setTextureName("example:example_legs")
+                  .setMaxStackSize(1);
+
+          example_boots = (ArmorFSBPowered) new ArmorFSBPowered(
+                  MAT_EXAMPLE, 3, "example:textures/armor/example_1.png",
+                  2_500_000, 10_000, 2_000, 25)
+                  .cloneStats(example_helmet)
+                  .setUnlocalizedName("example_boots")
+                  .setTextureName("example:example_boots")
+                  .setMaxStackSize(1);
+
+          /* ======================================================================================
+           * ④ 注册物品
+           * ====================================================================================== */
+          GameRegistry.registerItem(example_helmet, example_helmet.getUnlocalizedName());
+          GameRegistry.registerItem(example_plate,  example_plate.getUnlocalizedName());
+          GameRegistry.registerItem(example_legs,   example_legs.getUnlocalizedName());
+          GameRegistry.registerItem(example_boots,  example_boots.getUnlocalizedName());
+
+          /* ======================================================================================
+           * ⑤ DT / DR：四个参数顺序是 头、胸、腿、靴（不是 armorInventory 的 0..3）
+           *    DT 先扣、DR 再乘；同分类多层相加；DR 超过 1 即完全免疫。
+           * ====================================================================================== */
+          DamageResistanceHandler.registerSet(example_helmet, example_plate, example_legs, example_boots,
+                  new ResistanceStats()
+                          .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 4F, 0.15F)  // 物理 DT4 / 15%
+                          .addCategory(DamageResistanceHandler.CATEGORY_FIRE,     0.5F, 0.35F)
+                          .addCategory(DamageResistanceHandler.CATEGORY_EXPLOSION, 7.5F, 0.25F)
+                          .addCategory(DamageResistanceHandler.CATEGORY_ENERGY,   5F,   0.30F)
+                          .addExact("fall", 0F, 1F)                    // 摔落完全免疫（键是小写 damageType）
+                          .setOther(0F, 0.15F));                       // 其余伤害兜底
+
+          /* ======================================================================================
+           * ⑥ 改装件：一个“受击减伤 + 加速度”的自定义件
+           * ====================================================================================== */
+          mod_example = new ItemModExample();
+          mod_example.setUnlocalizedName("mod_example").setTextureName("example:mod_example");
+          GameRegistry.registerItem(mod_example, mod_example.getUnlocalizedName());
+      }
+
+      /* ==========================================================================================
+       * ⑦ 自定义改装件
+       * ========================================================================================== */
+      public static class ItemModExample extends ItemArmorMod {
+
+          public ItemModExample() {
+              // 槽位,        头,    胸,    腿,    靴     —— 传 true 表示“可以装到该部位”
+              super(ArmorModHandler.extra, true, true, true, true);
+          }
+
+          @Override
+          public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean ext) {
+              list.add(EnumChatFormatting.AQUA + "-0.1 物理 DT");
+              list.add(EnumChatFormatting.BLUE + "+10% 移速（穿胸甲时）");
+              list.add("");
+              super.addInformation(stack, player, list, ext);   // ★ 补上“适用于/槽位”两行
+          }
+
+          @Override
+          public void addDesc(List list, ItemStack stack, ItemStack armor) {
+              list.add(EnumChatFormatting.DARK_PURPLE + "  " + stack.getDisplayName() + " (-0.1 DT)");
+          }
+
+          /** 每 tick 调用；不写也行 */
+          @Override
+          public void modUpdate(net.minecraft.entity.EntityLivingBase entity, ItemStack armor) { }
+
+          /** 受击时调用，★ 字段拼写是 ammount（双 m） */
+          @Override
+          public void modDamage(LivingHurtEvent event, ItemStack armor) {
+              if (DamageResistanceHandler.typeToCategory(event.source)
+                      .equals(DamageResistanceHandler.CATEGORY_PHYSICAL)) {
+                  event.ammount = Math.max(0F, event.ammount - 0.1F);
+              }
+          }
+
+          /**
+           * 属性加成：★ 只在“该槽位物品发生变化”时 apply/remove，
+           * 所以靠改 NBT 不会重算；同一部位同一 UUID 只能有一个，后加覆盖先加。
+           */
+          @Override
+          public com.google.common.collect.Multimap getModifiers(ItemStack armor) {
+              com.google.common.collect.Multimap multimap =
+                      com.google.common.collect.HashMultimap.create();
+
+              int type = ((net.minecraft.item.ItemArmor) armor.getItem()).armorType;
+              if (type == 1) {   // 只给胸甲加移速
+                  multimap.put(net.minecraft.entity.SharedMonsterAttributes.movementSpeed
+                                  .getAttributeUnlocalizedName(),
+                          new net.minecraft.entity.ai.attributes.AttributeModifier(
+                                  ArmorModHandler.UUIDs[type], "Example Speed", 0.10D, 2));
+              }
+              return multimap;
+          }
+      }
+  }
+
+································································································
+
+  配套资源清单（缺一个就是紫黑格或英文名）：
+
+      assets/example/textures/armor/example_1.png    头/胸/靴 穿戴贴图
+      assets/example/textures/armor/example_2.png    护腿 穿戴贴图
+      assets/example/textures/misc/overlay_example.png  全屏叠加（可省）
+      assets/example/textures/items/example_helmet.png  等 4 个 16×16 图标
+      assets/example/textures/items/mod_example.png
+      assets/example/lang/zh_CN.lang：
+          item.example_helmet.name=示例动力装甲头盔
+          item.example_plate.name=示例动力装甲胸甲
+          item.example_legs.name=示例动力装甲护腿
+          item.example_boots.name=示例动力装甲靴子
+          item.mod_example.name=示例改装件
+
+
+------------------------------------------------------------------------------------------------
+  20.11 逐条属性配完整代码（物理 / 火焰 / 爆炸 / 能量 / 摔落 / 其它）
+------------------------------------------------------------------------------------------------
+
+  20.4 讲的是机制，这一节讲“手”。每一类防御都给四样东西：
+    ① 它到底吃哪些伤害（含“你以为能吃、其实吃不到”的）；
+    ② 单件写法与全套写法，两段可直接粘贴的代码；
+    ③ 数值怎么算出来的（带算例）；
+    ④ 进游戏怎么验。
+
+  代码有两种形态，别混着抄：
+    【链上一行】  .addCategory(...) / .addExact(...) / .setOther(...)
+                  —— 只能接在 new ResistanceStats() 后面，单独粘出去会报语法错。
+    【完整方法】  20.11.8（单文件方法）与 20.12（整个类）
+                  —— 已经带 package / import / 方法体，粘贴即编译。
+
+  ── 20.11.0 先确认“这条属性写在哪张表” ───────────────────────────────────────────────────
+
+    想改什么                        写在哪                                生效时机
+    ────────────────────────────────────────────────────────────────────────────────────────
+    护甲点（每点 4%）、耐久、附魔性   ArmorMaterial（EnumHelper 创建）       物品构造时定死
+    单件抗性（穿一件就有一份）       DamageResistanceHandler.itemStats      每次受击
+    全套抗性（四件齐才有的一份）     DamageResistanceHandler.registerSet    每次受击
+    能不能呼吸 / 会不会被闪光晃到    ArmorRegistry.registerHazard           每个 tick
+    吃多少辐射                       HazmatRegistry.registerHazmat          每个 tick
+    走多快                           AttributeModifier（见 20.3）           属性系统每 tick
+
+    ★ 这三张数值表（itemStats / setStats / entityStats）都是 public static HashMap，
+      没有任何校验：put 成了别的物品、registerSet 顺序传错、注册晚了一步，
+      一律不报错、不崩溃，只是「静默无效」。所以每写完一段，必须按 20.11.10 进游戏验一次。
+
+  ── 20.11.1 第一张表：这些伤害到底算哪一类 ─────────────────────────────────────────────────
+
+    typeToCategory(DamageSource) 是一串按顺序的 if，先命中先返回。
+    下表是逐条对着源码核出来的（★ 标的是与直觉不符、最容易写错抗性的）：
+
+    伤害来源                              归入       依据
+    ────────────────────────────────────────────────────────────────────────────────────────
+    TNT / 苦力怕 / 火箭 / 核爆            EXPL        isExplosion()
+    火方块 / 岩浆 / 燃烧状态              FIRE        isFireDamage()
+    箭 / 枪弹 / 破片 / 掉落物             PHYS        isProjectile()
+    ★ 亚原子 subAtomic1..5                PHYS        causeSubatomicDamage 带 setProjectile()，
+                                                      先于 SUBATOMIC 判定命中；而且
+                                                      DamageClass.SUBATOMIC 用 equals 比
+                                                      "subatomic"，永远比不过 "subAtomic1"
+    激光 laser                            EN          DamageClass.LASER
+    等离子 plasma                         EN          DamageClass.PLASMA
+    ★ 微波 microwave（常量）              EN          但该源是 absolute，走不到这里
+    ★ 电弧 electricity（常量）            EN          同上；electrified 则是 PHYS
+    仙人掌 / 尖刺                         PHYS        硬编码两条
+    僵尸骷髅近战 / 铁砧 / 落沙            PHYS        instanceof EntityDamageSource
+    摔落 fall                             "fall"      不是实体源也不是爆炸/火焰，返回原名
+                                                      → 只有 addExact 与 other 命中
+    溺水 drown                            "drown"     同上
+    药水/中毒 magic                       "magic"     同上
+    辐射 radiation                        "radiation" 同上，且 bypassesArmor → 连 other 都不吃
+
+    再补一条最容易被当成 bug 的事实：
+
+      DamageSource.isDamageAbsolute() 为真的伤害，整条 DT/DR 链路一行都不执行
+      （LivingAttackEvent 首行 return；calculateDamage 首行 return amount）。
+      穿什么甲都没用，伤害原样落下，也不触发任何抗性 tooltip。
+
+    HBM 自己的绝对伤害源（ModDamageSource 里带 setDamageIsAbsolute 的那些）：
+
+      digamma      blackhole    turbofan     meteorite    boxcar       boat
+      building     taint        ams          amsCore      broadcast    bang
+      pc           cloud        lead         enervation   electricity  exhaust
+      lunar        monoxide     asbestos     blacklung    mku          vacuum
+      overdose     microwave
+
+    → “我穿了 Ep 套还是被电死 / 被真空弄死”不是抗性没生效，是那类伤害根本不进抗性表。
+    → 反过来说：给护甲写 EN（能量）抗性，日常真正吃得到它的只有 laser 与 plasma。
+
+    还有一批“只标了 bypassesArmor、不是 absolute”的伤害（spikes、tau、cmb、subAtomic、
+    euthanized、radiation、acid…）：「原版护甲点不生效，但 DT/DR 照常生效」。
+    它们的 isUnblockable() 为真，所以 other 兜底也不吃（原因见 20.11.7）。
+
+  ── 20.11.2 物理防御 PHYS：完整代码 ────────────────────────────────────────────────────────
+
+    物理是唯一“单件与全套都值得写”的分类，因为它吃掉了绝大多数常规伤害。
+
+    【A. 单件写法】每件各注册一份，穿几件算几件。
+
+      // 头盔
+      DamageResistanceHandler.itemStats.put(ModItems.my_helmet,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.05F));
+
+      // 胸甲
+      DamageResistanceHandler.itemStats.put(ModItems.my_plate,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 2F, 0.10F));
+
+      // 护腿
+      DamageResistanceHandler.itemStats.put(ModItems.my_legs,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.06F));
+
+      // 靴子
+      DamageResistanceHandler.itemStats.put(ModItems.my_boots,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.04F));
+
+      这四个 put 是四次独立注册，不是“一套”。
+      穿上一件就多算一份：只穿胸甲时 DT=2、DR=10%。
+      → 好处：掉一件不至于全废；坏处：做不出“差一件就完全没防御”的体验。
+
+    【B. 全套写法】四件齐全才加这一份，任意一件缺失立即失效。
+
+      DamageResistanceHandler.registerSet(
+              ModItems.my_helmet,     // ★ 参数顺序固定是 头、胸、腿、靴
+              ModItems.my_plate,      //   与 armorInventory 的 0..3 相反
+              ModItems.my_legs,
+              ModItems.my_boots,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 4F, 0.15F));
+
+      · 参数类型是 Item，不是 ItemStack；允许传 null 表示该槽位留空。
+      · 内部把四件组成 Quartet 作为 key，所以“同一件护甲出现在多套里”是允许的
+        （HBM 的 bj_helmet 就同时注册了普通胸甲版与喷气背包版两套）。
+
+    【C. 两段都写时，实际生效值相加（不是相乘）】
+
+      单件 DT 合计 1+2+1+1 = 5        单件 DR 合计 0.05+0.10+0.06+0.04 = 0.25
+      全套 DT +4                      全套 DR +0.15
+      → 穿齐时 DT = 9、DR = 0.40
+
+      来  5 点伤害 → 5 - 9 < 0        → 完全免疫（不扣血，也不掉耐久，见下）
+      来 10 点伤害 → (10 - 9) × 0.6   = 0.6
+      来 20 点伤害 → (20 - 9) × 0.6   = 6.6
+
+      这就是“重甲”的手感来源：DT 把杂兵和摔打抹平，DR 削大伤害的峰值。
+      只堆 DR 会变成“百毒不侵但每一下都掉层皮”，只堆 DT 会怕重击。
+
+    ★ 一个源码事实：DT 完全吸收时走的是 EntityDamageUtil.damageArmorNT()，
+      而 1.7.10 版 HBM 里这个方法的「方法体是空的」（第 232 行）。
+      也就是说“免疫伤害会磨护甲”目前并不成立，别在数值里指望它平衡。
+
+  ── 20.11.3 火焰防御 FIRE：完整代码（附“为什么还得单独写 onfire”）─────────────────────────
+
+    归入 FIRE 的：火方块（inFire）、岩浆（lava）、燃烧状态（onFire）、火焰弹。
+    它们的 isFireDamage() 都是真，所以一条 addCategory 就能全覆盖：
+
+      new ResistanceStats()
+              .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 4F, 0.60F)
+
+    但 HBM 的 HEV 还额外写了一行：
+
+      .addExact(DamageSource.onFire.damageType, 0F, 1F)      // "onFire" → 完全免疫
+
+    为什么？因为 getResistance 的优先级是 exact > category：
+
+      exactResistances.get(damageType.toLowerCase())   命中就返回，不再看 category
+        ↓ 没命中
+      categoryResistances.get(typeToCategory(source))  命中就返回
+        ↓ 没命中
+      source.isUnblockable() ? null : otherResistance
+
+    于是可以做出“身上着火不掉血、但岩浆照样烫”这种分层手感：
+
+      .addCategory(CATEGORY_FIRE, 0.5F, 0.50F)              // 岩浆、火焰弹减半
+      .addExact(DamageSource.onFire.damageType, 0F, 1F)     // 只是“身上的火”零伤
+
+    反过来要“火焰完全免疫”，直接给 DR = 1F：
+
+      .addCategory(CATEGORY_FIRE, 100F, 1F)     // LivingAttack 里 dr >= 1F 直接 cancel
+
+    ★ 别把 FIRE 抗性和“抗火药水”混为一谈：
+      · DT/DR 只减小伤害数字。玩家身上照样着火、照样有火焰动画、火焰弹照样点燃方块；
+      · 真正的“不着火”来自 Potion.fireResistance：原版 attackEntityFrom 里先判断它，
+        是抗火就直接 return false，连伤害事件都不产生；
+      · 想要“耐热动力甲”，标准做法是两条一起上：
+            .addEffect(new PotionEffect(Potion.fireResistance.id, 20, 0))   // 从源头不着火
+            + 一条 FIRE 的 DT/DR                                            // 削已有伤害
+
+  ── 20.11.4 爆炸防御 EXPL：完整代码 ────────────────────────────────────────────────────────
+
+    归入 EXPL 的：TNT、苦力怕、火箭、炮击、核爆（ModDamageSource.nuclearBlast 带 setExplosion）。
+    苦力怕系列自己还带实体先天抗性（普通苦力怕 2/25%、核苦力怕 5/35%），那是注册在
+    EntityCreeper.class 上的，只对“苦力怕本人被炸”生效，与玩家护甲无关。
+
+      // 单件：只让胸甲挡爆
+      DamageResistanceHandler.itemStats.put(ModItems.my_plate,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_EXPLOSION, 3F, 0.20F));
+
+      // 全套：再补一层
+      DamageResistanceHandler.registerSet(
+              ModItems.my_helmet, ModItems.my_plate, ModItems.my_legs, ModItems.my_boots,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_EXPLOSION, 5F, 0.25F));
+
+      算例：苦力怕贴脸 30 点爆炸伤害，穿齐后 DT = 3+5 = 8、DR = 0.20+0.25 = 0.45
+            → (30 - 8) × 0.55 = 12.1
+
+    ⚠ DT/DR 只改“打在你身上的数字”，不改“爆炸本身”：
+      击退、方块破坏、对周围实体的伤害都不归它管，那些走爆炸算法与方块硬度。
+    ⚠ 核爆里常混着 absolute 伤害（digamma / lunar 系），那部分 DT/DR 一律无效，
+      能被削的只有 isExplosion() 那一段。
+
+  ── 20.11.5 能量防御 EN：完整代码（先看清它到底能挡什么）──────────────────────────────────
+
+    写法与前面完全一样：
+
+      .addCategory(DamageResistanceHandler.CATEGORY_ENERGY, 3F, 0.30F)
+
+    但请先读 20.11.1 末尾：HBM 的电、微波、亚原子要么是 absolute，要么被判成 PHYS。
+    真正落到 EN 分类上的日常伤害只有 laser（激光枪）与 plasma（等离子/焚烧器）。
+
+    所以“给动力甲加能量防御”的正确心态是：
+      · 它是给激光武器、等离子武器准备的；
+      · 不是用来对抗电击与微波机器的 —— 那些要么绕过抗性，要么算物理。
+
+    ★ 电甲有一条额外的 ×5 惩罚，在 DamageResistanceHandler.onEntityDamaged 里：
+
+        if(source.damageType.toLowerCase().equals("electric")) {
+            ItemStack chest = event.entityLiving.getEquipmentInSlot(3);
+            if(chest != null && chest.getItem() instanceof ArmorFSBPowered)
+                event.ammount *= 5;
+        }
+
+      注意它比的是「恰好为 "electric"」的 damageType。
+      HBM 自己的 ModDamageSource.electricity 是 "electricity"，而且带 absolute，
+      根本走不到这里；所以这条惩罚主要来自别的模组（例如 IC2 的电击）。
+      给电甲堆 EN 抗性时，按“最坏 5 倍”配数值，才不会一电就穿。
+
+      // 一套“能扛激光、也能扛 5 倍电击”的配置
+      DamageResistanceHandler.registerSet(helmet, plate, legs, boots, new ResistanceStats()
+              .addCategory(DamageResistanceHandler.CATEGORY_ENERGY, 20F, 0.60F)
+              .addExact("laser", 25F, 0.90F));       // 激光再额外压一层
+
+  ── 20.11.6 精确类别 exact：摔落 / 溺水 / 灼烧 / 激光 ─────────────────────────────────────
+
+      addExact(String damageType, float threshold, float resistance)
+
+      · 内部会 toLowerCase(Locale.US)，所以 "onFire" / "onfire" / "ONFIRE" 完全等价；
+        写错大小写不会失效，写错单词才会。
+      · 优先级最高：命中后不再看 category。
+      · 1.7.10 常用键（建议直接用 DamageSource.xxx.damageType 取，别手打字符串）：
+
+        DamageSource.fall.damageType         "fall"       摔落
+        DamageSource.drown.damageType        "drown"      溺水
+        DamageSource.onFire.damageType       "onFire"     燃烧状态（★ 大写 F）
+        DamageSource.inFire.damageType       "inFire"     站在火方块里
+        DamageSource.lava.damageType         "lava"       岩浆
+        DamageSource.magic.damageType        "magic"      药水/中毒
+        DamageSource.cactus.damageType       "cactus"     仙人掌
+        DamageSource.anvil.damageType        "anvil"      铁砧
+        DamageSource.outOfWorld.damageType   "outOfWorld" 虚空（absolute，写不写都一样）
+        ModDamageSource.s_laser              "laser"      激光
+        ModDamageSource.s_immolator          "plasma"     等离子
+        ModDamageSource.s_acid               "acid"       酸
+        ModDamageSource.s_bullet             "revolverBullet"
+
+      完整示例：一套“摔不死 + 淹不死 + 不怕火上身”的护甲
+
+      DamageResistanceHandler.registerSet(helmet, plate, legs, boots, new ResistanceStats()
+              .addExact(DamageSource.fall.damageType,   0F, 1F)   // 摔落完全免疫
+              .addExact(DamageSource.drown.damageType,  0F, 1F)   // 溺水完全免疫
+              .addExact(DamageSource.onFire.damageType, 0F, 1F)   // 着火伤害完全免疫
+              .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 2F, 0.10F));
+
+    ⚠ 摔落免疫只解决“落地那一下的伤害”，不解决踩坏田地、不解决被摔落的方块砸到
+      （那是 fallingBlock，另一条源）。要“落地无伤且能把周围震开”，去看 20.2 的 hardLanding。
+
+  ── 20.11.7 兜底 other：一句话规则 + 一个反直觉的例外 ───────────────────────────────────────
+
+      .setOther(1F, 0.10F)      // 分类、精确都没命中时：DT 1 / 10%
+
+    getResistance 的最后一行是：
+
+      return source.isUnblockable() ? null : otherResistance;
+
+    → 只要这个伤害源被标记过 setDamageBypassesArmor()，isUnblockable() 就是真，
+      other 直接不吃（返回 null，等于这条规则不存在）。
+    → 所以 other 挡不住：drown / onFire / inFire / magic / anvil / fallingBlock /
+      generic / spikes / radiation / subAtomic / tau / cmb …… 这些全都标了 bypassesArmor。
+    → other 挡得住的是：普通近战与箭、fall、cactus、acid、laser 这一类。
+
+    结论：other 是“给不认识的新模组留的一条安全带”，不是万能减伤。
+    真正想少挨打，还是得按 category / exact 一条一条写清楚。
+
+    ★ 这也解释了 HBM 的 Ep（euphemium）为什么敢写 other 1,000,000 / 100%：
+      它本来就是“除绝对伤害以外全免”，而绝对伤害根本进不到这张表里。
+
+  ── 20.11.8 一次写全六类：可直接粘贴的完整方法 ─────────────────────────────────────────────
+
+    放在你自己的 init 包里，由 CommonProxy.postInit 调用（不能放 preInit，原因见 20.11.10）。
+    下面这段是“给一套已有护甲补属性”的完整写法，五行注释对应上面五节：
+
+      package com.example.addon.init;
+
+      import com.hbm.util.DamageResistanceHandler;
+      import com.hbm.util.DamageResistanceHandler.ResistanceStats;
+      import net.minecraft.util.DamageSource;
+
+      public final class MyArmorStats {
+
+          private MyArmorStats() { }
+
+          public static void register() {
+
+              /* ---------- 单件：穿几件算几件 ---------- */
+              DamageResistanceHandler.itemStats.put(ModItems.my_helmet, new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.05F)
+                      .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.10F));
+
+              DamageResistanceHandler.itemStats.put(ModItems.my_plate, new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 2F, 0.10F)
+                      .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.15F));
+
+              DamageResistanceHandler.itemStats.put(ModItems.my_legs, new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.06F)
+                      .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.10F));
+
+              DamageResistanceHandler.itemStats.put(ModItems.my_boots, new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.04F)
+                      .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.05F));
+
+              /* ---------- 全套：四件齐了再加一份（相加，不叠乘）---------- */
+              DamageResistanceHandler.registerSet(
+                      ModItems.my_helmet, ModItems.my_plate, ModItems.my_legs, ModItems.my_boots,
+                      new ResistanceStats()
+                              .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL,  4F,   0.15F)
+                              .addCategory(DamageResistanceHandler.CATEGORY_FIRE,      2F,   0.30F)
+                              .addCategory(DamageResistanceHandler.CATEGORY_EXPLOSION, 5F,   0.25F)
+                              .addCategory(DamageResistanceHandler.CATEGORY_ENERGY,    3F,   0.30F)
+                              .addExact(DamageSource.fall.damageType,   5F, 0.50F)
+                              .addExact(DamageSource.onFire.damageType, 0F, 1F)
+                              .addExact("laser",                       10F, 0.80F)
+                              .setOther(1F, 0.10F));
+          }
+      }
+
+    ⚠ 上面的 ModItems 是 HBM 的类名，实际用时换成你自己的物品字段。
+    ⚠ 四件里如果有一件是普通 ItemArmor（不是 ArmorFSB），DT/DR 依然生效 ——
+      这两套系统互不依赖：DT/DR 只看 itemStats / setStats 这两张表，
+      不要求物品是 ArmorFSB。但“全套效果（药水、音效、落地）”必须是四件 ArmorFSB
+      且材质相同（20.2）。这也是“护甲自带属性”和“护甲本体属性”最容易混淆的地方。
+
+  ── 20.11.9 数值怎么定：三档模板 + 一张对照表 ───────────────────────────────────────────────
+
+    档位        单件 PHYS     全套 PHYS    全套 FIRE    全套 EXPL    定位
+    ────────────────────────────────────────────────────────────────────────────────────────
+    轻甲        0 / 2%        1 / 10%      0 / 10%      0 / 0        皮革/布升级，聊胜于无
+    中甲        1 / 5%        2 / 15%      1 / 15%      2 / 15%      钢/合金，能扛杂兵
+    重甲        2 / 10%       4 / 20%      2 / 25%      5 / 25%      动力甲，扛正面
+    防化服      0 / 0%        1 / 5%       2 / 50%      0 / 0        抗环境不抗打
+    玩具甲      0 / 0%        0 / 0%       0 / 0%       0 / 0        纯装饰
+
+    对照 HBM 真实值（表 20-4）：
+      钢套 PHYS 2/10%、钛 3/10%、CMB 5/50%、RPA 50/75%（几乎无敌）、Ep other 1e6/100%。
+    → 附属如果定位在“中期”，落在中甲这一档最稳；再高就会把 HBM 的武器全废掉。
+
+    ★ 一个反直觉的点：DR 是相加，不是叠乘。
+      两套各自 50% 的 DR 加在一起 = 100%（完全免疫），不是 75%。
+      给多件护甲分别写 DR 时，先做加法再决定，别按乘法估。
+
+    ★ DT 的单位是“点”，和原版伤害同单位（半颗心 = 1 点）。
+      原版空手打人 1 点、铁剑 6 点、苦力怕 30~49 点。
+      想“免疫杂兵”，DT 给 5~8 就够；想“免疫重击”，DT 得给到 20 以上，
+      但那样基本等于无敌，慎重。
+
+    想直接复刻某套 HBM 护甲，照表 20-4 抄一行就行。以 T-51 为例（数字完全一致）：
+
+      // T-51：物理 2/15%、火焰 0.5/35%、爆炸 5/25%、摔落 0/100%、其它 0/10%
+      DamageResistanceHandler.registerSet(t51_helmet, t51_plate, t51_legs, t51_boots,
+              new ResistanceStats()
+                      .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL,  2F,   0.15F)
+                      .addCategory(DamageResistanceHandler.CATEGORY_FIRE,      0.5F, 0.35F)
+                      .addCategory(DamageResistanceHandler.CATEGORY_EXPLOSION, 5F,   0.25F)
+                      .addExact(DamageSource.fall.damageType, 0F, 1F)
+                      .setOther(0F, 0.10F));
+
+      ★ 但别只抄 DT/DR：T-51 的手感还来自它自己的
+        setRadResist(1D) + setHazardClass(FULL_NO_LIGHT) + ArmorFSBPowered 的耗电，
+        只抄一半会得到一个“数值像 T-51、体验不像”的东西。
+
+  ── 20.11.10 进游戏怎么验（五分钟走完）─────────────────────────────────────────────────────
+
+    ① 先看 tooltip。注册成功后不需要写任何渲染代码，HBM 在 ItemTooltipEvent 里自动注入：
+
+        成套装备时的获得的伤害减免：        ← damage.inset，暗紫色
+          <头盔名>
+          <胸甲名>
+          <护腿名>
+          <靴子名>
+          物理: 4.0/15%                    ← damage.category.PHYS，格式固定为“DT/DR%”
+          火焰: 2.0/30%
+          摔落: 5.0/50%                    ← exact 项
+          其他: 1.0/10%
+
+       单件注册（itemStats）显示：
+
+        装备时获得的伤害减免:              ← damage.item
+          物理: 1.0/5%
+
+       · 只出现名字、没有数值  → ResistanceStats 是空对象（忘了 addCategory）；
+       · 一行都不出现          → 物品根本没进表（key 写错 / 注册时机不对）。
+
+    ② 用“可复现的伤害”打一轮，别凭感觉：
+
+        物理   僵尸近战；骷髅的箭（箭是 PHYS，哪怕是火焰箭）
+        火焰   站进火方块 / 岩浆
+        爆炸   /summon PrimedTnt 贴脸
+        摔落   搭 25 格高台跳下（fall 走 exact，不看 category）
+        激光   激光枪；等离子武器
+
+    ③ 一定要测“只穿三件”：脱掉靴子，全套那一段的数值应立即消失，
+       tooltip 里“成套装备时”那一段也随之消失。若没变化，说明 registerSet 没生效。
+
+    ④ 测死亡、换维度、掉线后是否还在：itemStats / setStats 是静态表，永远在；
+       需要额外验的只有 20.3 路线 C 自己挂的 AttributeModifier。
+
+    ⑤ 最常见的失败症状：进游戏 tooltip 有数值，但实际不减伤，
+       或者重进世界才有、第一次进没有 → 注册晚于/早于 HBM 的 init，
+       表被 clearSystem() 清过一遍。把注册整体挪到 postInit 即可。
+
+
+------------------------------------------------------------------------------------------------
+  20.12 完整示例：一个能编译、能进游戏的文件（整份）
+------------------------------------------------------------------------------------------------
+
+  20.10 的模板是“把所有 setter 都摆一遍”，偏重展示；这一节给另一份，偏重“真的去跑”：
+  一个完整的、不省略任何 import 的类，覆盖：
+
+    材质 → 四件 → 全套效果 → 单件 DT·DR → 全套 DT·DR（六类全写）
+    → 危险防护 → 辐射抗性 → 移动速度（路线 B）→ 自定义改装件 → 注册
+
+  本文件已经随仓库一起编译通过（命令与结果见 20.12.3），可以直接拿去改包名使用。
+  下面贴出的代码与仓库里的 ArmorShowcase.java 逻辑逐行一致，只对缩进做了排版收敛。
+
+  ── 20.12.1 代码全文 ───────────────────────────────────────────────────────────────────────
+
+································································································
+  package com.makentmgreatagain.example;
+
+  import java.util.List;
+
+  import com.google.common.collect.HashMultimap;
+  import com.google.common.collect.Multimap;
+  import com.hbm.handler.ArmorModHandler;
+  import com.hbm.items.armor.ArmorFSB;
+  import com.hbm.items.armor.IArmorDisableModel.EnumPlayerPart;
+  import com.hbm.items.armor.ItemArmorMod;
+  import com.hbm.util.ArmorRegistry.HazardClass;
+  import com.hbm.util.ArmorUtil;
+  import com.hbm.util.DamageResistanceHandler;
+  import com.hbm.util.DamageResistanceHandler.ResistanceStats;
+
+  import cpw.mods.fml.common.registry.GameRegistry;
+  import net.minecraft.creativetab.CreativeTabs;
+  import net.minecraft.entity.SharedMonsterAttributes;
+  import net.minecraft.entity.ai.attributes.AttributeModifier;
+  import net.minecraft.entity.player.EntityPlayer;
+  import net.minecraft.item.ItemArmor.ArmorMaterial;
+  import net.minecraft.item.ItemStack;
+  import net.minecraft.potion.Potion;
+  import net.minecraft.potion.PotionEffect;
+  import net.minecraft.util.DamageSource;
+  import net.minecraft.util.EnumChatFormatting;
+  import net.minecraftforge.common.util.EnumHelper;
+  import net.minecraftforge.event.entity.living.LivingHurtEvent;
+
+  public final class ArmorShowcase {
+
+      private ArmorShowcase() { }
+
+      /* ======================================================================================
+       * ① 材质：四件必须共用这一个实例
+       *    参数 2 是耐久因子，真实耐久 = 因子 × {头 11, 胸 16, 腿 15, 靴 13} → 440/640/600/520
+       *    参数 3 是护甲点 {头,胸,腿,靴}，每点 4%，{3,8,6,3} = 20 点 = 80%
+       *    参数 4 是附魔性
+       * ====================================================================================== */
+      public static final ArmorMaterial MAT_SHOWCASE = EnumHelper.addArmorMaterial(
+              "MNGA_SHOWCASE", 40, new int[] { 3, 8, 6, 3 }, 10);
+
+      static {
+          MAT_SHOWCASE.customCraftingMaterial = com.hbm.items.ModItems.plate_steel;
+      }
+
+      /** 穿戴贴图：头/胸/靴用 _1，腿用 _2 */
+      private static final String TEX_1 = "makentmgreatagain:textures/armor/showcase_1.png";
+      private static final String TEX_2 = "makentmgreatagain:textures/armor/showcase_2.png";
+
+      public static ShowcaseArmor helmet;
+      public static ShowcaseArmor plate;
+      public static ShowcaseArmor legs;
+      public static ShowcaseArmor boots;
+
+      public static ItemArmorMod mod_showcase;
+
+      /* ======================================================================================
+       * ② 建物品（preInit）
+       * ====================================================================================== */
+      public static void registerItems() {
+
+          /* 头盔：所有“全套属性”集中写在这一件上，最后 cloneStats 给另外三件。
+           * 运行时 ArmorFSB.handleTick / handleFall 读的是胸甲那一件
+           * （player.inventory.armorInventory[2]），四件的字段必须完全一致。 */
+          helmet = new ShowcaseArmor(MAT_SHOWCASE, 0, TEX_1);
+
+          helmet
+                  /* 药水：全套时每 tick 续一次，duration 写 20 才不会闪 */
+                  .addEffect(new PotionEffect(Potion.fireResistance.id, 20, 0))
+                  .addEffect(new PotionEffect(Potion.damageBoost.id, 20, 0))
+
+                  /* 感官 / HUD */
+                  .enableVATS(true)
+                  .enableThermalSight(false)
+                  .setHasGeigerSound(true)
+                  .setHasCustomGeiger(false)
+
+                  /* 落地：坠落 > 10 格时震开 3 格内实体，并造成 (3-距离)*10 穿甲伤害 */
+                  .setHasHardLanding(true)
+
+                  /* 位移 / 音效 */
+                  .setDashCount(1)
+                  .setStepSize(1)
+                  .setStep("hbm:step.metal")
+                  .setJump("hbm:step.iron_jump")
+                  .setFall("hbm:step.iron_land")
+
+                  /* 全屏叠加层：只对头盔位生效，cloneStats 不复制 */
+                  .setOverlay("makentmgreatagain:textures/misc/overlay_showcase.png")
+
+                  /* 危险防护（布尔开关）：只查头盔槽，写这里就够 */
+                  .setHazardClass(ArmorUtil.FULL_PACKAGE)
+
+                  /* 辐射抗性（连续数值）：写“全套总抗性”，按 .2/.4/.3/.1 自动拆到四件
+                   * 1.2 → 减伤 1 - 10^-1.2 ≈ 93.7% */
+                  .setRadResist(1.2D)
+
+                  /* 隐藏模型部件 */
+                  .hides(EnumPlayerPart.HAT)
+                  .setFullSetForHide();
+
+          /* 移动速度（路线 B）：0.10 + operation 1 = 每件 +10% 基础速度 */
+          helmet.setSetSpeed(0.10D);
+
+          finish(helmet, "showcase_helmet");
+
+          /* 另外三件：cloneStats 是“全套效果能不能触发”的生死线。
+           * ★ cloneStats 返回类型是 ArmorFSB（父类），不是子类：
+           *   写成 plate = new ShowcaseArmor(..).cloneStats(helmet); 会编译失败
+           *   “不兼容的类型: ArmorFSB 无法转换为 ShowcaseArmor”。
+           *   要么拆两行，要么 (ShowcaseArmor) 强转。 */
+          plate = new ShowcaseArmor(MAT_SHOWCASE, 1, TEX_1);
+          plate.cloneStats(helmet);
+          plate.setSetSpeed(helmet.getSetSpeed());   // 自定义字段要自己补
+          finish(plate, "showcase_plate");
+
+          legs = new ShowcaseArmor(MAT_SHOWCASE, 2, TEX_2);   // 腿用 _2
+          legs.cloneStats(helmet);
+          legs.setSetSpeed(helmet.getSetSpeed());
+          finish(legs, "showcase_legs");
+
+          boots = new ShowcaseArmor(MAT_SHOWCASE, 3, TEX_1);
+          boots.cloneStats(helmet);
+          boots.setSetSpeed(helmet.getSetSpeed());
+          finish(boots, "showcase_boots");
+
+          /* 改装件（可选） */
+          mod_showcase = new ItemModShowcase();
+          mod_showcase.setUnlocalizedName("mod_showcase")
+                      .setTextureName("makentmgreatagain:mod_showcase")
+                      .setCreativeTab(CreativeTabs.tabCombat);
+          GameRegistry.registerItem(mod_showcase, "mod_showcase");
+      }
+
+      /**
+       * 统一收尾：名字 / 图标 / 创造页 / 注册。
+       *
+       * 注意 setUnlocalizedName 等方法返回 Item，不是 ArmorFSB，
+       * 所以不串成一条链再赋给 ArmorFSB 变量 —— 串起来就必须强转。
+       */
+      private static void finish(ArmorFSB item, String name) {
+          item.setUnlocalizedName(name)
+              .setTextureName("makentmgreatagain:" + name)
+              .setCreativeTab(CreativeTabs.tabCombat);
+          GameRegistry.registerItem(item, name);
+      }
+
+      /* ======================================================================================
+       * ③ 数值型属性（postInit，必须晚于 HBM 的 DamageResistanceHandler.init()）
+       * ====================================================================================== */
+      public static void registerStats() {
+
+          /* ---------- 单件 DT/DR：穿几件算几件 ----------
+           * 四件合计 PHYS 5 点阈伤 / 25% 减伤 */
+          DamageResistanceHandler.itemStats.put(helmet, new ResistanceStats()
+                  .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.05F)
+                  .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.10F));
+
+          DamageResistanceHandler.itemStats.put(plate, new ResistanceStats()
+                  .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 2F, 0.10F)
+                  .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.15F));
+
+          DamageResistanceHandler.itemStats.put(legs, new ResistanceStats()
+                  .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.06F)
+                  .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.10F));
+
+          DamageResistanceHandler.itemStats.put(boots, new ResistanceStats()
+                  .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL, 1F, 0.04F)
+                  .addCategory(DamageResistanceHandler.CATEGORY_FIRE, 0.5F, 0.05F));
+
+          /* ---------- 全套 DT/DR：四件齐全才生效一次，与上面的值相加 ----------
+           * 穿齐后 PHYS：DT = 5 + 4 = 9，DR = 0.25 + 0.15 = 0.40
+           * 20 点伤害 → (20-9) × 0.6 = 6.6
+           * 参数顺序：头、胸、腿、靴 */
+          DamageResistanceHandler.registerSet(helmet, plate, legs, boots, new ResistanceStats()
+                  .addCategory(DamageResistanceHandler.CATEGORY_PHYSICAL,  4F,   0.15F)
+                  .addCategory(DamageResistanceHandler.CATEGORY_FIRE,      2F,   0.30F)
+                  .addCategory(DamageResistanceHandler.CATEGORY_EXPLOSION, 5F,   0.25F)
+                  .addCategory(DamageResistanceHandler.CATEGORY_ENERGY,    3F,   0.30F)
+                  .addExact(DamageSource.fall.damageType,   5F, 0.50F)
+                  .addExact(DamageSource.onFire.damageType, 0F, 1F)
+                  .addExact("laser",                       10F, 0.80F)
+                  .setOther(1F, 0.10F));
+      }
+
+      /* ======================================================================================
+       * ④ 自定义护甲子类：加一个“全套移速”字段（ArmorFSB 没有速度属性）
+       *    路线 B：每件各算一份，原版换装时自动增删，不会残留。
+       *    要“必须穿齐才加速”，改成路线 C（PlayerTick 里先摘后挂固定 UUID）。
+       * ====================================================================================== */
+      public static class ShowcaseArmor extends ArmorFSB {
+
+          private double setSpeed = 0D;
+
+          public ShowcaseArmor(ArmorMaterial material, int slot, String texture) {
+              super(material, slot, texture);
+          }
+
+          public ShowcaseArmor setSetSpeed(double speed) {
+              this.setSpeed = speed;
+              return this;
+          }
+
+          public double getSetSpeed() {
+              return setSpeed;
+          }
+
+          @Override
+          public Multimap getItemAttributeModifiers() {
+              Multimap multimap = HashMultimap.create();
+              if (setSpeed != 0D) {
+                  multimap.put(
+                          SharedMonsterAttributes.movementSpeed.getAttributeUnlocalizedName(),
+                          new AttributeModifier(
+                                  ArmorModHandler.fixedUUIDs[this.armorType],  // ★ 固定 UUID
+                                  "Showcase speed",
+                                  setSpeed,   // 0.10 = +10%
+                                  1));        // op 1 = 乘基础值
+              }
+              return multimap;
+          }
+      }
+
+      /* ======================================================================================
+       * ⑤ 自定义改装件：9 个槽位里选 extra
+       * ====================================================================================== */
+      public static class ItemModShowcase extends ItemArmorMod {
+
+          public ItemModShowcase() {
+              super(ArmorModHandler.extra, true, true, true, true);   // 槽位, 头, 胸, 腿, 靴
+          }
+
+          @Override
+          public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean ext) {
+              list.add(EnumChatFormatting.AQUA + "受击时额外 -0.2 点伤害");
+              list.add(EnumChatFormatting.BLUE + "装胸甲时 +10% 移速");
+              list.add("");
+              super.addInformation(stack, player, list, ext);   // 补上“适用于 / 槽位”
+          }
+
+          @Override
+          public void addDesc(List list, ItemStack stack, ItemStack armor) {
+              list.add(EnumChatFormatting.DARK_PURPLE + "  " + stack.getDisplayName());
+          }
+
+          @Override
+          public void modUpdate(net.minecraft.entity.EntityLivingBase entity, ItemStack armor) { }
+
+          /** 受击时调用。★ 1.7.10 字段拼写是 event.ammount（双 m） */
+          @Override
+          public void modDamage(LivingHurtEvent event, ItemStack armor) {
+              if (DamageResistanceHandler.CATEGORY_PHYSICAL.equals(
+                      DamageResistanceHandler.typeToCategory(event.source))) {
+                  event.ammount = Math.max(0F, event.ammount - 0.2F);
+              }
+          }
+
+          /** 只在“该槽位物品变化”时 apply / remove，改 NBT 不会重算 */
+          @Override
+          public Multimap getModifiers(ItemStack armor) {
+              Multimap multimap = HashMultimap.create();
+              int type = ((net.minecraft.item.ItemArmor) armor.getItem()).armorType;
+              if (type == 1) {
+                  multimap.put(SharedMonsterAttributes.movementSpeed.getAttributeUnlocalizedName(),
+                          new AttributeModifier(ArmorModHandler.UUIDs[type],
+                                  "Showcase mod speed", 0.10D, 2));
+              }
+              return multimap;
+          }
+      }
+  }
+································································································
+
+  ── 20.12.2 调用位置（两个阶段，别合并）────────────────────────────────────────────────────
+
+      public class CommonProxy {
+
+          public void preInit(FMLPreInitializationEvent event) {
+              // …注册物品…
+              com.makentmgreatagain.example.ArmorShowcase.registerItems();
+          }
+
+          public void postInit(FMLPostInitializationEvent event) {
+              // 必须在这里：HBM 的 DamageResistanceHandler.init() 在它自己的 postInit 里
+              // 先 clearSystem() 再建表，早于它注册的全部会被清掉。
+              com.makentmgreatagain.example.ArmorShowcase.registerStats();
+          }
+      }
+
+    为什么不能都塞 preInit：
+      HBM 的 MainRegistry.PostLoad 里依次调用
+        ArmorUtil.register() → HazmatRegistry.registerHazmats() → DamageResistanceHandler.init()
+      而 init() 第一件事是 clearSystem()（清空 itemStats / setStats / entityStats / itemInfoSet）。
+      preInit 里写进去的 DT/DR 会被这一步清得干干净净。
+      ArmorFSB.setRadResist 之所以能在 preInit 用，是因为它走的是 HazmatRegistry.external
+      这个待办列表，真正落表发生在 registerHazmats()，时机刚刚好。
+
+  ── 20.12.3 编译验证 ───────────────────────────────────────────────────────────────────────
+
+    本文件位于 src/main/java/com/makentmgreatagain/example/ArmorShowcase.java，
+    已经用本仓库的构建脚本编译通过：
+
+        $ ./gradlew compileJava --offline
+        BUILD SUCCESSFUL（只有 deprecation / unchecked 两类警告）
+
+    编译期真实踩到的错误（已改进代码，留作对照）：
+
+      ① plate = new ShowcaseArmor(...).cloneStats(helmet);
+         → 错误: 不兼容的类型: ArmorFSB 无法转换为 ShowcaseArmor
+         → 原因: cloneStats 的返回类型是 ArmorFSB，不是子类
+         → 修法: 拆成两行（先 new，再 cloneStats），或 (ShowcaseArmor) 强转
+         → 这个错误在胸/腿/靴三行上各出现一次，是本节最值得记住的一条
+
+    只警告、不报错的两条（1.7.10 里很常见，不用管）：
+
+        ＊ 使用了已过时的 API（setTextureName / CreativeTabs.tabCombat 之类）
+        ＊ 使用了未经检查或不安全的操作（Multimap 是裸类型，HBM 自己也是这么写的）
+
+    顺带一个可编译性上的细节：{@code setHazardClass(ArmorUtil.FULL_PACKAGE)} 能直接编译，
+    因为 FULL_PACKAGE 是 public static HazardClass[]，正好喂给 HazardClass... 形参；
+    自己写时也可以逐个列：setHazardClass(HazardClass.GAS_LUNG, HazardClass.SAND)。
+
+  ── 20.12.4 进游戏后的验收清单 ─────────────────────────────────────────────────────────────
+
+      [ ] 创造模式战斗页能看到 5 个物品，图标不是紫黑格
+      [ ] 穿上全套，头盔 tooltip 出现“全套效果:”与药水名
+      [ ] tooltip 出现“成套装备时的获得的伤害减免：”+ 物理/火焰/爆炸/能量/摔落/灼烧/激光/其他
+      [ ] 只穿三件时，上面那一段整体消失（不是数值变小）
+      [ ] 按住 Shift 看 tooltip，出现危险防护列表（8 类）
+      [ ] 摔 25 格：只掉约 8.5 点血（(22-5)×0.5），不穿甲是 22 点
+            想完全免摔：把 .addExact(fall, 5F, 0.50F) 改成 0F / 1F
+      [ ] 站火里：不着火（抗火药水），且 onFire 那一条把它压到 0
+      [ ] 岩浆里：不掉血。岩浆是 4 点，FIRE 合计 DT = 单件 2 + 全套 2 = 4，
+            正好吃满（DR 合计 0.70，用不上）；把 FIRE 全套改小才会掉血
+      [ ] 对比：脱掉胸甲后，物理减伤应从 DT 9 / 40% 掉到 DT 3 / 15%
+            （剩头 1/5% + 腿 1/6% + 靴 1/4%，全套那 4/15% 立即失效）
+
+  ── 20.12.5 本仓库里已经能跑的现成实例 ─────────────────────────────────────────────────────
+
+    如果不想从零改，直接对照这三份现成代码读：
+
+      src/main/java/com/makentmgreatagain/items/ItemArmorAlloyReborn.java
+          自定义 ArmorFSB 子类：加 speed 字段、覆写 cloneStats 补复制、
+          说明“为什么不用 onArmorTick 挂速度”。
+
+      src/main/java/com/makentmgreatagain/init/MNGAArmorStats.java
+          一份真实在用的 DT/DR 注册：碳化钨护甲，单件 PHYS 5/25% + 全套 PHYS 2/15%，
+          另加 EXPL 2/20%、FIRE 1/20%、fall 3/15%、other 1/10%；
+          以及按部位权重拆分的 HazmatRegistry 注册（0.6 → 74.9%）。
+
+      src/main/java/com/makentmgreatagain/hook/ArmorSpeedHandler.java
+          20.3 路线 C 的完整实现：PlayerTickEvent 里固定 UUID 先摘后挂，
+          脱甲 / 死亡 / 换维度全部自愈。
+
+    以及本节那份示例本体：
+
+      src/main/java/com/makentmgreatagain/example/ArmorShowcase.java
+          未接入游戏（没有任何地方调用它），仅用于保证手册代码可编译。
+
+
+------------------------------------------------------------------------------------------------
+  20.13 二十条坑 & 自检清单
+------------------------------------------------------------------------------------------------
+
+  ── 20.13.1 结构类：九个“写了但没生效”的坑 ─────────────────────────────────────────────────
+
+    1. 只在头盔写效果、忘了 cloneStats → effects / hardLanding / step / jump / fall 全不触发
+       （运行时这七项只从胸甲读）。
+    2. 四件各 new 一个 ArmorMaterial → hasFSBArmor 用 == 比材质，永远 false。
+    3. HazardClass 写到胸甲 → 编译通过、运行没效果（HBM 只查 slot 3）。
+    4. setRadResist 的物品晚于 HazmatRegistry.registerHazmats() 创建 → 抗性静默丢失。
+    5. 材质名字重复（HBM 自己 HBM_TRENCH 撞了两次）→ 按名字取枚举会取错。
+    6. 头盔贴图用了 _2.png → 不崩，但模型贴图错位，要按 头/胸/靴=_1、腿=_2。
+    7. 电甲忘了 maxPower>0 或没给初始电 → isArmorEnabled 直接 false，整套当没穿。
+       构造函数不会给电；玩家得去充电（或你 init 时给新物品充）。
+    8. 改装件 getModifiers 期望“立刻生效” → 实际只在装备槽变化时重算；热改 NBT 无效。
+    9. 忘了 setTextureName → ArmorFSB 构造函数把物品图标默认写成 "hbm:armor"，
+       结果是你的护甲图标变成 HBM 的通用护甲图，不报错、不紫黑，只是“长得像别人的”。
+
+  ── 20.13.2 编译类：三个会直接报错的写法 ───────────────────────────────────────────────────
+
+   10. plate = new MyArmor(...).cloneStats(helmet);
+       → 不兼容的类型: ArmorFSB 无法转换为 MyArmor
+       → cloneStats 返回的是 ArmorFSB。拆两行，或 (MyArmor) 强转。
+
+   11. MyArmor helmet = new MyArmor(...).setUnlocalizedName("x");
+       → 同样的错：setUnlocalizedName / setTextureName / setMaxStackSize 返回的都是 Item。
+       → 要么拆行，要么最后一次强转。
+
+   12. 在 LivingHurtEvent 里写 event.amount → 1.7.10 里字段名是 event.ammount（双 m）。
+
+  ── 20.13.3 数值类：七个“数值对了但打不动”的坑 ─────────────────────────────────────────────
+
+   13. 把 DT/DR 注册写在 preInit → HBM 的 DamageResistanceHandler.init() 会 clearSystem()
+       把三张表清空。必须放 postInit（见 20.12.2）。
+   14. 以为 absolute 伤害也能削 → digamma / electricity / microwave / lunar / vacuum /
+       meteorite / broadcast … 全都绕过整条链路，穿什么甲都是原样掉血。
+   15. 给亚原子伤害写 EN 抗性 → 它的 damageType 是 "subAtomic1..5" 且带 setProjectile，
+       实际被判成 PHYS。写 EN 等于没写（20.11.1）。
+   16. 以为 setOther 是万能减伤 → isUnblockable()（即 bypassesArmor）的伤害源不吃 other。
+       想让溺水/灼烧/辐射少掉血，只能写 exact 或 category。
+   17. 按乘法估 DR → DT/DR 的多层来源是「相加」。两套 50% 加一起就是 100%（完全免疫），
+       不是 75%。数值设计前先做加法。
+   18. 指望“免疫伤害会磨护甲”来平衡 → 1.7.10 的 damageArmorNT() 是空方法，
+       完全免疫既不扣血也不掉耐久。
+   19. 以为电甲的 ×5 惩罚对 HBM 的电击生效 → 它只匹配 damageType 恰为 "electric" 的源；
+       HBM 自己的 electricity 是 "electricity" 且 absolute，根本走不到这段代码。
+
+  ── 20.13.4 移动速度：一条单独的坑 ─────────────────────────────────────────────────────────
+
+   20. 想在 ArmorFSB 上找“加移动速度”的 setter → 没有，17 条属性没有一条改得了速度。
+       速度只能走 AttributeModifier 或药水；而且 operation 0 是“加绝对值”
+       （基础 0.1 时 +0.1 就是翻倍），要百分比必须用 1 或 2。
+
+  ── 20.13.5 自检清单 ─────────────────────────────────────────────────────────────────────
+
+    [ ] 材质只有一个 static 实例，四件共用
+    [ ] 头盔写了全部链式属性，且四件都做了 cloneStats
+    [ ] cloneStats 之后补了自定义字段（子类自己的字段 HBM 不会复制）
+    [ ] hazardClass 只写在头盔（或不写）
+    [ ] radResist 用“全套值”写，且没被 clone 覆盖掉
+    [ ] 材质 / 物品 / 图标 / 语言键 四样齐备（缺一样就是英文名或紫黑格）
+    [ ] DT/DR 注册放在 postInit，不早于 HBM 的 DamageResistanceHandler.init()
+    [ ] 每个分类都问过一句：这个伤害是 absolute 吗？是 bypassesArmor 吗？
+    [ ] DamageResistanceHandler.registerSet 参数顺序 = 头/胸/腿/靴
+    [ ] 单件（itemStats）与全套（registerSet）的数值相加后没超过 1.0 DR
+    [ ] 要改移动速度的话：选了哪条路线？op 用对了吗（1=乘基础才是「-10%」）
+    [ ] 自己管 apply/remove 的，UUID 是固定常量、且每 tick 先摘后挂
+    [ ] 电甲的四参数（maxPower/chargeRate/consumption/drain）符合预期
+    [ ] GameRegistry.registerItem 四件都注册
+    [ ] _1/_2 贴图与 16×16 图标齐备
+    [ ] zh_CN.lang 有 item.xxx.name
+    [ ] 进游戏验证：tooltip 出现“全套效果:”，脱掉任何一件消失
+    [ ] 进游戏验证：tooltip 出现“套装伤害减免”数值，与手算一致
+    [ ] 进游戏验证：F3+H 看耐久是否等于 factor×{11,16,15,13}
+
+  第 20 章结束
+
+
+================================================================================================
+  第 21 章  结构生成：NBTStructure / SpawnCondition 体系
+================================================================================================
+
+  本章回答四个问题：
+    · 一个 NBT 建筑怎么变成「会自然生成的遗迹」；
+    · 生成密度、层位、群系过滤分别由哪一行代码决定；
+    · 生成之后的战利品 / 随机劣化可以挂在哪；
+    · 明明该生成却没有，怎么从存档里反查。
+
+  一句话原理（HBM 不用 MC 的 StructureComponent 手写房子）：
+
+      wand_structure 导出 NBT 模板
+          -> new NBTStructure(ResourceLocation)     读模板
+          -> new JigsawPiece(名字, structure, 偏移)  包装一层
+          -> new SpawnCondition(名字)                声明条件/密度
+          -> NBTStructure.registerStructure(维度, spawn)
+
+  全部代码在 com.hbm.world.gen.nbt 包，附带用的只有四个：
+
+      NBTStructure      读 NBT、按包围盒盖方块、内部 Start/Component
+      SpawnCondition    「什么条件、什么密度、生成什么」的一条声明
+      JigsawPiece       模板包装：名字、heightOffset、地形贴合、方块替换表
+      JigsawPool        多片拼接的候选池（单个 NBT 结构用不到，留空即可）
+
+  21.1 结构 NBT 的文件格式
+------------------------------------------------------------------------------------------------
+  路径：assets/<modid>/structures/xxx.nbt（gzip 压缩的 NBT，根节点无名）
+
+  读取代码：
+      new NBTStructure(new ResourceLocation("mymod", "structures/my_ruin.nbt"))
+      -> NBTStructure.class.getResourceAsStream("/assets/mymod/structures/my_ruin.nbt")
+
+  顶层只有 6 个键（version / size / palette / blocks / itemPalette / entities）：
+
+      version      int              固定 1
+      size         int[3]           [x, y, z] 结构尺寸
+      palette      list<compound>   方块调色板
+      blocks       list<compound>   每个方块一条，数量和顺序就是「写入顺序」
+      itemPalette  list<compound>   物品调色板（箱子里物品的 ID 引用）
+      entities     list<compound>   HBM 读但基本不用，给空 list 即可
+
+  palette 每项：
+
+      { Name: "hbm:brick_obsidian", Properties: { meta: "0" } }
+
+    ★ meta 放在 Properties.meta 里，而且是**字符串**（getString("meta") 再 parseInt）。
+      从标准 1.7.10 的 minecraft:xxx 状态 NBT、或 WorldEdit schematic 转来的文件，
+      往往没有这个键 -> meta 全部读成 0，多 meta 方块（台阶、沙、变种砖）会全错。
+      只有 wand_structure 导出的才是原生格式。
+
+  blocks 每项：
+
+      { pos: [x, y, z], state: <palette 下标>, nbt: { ... } }     nbt 可省略
+
+    ★ state 是 palette 数组下标，不是方块 ID。
+
+  itemPalette 每项：
+
+      { ID: <short>, Name: "hbm:item.xxx" }
+
+  blocks[].nbt 里箱子的物品写成 { id: <short>, Count: ..., Damage: ... }，
+  运行时由 getWorldItemPalette() 把「模板里的 ID」换成「当前存档的物品 ID」。
+  所以结构文件里绝不能写死数字 ID —— 换模组顺序就错位。
+
+  21.2 叠加语义：它只放你列出的方块
+------------------------------------------------------------------------------------------------
+  NBTStructure.build(...) 的世界生成分支里：
+
+      if(state == null) continue;      // 空位直接跳过，不写空气
+
+  也就是说：**没写进 blocks 的格子保持原地形**。这是「叠加」，不是「整盒覆盖」。
+
+  后果（本项目踩过）：
+    · 地心实验室导出时 blocks 里空气 0 条 -> 整座楼埋在下界岩里等于实心，
+      房间全被地形填满，箱子也埋在里面；
+    · 修法是把内部空腔显式写成 minecraft:air 条目（用 tools/structure_air_tool.py
+      按包围盒补齐），20254 条 = 41×13×38 全量，其中 6262 条是空气。
+
+  所以：
+    · 你要「挖出来」的房间、走廊、竖井，必须自己写空气；
+    · 你要「贴着地面盖」的地基，不要指望它自动清空上面一层；
+    · 结构体积 = size.x × size.y × size.z，空气也算体积，别怕文件大。
+
+  另一条容易忽略的：build 里有 `if(ry < 1) continue;`
+  -> y < 1 的方块直接被丢掉（只有 y=0 那一层），所以底座压到 y=0 时最底下一层不生效。
+
+  21.3 注册五步（可直接编译的最小模板）
+------------------------------------------------------------------------------------------------
+  放在 postInit（HBM 在 init 阶段才把 Component 注册进 MapGenStructureIO）：
+
+      // 1) 幂等：HBM 的 HbmWorld 已经调过一次，这里只是兜底
+      NBTStructure.register();
+
+      // 2) 只有自定义 Start 才需要；用默认 NBTStructure.Start 的话跳过这行
+      MapGenStructureIO.registerStructure(MyStart.class, "MyMod_Start");   // MyStart = 自定义 Start
+
+      // 3) 读模板（文件不存在不会崩，但结构永远不生成，见 21.10）
+      NBTStructure structure = new NBTStructure(
+              new ResourceLocation("mymod", "structures/my_ruin.nbt"));
+
+      // 4) 声明
+      SpawnCondition spawn = new SpawnCondition("mymod_ruin");     // 名字全局唯一
+      spawn.canSpawn = biome -> !BiomeDictionary.isBiomeOfType(biome, BiomeDictionary.Type.WATER);
+      spawn.structure = new JigsawPiece("mymod_ruin_piece", structure, 0);
+      spawn.minHeight = 0;
+      spawn.maxHeight = 3;
+      spawn.spawnWeight = 1;
+
+      // 5) 挂到维度
+      NBTStructure.registerStructure(-1, spawn);                   // -1 = 下界
+
+  ★ 名字重复会直接抛异常，不是覆盖：
+      spawn.name  重名 -> IllegalStateException（namedMap）
+      piece.name  重名 -> IllegalStateException（jigsawMap）
+    所以两个名字都建议带 modid 前缀；重载/多次调用 register() 时也不要重复 new。
+    注意 registerStructure 的判定是 `namedMap.get(name) != spawn`，
+    同一个 spawn 对象重复注册不抛异常（可以放心把 register() 做成幂等）。
+
+  上面第 2 步和第 4 步是互斥的两条路：
+    · 只想盖一个 NBT、不做后处理 -> 删掉第 2 步，也不要碰 spawn.start；
+    · 要填战利品/劣化（21.8）-> 必须自定义 Start，第 2 步不能省。
+
+  完整可编译版本（一个文件，直接丢进 src/main/java/<你的包>/world/）：
+
+      package mymod.world;
+
+      import net.minecraft.util.MathHelper;
+      import net.minecraft.util.ResourceLocation;
+      import net.minecraft.world.World;
+      import net.minecraft.world.gen.structure.MapGenStructureIO;
+      import net.minecraft.world.gen.structure.StructureBoundingBox;
+      import net.minecraft.world.gen.structure.StructureComponent;
+      import net.minecraftforge.common.BiomeDictionary;
+
+      import com.hbm.world.gen.nbt.JigsawPiece;
+      import com.hbm.world.gen.nbt.NBTStructure;
+      import com.hbm.world.gen.nbt.SpawnCondition;
+
+      import java.util.Random;
+
+      public class MyStructures {
+
+          public static void register() {
+              NBTStructure.register();                                        // 1) 幂等兜底
+              MapGenStructureIO.registerStructure(MyStart.class, "MyMod_Start"); // 2) 自定义 Start
+
+              NBTStructure structure = new NBTStructure(                      // 3) 读模板
+                      new ResourceLocation("mymod", "structures/my_ruin.nbt"));
+              if(structure.getSizeX() <= 0) {                                 // 文件缺失时 size 全 0
+                  System.err.println("[mymod] 结构模板没读到，跳过注册");
+                  return;
+              }
+
+              SpawnCondition spawn = new SpawnCondition("mymod_ruin");        // 4) 声明
+              spawn.canSpawn = biome -> !BiomeDictionary.isBiomeOfType(biome, BiomeDictionary.Type.WATER);
+              spawn.structure = new JigsawPiece("mymod_ruin_piece", structure, 0);
+              spawn.minHeight = 0;
+              spawn.maxHeight = 3;
+              spawn.spawnWeight = 1;
+              spawn.start = data -> new MyStart(data.getW(), data.getX(), spawn, data.getY(), data.getZ());
+
+              NBTStructure.registerStructure(-1, spawn);                      // 5) 挂到维度
+          }
+
+          public static class MyStart extends NBTStructure.Start {
+
+              // Start 只把 spawn.name 存成 name，minHeight/maxHeight/heightOffset
+              // 都得自己带进来，否则 pinHeight 里没数可用
+              private final int minH;
+              private final int maxH;
+              private final int yOffset;
+
+              public MyStart() {                                              // 反序列化必须有无参构造
+                  this.minH = 0; this.maxH = 255; this.yOffset = 0;
+              }
+
+              public MyStart(World world, Random rand, SpawnCondition spawn, int chunkX, int chunkZ) {
+                  super(world, rand, spawn, chunkX, chunkZ);
+                  this.minH = spawn.minHeight;
+                  this.maxH = spawn.maxHeight;
+                  this.yOffset = spawn.structure != null ? spawn.structure.heightOffset : 0;
+              }
+
+              @Override
+              public void generateStructure(World world, Random rand, StructureBoundingBox box) {
+                  pinHeight(world, box);
+                  super.generateStructure(world, rand, box);                  // 盖方块
+                  afterGenerate(world, rand, box);                            // 后处理（21.8）
+              }
+
+              private void pinHeight(World world, StructureBoundingBox box) {  // 见 21.7
+                  if(getComponents().isEmpty()) return;
+                  StructureBoundingBox bb = ((StructureComponent) getComponents().get(0)).getBoundingBox();
+                  if(bb == null) return;
+                  int target = MathHelper.clamp_int(averageHeight(world, box) + yOffset, minH, maxH);
+                  offsetYHeight(target - bb.minY);
+              }
+
+              private void afterGenerate(World world, Random rand, StructureBoundingBox box) {
+                  // box 是「区块中心 ±8」的 16×16（见下面的 ★），不是区块本身；
+                  // 相邻区块首尾相接，所以取交集后每格恰好处理一次。
+                  // Y 不能用 box 的（那是 1~512 兜底值），从组件包围盒取。
+                  StructureBoundingBox bb = ((StructureComponent) getComponents().get(0)).getBoundingBox();
+                  int minX = Math.max(box.minX, bb.minX), maxX = Math.min(box.maxX, bb.maxX);
+                  int minZ = Math.max(box.minZ, bb.minZ), maxZ = Math.min(box.maxZ, bb.maxZ);
+                  if(minX > maxX || minZ > maxZ) return;
+                  for(int x = minX; x <= maxX; x++)
+                      for(int z = minZ; z <= maxZ; z++)
+                          for(int y = bb.minY; y <= bb.maxY; y++) {
+                              // 在这里按坐标改方块 / 填箱子（每区块只会走到自己那一段）
+                          }
+              }
+
+              private static int averageHeight(World world, StructureBoundingBox box) {
+                  int total = 0, count = 0;
+                  for(int z = box.minZ; z <= box.maxZ; z++)
+                      for(int x = box.minX; x <= box.maxX; x++) { total += world.getTopSolidOrLiquidBlock(x, z); count++; }
+                  return count == 0 ? 64 : total / count;
+              }
+          }
+      }
+
+  ★ 三个容易踩的坑（21.3 那份模板就是照这个写的）：
+
+    ① box 不是区块本身。MapGenStructure.generateStructuresInChunk 传的是
+       new StructureBoundingBox(chunkX << 4 + 8, chunkZ << 4 + 8, +15, +15)，
+       也就是「区块中心 ±8」。相邻区块的 box 是 [8,23]、[24,39]、[40,55]…，
+       首尾相接：既不会漏格子，也不会重复处理同一格。所以直接和组件包围盒取交集即可。
+
+    ② 求并集/交集的初值必须「反向」：求最小值从 MAX_VALUE 起，求最大值从
+       MIN_VALUE 起。写成 `int minX = box.maxX, maxX = box.minX;` 再
+       `if(bb.minX > minX) minX = bb.minX;` 的话，minX 恒 >= maxX，
+       下面那句 `if(minX > maxX) return;` 会直接返回——整段后处理静默失效，
+       表现为「箱子内容永远固定、概率替换方块完全没有效果」，且一行报错都没有。
+
+    ③ 这个方法每个覆盖到的区块都会调一次（结构跨 3×3 区块就是 9 次），
+       所以里面不要写「只该执行一次」的逻辑（比如直接 new 一个容器）。
+       方块改动本身是幂等的（换成 air 之后下一轮 getBlock 就不是来源方块了），
+       但容器内容会被重复抽奖，需要靠 ①② 的范围裁剪来保证每格只走一次。
+
+  ★ `structure.getSizeX() <= 0` 是免费的存活检查：NBTStructure 读不到文件时
+    只打一行 "NBT Structure not found"，size 保持 0，不抛异常。先判一下能省掉
+    「注册成功但永远不生成」的排查时间（对应 21.10 第 1 条）。
+
+  21.4 SpawnCondition 全字段
+------------------------------------------------------------------------------------------------
+      name              final String        构造时给，全局唯一
+      structure         JigsawPiece         单 NBT 结构填这个
+      start             Function<Quartet<World,Random,Integer,Integer>, StructureStart>
+                                            接管组件生成，填了就不用 structure
+      checkCoordinates  Predicate<WorldCoordinate>
+                                            自定义落点（见 21.6）；填了会走另一条通道
+      canSpawn          Predicate<BiomeGenBase>   群系过滤
+      spawnWeight       int = 1             同格竞争权重；只在默认通道参与抽签
+      pools             Map<String, JigsawPool>   多片拼接用
+      startPool         String              多片拼接的入口池名
+      sizeLimit         int = 8             组件数量上限（硬上限 1024）
+      rangeLimit        int = 128           组件水平扩散上限
+      minHeight         int = 1
+      maxHeight         int = 128
+
+      WorldCoordinate 只有三个字段：
+          world    World
+          coords   ChunkCoordIntPair       coords.chunkXPos / chunkZPos
+          rand     Random                  已按区块播种，同一区块每次问结果一致
+
+  HBM 官方写法是双大括号匿名子类，读起来紧凑：
+
+      NBTStructure.registerStructure(0, new SpawnCondition("spire") {{
+          canSpawn = biome -> biome.heightVariation <= 0.05F && !isWaterBiome(biome);
+          structure = new JigsawPiece("spire", StructureManager.spire, -1);
+          spawnWeight = StructureConfig.spireSpawnWeight;
+      }});
+
+  21.5 JigsawPiece 全字段
+------------------------------------------------------------------------------------------------
+      name            final String    全局唯一（jigsawMap）
+      structure       NBTStructure
+      heightOffset    int = 0         见 21.7；-1 表示「地板沉进地面一格」
+      conformToTerrain boolean = false  逐列贴地（挖战壕、自然地貌）
+      alignToTerrain  boolean = false   整片对齐（村庄房子，不逐列）
+      blockTable      Map<Block, BlockSelector>   生成时替换方块（风化、变种）
+      platform        BlockSelector   在结构下方补平台（悬空结构落脚用）
+      instanceLimit   int = 0         同一结构内该片的次数上限
+      required        boolean = false 达到上限后仍继续生成直到该片至少出现一次
+
+  21.6 生成密度的三条通道
+------------------------------------------------------------------------------------------------
+  通道 A：默认（不填 checkCoordinates）
+
+      用全局网格。getSpawnAtCoords 里：
+
+          x /= StructureConfig.structureMaxChunks;
+          z /= StructureConfig.structureMaxChunks;
+          rand.setSeed((long)x * 341873128712L + (long)z * 132897987541L
+                       + seed + 996996996 - dimensionId);
+          x *= structureMaxChunks;
+          z *= structureMaxChunks;
+          x += rand.nextInt(max - min);
+          z += rand.nextInt(max - min);
+
+      -> 间距由 StructureConfig 的 structureMaxChunks / structureMinChunks 决定，
+         而且这是**该维度所有结构共用**的网格。附属去改它，会把主世界的
+         废墟、实验室、油井一起改密 —— 不要为了自己的结构动这两个值。
+      同格多个结构用 spawnWeight 抽签，registerNullWeight() 可以留「不生成」的权重。
+
+  通道 B：checkCoordinates（本项目用这条）
+
+      spawn.checkCoordinates = pos -> { ... };   // 每个区块问一次
+      落点完全自己算，间距任意。本项目做法：
+        · 世界切成 spacing × spacing 区块的格子（spacing = 11 -> 121 区块一处）；
+        · 落点 = hash(seed ^ 格坐标 ^ 维度) 决定，格子内两头各留 2 区块；
+        · 具体见 AddonStructures#isSpawnChunk。
+
+      ★ 走这条通道时 HBM **不再调用 canSpawn**，群系过滤要在函数里自己做一遍。
+      ★ customSpawnMap 优先于全局网格，两条通道可以共存，互不影响。
+
+  通道 C：start
+
+      spawn.start = d -> new MyStart(d.getW(), d.getX(), d.getY(), d.getZ());
+      完全不盖 NBT，自己往世界里写东西（HBM 的 features / bunker 就这么做）。
+      注意 Quartet 的字段顺序是 (World, Random, chunkX, chunkZ)。
+
+  21.7 层位：heightOffset / minHeight / maxHeight / 超平坦的坑
+------------------------------------------------------------------------------------------------
+  NBTStructure.Component#addComponentParts 里的三行：
+
+      int averageHeight = getAverageHeight(world, box) + piece.heightOffset;
+      boolean isFlatWorld = world.getWorldInfo().getTerrainType() == WorldType.FLAT;
+      int y = isFlatWorld ? averageHeight                                        // 超平坦：不夹
+                          : MathHelper.clamp_int(averageHeight, minHeight, maxHeight);
+
+    · getAverageHeight 取的是「结构范围内最高的固体/液体方块」，地狱里就是天花板。
+    · heightOffset 是加在它上面的偏移：-1 = 沉进地面一格，正数 = 抬高。
+    · minHeight / maxHeight 只在**非超平坦**世界生效。
+
+  ★ 超平坦的坑（本项目踩了两天）：存档 generatorName=flat 时走了第一条分支，
+    clamp 被整段跳过，minHeight/maxHeight=0/3 完全不管用。下界天花板约 127，
+    于是 32 座实验室全落在 y=123~135，人在地 y=7 的实心地狱岩里怎么飞都看不见。
+
+  修法（在 super.generateStructure 之前自己算一遍）：
+
+      @Override
+      public void generateStructure(World world, Random rand, StructureBoundingBox box) {
+          // 1) 目标底座：口径与 HBM 完全一致（平均地表 + heightOffset，再 clamp）
+          int target = MathHelper.clamp_int(averageHeight(world, box) + heightOffset, min, max);
+          // 2) 当前底座：取第一个组件的包围盒。Start 的包围盒就是所有组件的并集，
+          //    而组件 y 是从 0 起算的，所以 bb.minY 就是「现在的地板高度」。
+          StructureBoundingBox bb = ((StructureComponent) getComponents().get(0)).getBoundingBox();
+          // 3) 传的是**增量**，不是绝对高度
+          offsetYHeight(target - bb.minY);
+          // 4) delta == 0 也必须调：这一步同时把 heightUpdated 置 true，
+          //    不调的话 HBM 后面还会按自己的规则再挪一遍，等于白改
+          super.generateStructure(world, rand, box);
+      }
+
+      // averageHeight 与 HBM 的 getAverageHeight 同口径（那个方法是 private，
+      // 附属只能自己抄一份）：
+      private static int averageHeight(World world, StructureBoundingBox box) {
+          int total = 0, count = 0;
+          for(int z = box.minZ; z <= box.maxZ; z++)
+              for(int x = box.minX; x <= box.maxX; x++) { total += world.getTopSolidOrLiquidBlock(x, z); count++; }
+          return count == 0 ? 64 : total / count;
+      }
+
+  两个 offsetYHeight 名字一样、语义不同，别搞混：
+
+      Component#offsetYHeight(int y)   boundingBox.minY += y;  boundingBox.maxY += y;
+                                       heightUpdated = true;
+                                       -> 单个组件；参数是**增量**
+      Start#offsetYHeight(int y)       遍历 components，跳过 heightUpdated /
+                                       conformToTerrain / alignToTerrain 的，
+                                       对每个剩下的调 Component#offsetYHeight(y)
+                                       -> 整座结构；参数同样是**增量**
+
+  ★ 所以 `offsetYHeight(target)` 只在「当前底座恰好是 0」时才等于钉到 target。
+    跨区块重入时组件已经被挪过、minY 非 0，再传绝对值就是叠加两次，楼会飘。
+    一律写 `target - bb.minY`。
+
+  ★ 另一种等价写法（不重写 generateStructure，改成逐组件校正）：直接在
+    SpawnCondition.start 里 new 自定义 Start，在其构造完 components 之后循环
+    `for(Object o : getComponents()) ((StructureComponent) o).offsetYHeight(delta)`;
+    效果与 Start#offsetYHeight 相同，但会**连 heightUpdated 的组件一起挪**，
+    多片拼接时反而更安全（不会出现半座楼被挪、半座不挪）。单 NBT 结构用上面那版就够。
+
+  21.8 生成后处理：战利品、随机劣化
+------------------------------------------------------------------------------------------------
+  两个可选挂点：
+
+  (1) JigsawPiece.blockTable     —— 生成时逐块替换，最轻，但只能按方块类型换，
+                                    拿不到坐标，不能做「这一间坏一点、那一间好一点」。
+  (2) 自定义 Start 覆盖 generateStructure() —— 全部盖完之后扫一遍，能改任何东西。
+
+  扫的时候只有一条铁律：**X/Z 必须限制在当前区块内**。
+
+      generateStructure(world, rand, box) 的 box 是「本区块 ∩ 组件包围盒」，
+      结构跨几个区块就会被调用几次。若每次都扫整座楼，同一个箱子会被反复抽奖。
+
+  Y 不要用 box 的 Y：区块包围盒的 Y 是 1~512 的兜底值，会白扫 250 层。
+  正确做法：从自己的组件包围盒取 minY/maxY，与 box 的 X/Z 组合。
+
+  读 HBM 箱子时的字段名（写脚本验证时最常错的一点）：
+
+      TileEntityCrateBase 用**小写** items / slot，不是 MC 的 Items / Slot。
+      { id: "hbm:item.xxx", Count: n, Damage: m, slot: i }
+
+  想直接复用 HBM 的战利品系统，可以用 wand_loot 方块：它挂 ItemPool，
+  开箱时按池子抽。但附属要注册自己的 ItemPool 才能用，通常不如自己填省事。
+
+  21.9 结构工具方块 wand_* 与数字 ID
+------------------------------------------------------------------------------------------------
+  四个工具方块（都在 ModBlocks）：
+
+      hbm:tile.wand_air         不可见占位空气（112/256 不透明、集中在边框、
+                                setBlockBounds 缩到 14/16、相邻面不渲染 -> 肉眼几乎看不见）
+      hbm:tile.wand_structure   保存结构用：框选后点它，导出 NBT
+      hbm:tile.wand_loot        战利品箱占位
+      hbm:tile.wand_jigsaw      拼接点，nbt 里写 selection/placement/direction/
+                                pool/name/target/block/meta/roll
+
+  注册名规则：方块是 hbm:tile.xxx（ModBlocks.register 传 getUnlocalizedName()），
+  /give 要写 hbm:tile.wand_structure，写 hbm:wand_structure 会报「物品不存在」。
+
+  WorldEdit 在 1.7.10 只认数字 ID：
+
+      //replace air <wand_air 的 ID>
+      //set <wand_structure 的 ID>
+
+  ★ 数字 ID 是运行时按注册顺序分配的，装不同数量的模组就会变，不能写死。
+    正确做法是启动时打印：
+
+      int airId = Block.getIdFromBlock(ModBlocks.wand_air);
+      LOG.info("wand_air=" + airId + " -> //replace air " + airId);
+
+  ★ //count 对模组方块永远返回 Counted: 0。
+    原因：WE 的 BlockType.fromID 只认原版枚举，模组方块查不到就被当成空气；
+    但 //replace 走 DefaultBlockParser，直接 parseInt，所以「替换成功」是真的。
+    验收要用 //replace 之后看方块，或直接读存档（21.10），不要信 //count。
+
+  权威 ID 来源：存档 level.dat 的 Data.FML.ItemData 注册表快照（Block / Item 两张表，
+  形如 {"1952": "hbm:tile.wand_air"}）。tools/blockid_probe.py 就是读这个。
+
+  21.10 生成没出现时怎么反查（按顺序排除）
+------------------------------------------------------------------------------------------------
+  1) 看日志有没有注册成功：
+
+       [structure] 遗迹已注册: dim=-1, size=41x13x38, y=0~3, grid=11 区块（每 121 区块一处）
+       NBT Structure not found: structures/xxx.nbt        <- 路径/文件名错
+       NBTStructure is invalid                            <- 生成时模板没加载，静默跳过
+
+  2) 确认走的是哪条通道、条件是否满足：
+
+       · 默认通道：查该维度 StructureConfig 的间距，以及 spawnWeight 是否被别的结构抽走；
+       · checkCoordinates：canSpawn 不会调用，群系要自己判 —— 这是最常见的「条件写了不生效」。
+
+  3) 直接从存档验证到底生成了没有（不要靠飞）：
+
+       tools/structure_find.py <存档目录>               按指纹列出已生成的每一座 + /tp 命令
+       tools/structure_find.py <存档目录> --predict 10  按种子反推落点，去没探索的区块蹲
+       tools/blockid_probe.py <存档目录> --find wand    打印 ID 表
+
+     ★ 指纹怎么选：挑一个只有该结构才有的方块实体（本项目是 tileentity_crate_steel，
+       一座固定 10 个），按区块统计数量即可定位。
+
+     ★ 1.7.10 区块格式的坑：Sections.Blocks 里只有方块 ID 的**低 8 位**，高位在 Sections.Add。
+       直接看到 71 / 75 / 53 这种「原版 ID」很容易误判成原版方块，
+       其实是 HBM 方块 ID 的低字节（1291 个 71 = 1291 块黑曜石砖，数字完全对得上）。
+
+  4) 老存档不会补生成：结构只在**新区块**生成。改了层位/密度必须开新世界，
+     或至少跑到从未加载过的区域。
+
+  21.11 坑表
+------------------------------------------------------------------------------------------------
+  | 现象                              | 原因 / 处理                                       |
+  |-----------------------------------|---------------------------------------------------|
+  | /give hbm:wand_xxx 物品不存在      | 方块注册键带 tile. 前缀                           |
+  | //count 返回 0 但 //replace 有效   | WE 的 BlockType 只认原版枚举，属正常               |
+  | 结构生成了但房间是实心的            | blocks 里没有空气条目，叠加语义（21.2）            |
+  | 结构底部几层消失                    | build 里 `if(ry < 1) continue`                     |
+  | 多 meta 方块全变成 meta 0          | palette 缺 Properties.meta（字符串）              |
+  | 结构不生成也不崩                    | 模板路径错 -> isLoaded=false，只在日志留一行        |
+  | 层位完全不受 minHeight/maxHeight 控制 | 超平坦世界跳过 clamp（21.7）                     |
+  | 调 spawnWeight 没反应               | 走了 checkCoordinates 通道，权重不参与抽签         |
+  | 群系过滤写了不生效                  | 同上，这条通道不调 canSpawn                        |
+  | 箱子被反复抽奖                      | generateStructure 跨区块多次调用，扫了全图         |
+  | 结构名/片名冲突崩游戏                | namedMap / jigsawMap 重名直接抛异常                |
+  | 存档里看不到方块                    | Sections.Blocks 只有低 8 位，高位在 Add            |
+
+  21.12 检查清单
+------------------------------------------------------------------------------------------------
+    [ ] NBT 是 wand_structure 导出的原生格式（palette 2000 字以内、meta 在 Properties）
+    [ ] 内部空腔写成了空气条目，体积 = size.x*size.y*size.z
+    [ ] 文件放在 assets/<modid>/structures/ 下，ResourceLocation 路径一致
+    [ ] 名字（spawn / piece）带 modid 前缀，且没有重复注册
+    [ ] NBTStructure.register() 与 MapGenStructureIO.registerStructure 都在 postInit
+    [ ] 自定义 Start 子类单独注册了 MapGenStructureIO（否则存档读档 NPE）
+    [ ] 走 checkCoordinates 的话，群系过滤写在函数里
+    [ ] minHeight/maxHeight 之外，还考虑了超平坦世界（要不要自己 pinHeight）
+    [ ] generateStructure 的后处理只扫当前区块
+    [ ] 用 tools/structure_find.py --predict 先确认落点，再进游戏
+    [ ] 开新世界测试（老存档不补生成）
+
+  第 21 章结束
+
+
+================================================================================================
+  第 22 章  掉落物替换：hasCustomEntity / createEntity
+================================================================================================
+  本章只讲一件事：怎么让某个物品掉在地上时变成**自己的实体**（带渲染、带特殊行为），
+  而不是普通 EntityItem。HBM 本体的手雷、磁带、光盘都这么干。
+
+  22.1 钩子调用点（Forge 的替换判定）
+------------------------------------------------------------------------------------------------
+  Forge 的 ForgeInternalHandler.onEntityJoinWorld
+  （net/minecraftforge/common/ForgeInternalHandler.java）对每个新生成的实体问一次，
+  下面是原文（省略了无关分支）：
+
+      Entity entity = event.entity;
+      if(entity.getClass().equals(EntityItem.class)) {                       // 精确类匹配
+          ItemStack stack = entity.getDataWatcher().getWatchableObjectItemStack(10);
+          if(stack == null) return;                                          // 空掉落物直接放过
+          Item item = stack.getItem();
+          if(item == null) {                                                 // 坏物品：杀掉 + 取消
+              FMLLog.warning("Attempted to add a EntityItem to the world with a invalid item ...");
+              entity.setDead();
+              event.setCanceled(true);
+              return;
+          }
+          if(item.hasCustomEntity(stack)) {
+              Entity newEntity = item.createEntity(event.world, entity, stack);
+              if(newEntity != null) {
+                  entity.setDead();                                          // ① 旧实体先杀掉
+                  event.setCanceled(true);                                   // ② 取消这次加入
+                  event.world.spawnEntityInWorld(newEntity);                 // ③ 新实体由 Forge 加
+              }
+          }
+      }
+
+  上面读 stack 用的槽位 10 就是 EntityItem#getEntityItem() 的实现
+  （`return this.getDataWatcher().getWatchableObjectItemStack(10);`），两种写法等价。
+
+  五个要点：
+
+    · 判定是 getClass().equals(EntityItem.class)，**精确匹配**。所以你从 createEntity
+      返回的实体（子类）不会再次触发替换，不会递归。
+    · 旧实体已被 Forge setDead + 取消加入，**新实体也由 Forge 加进世界**。
+      所以 createEntity 里**不要再自己 spawnEntityInWorld**，否则世界里会有两份。
+    · 这个事件服务端和客户端都会触发，createEntity 两边都会调用。所以它必须是
+      "纯构造"（只 new 实体、抄数据），不能读服务端才有的东西、不能加进世界。
+    · 覆盖范围是所有「普通掉落物」来源：玩家丢弃、方块被破坏、箱子被打碎、/give 掉落。
+    · 方块形态（ItemBlock）要用一个 ItemBlock 子类走同一套逻辑，因为 ItemBlock 也是 Item。
+
+  22.2 最小实现（两个类，可直接编译）
+------------------------------------------------------------------------------------------------
+  第一个类是物品，只负责「开关 + 造实体」：
+
+      package mymod.items;
+
+      import mymod.entity.EntityMyItem;
+      import net.minecraft.entity.Entity;
+      import net.minecraft.item.Item;
+      import net.minecraft.item.ItemStack;
+      import net.minecraft.world.World;
+
+      public class ItemMyDrop extends Item {
+
+          public ItemMyDrop() {
+              setUnlocalizedName("mymod_my_drop");
+              setTextureName("mymod:my_drop");
+          }
+
+          @Override
+          public boolean hasCustomEntity(ItemStack stack) {
+              return true;                    // 开关：返回 false 就完全退回原版掉落物
+          }
+
+          @Override
+          public Entity createEntity(World world, Entity location, ItemStack stack) {
+              // 只构造、不 spawn —— Forge 负责把返回的实体加进世界（见 22.1 第 2 条）
+              return EntityMyItem.fromDropped(world, location, stack);
+          }
+      }
+
+  第二个类是实体。`fromDropped` 要把原实体的**位置 / 速度 / 拾取延迟 / 年龄 / 悬浮相位**
+  全部抄过去 —— 少抄一项就会看到对应症状（瞬移、弹一下、立刻能捡、贴图抖动）：
+
+      package mymod.entity;
+
+      import net.minecraft.entity.Entity;
+      import net.minecraft.entity.item.EntityItem;
+      import net.minecraft.item.ItemStack;
+      import net.minecraft.nbt.NBTTagCompound;
+      import net.minecraft.world.World;
+
+      public class EntityMyItem extends EntityItem {
+
+          /** 自旋角速度（度/tick）。18 度/tick = 360/20 = 每秒一圈。 */
+          public static final float DEG_PER_TICK = 18.0F;
+
+          private boolean landed;
+
+          /** 反序列化（MapGenStructureIO 那种反射 new）与直接 new 都会用这个。 */
+          public EntityMyItem(World world) {
+              super(world);
+          }
+
+          public EntityMyItem(World world, double x, double y, double z, ItemStack stack) {
+              super(world, x, y, z, stack);
+          }
+
+          /**
+           * 由原版掉落物转成本实体。
+           *
+           * <p>注意 {@code EntityItem(World, double, double, double)} 那个 3 参构造会把
+           * motionY 设成 0.2（原版「丢出来弹一下」的效果），所以位置和速度必须显式覆盖，
+           * 否则物品会在落点原地向上弹一下。</p>
+           */
+          public static EntityMyItem fromDropped(World world, Entity source, ItemStack stack) {
+              EntityMyItem item = new EntityMyItem(world, source.posX, source.posY, source.posZ,
+                      stack == null ? null : stack.copy());
+              item.motionX = source.motionX;
+              item.motionY = source.motionY;
+              item.motionZ = source.motionZ;
+              if(source instanceof EntityItem) {
+                  EntityItem other = (EntityItem) source;
+                  item.delayBeforeCanPickup = other.delayBeforeCanPickup;
+                  item.age = other.age;
+                  item.hoverStart = other.hoverStart;
+              }
+              return item;
+          }
+
+          /** 渲染角度：ticksExisted 的纯函数，客户端自己算，不用同步。 */
+          public static float spinAngle(int ticks) {
+              return ticks * DEG_PER_TICK;
+          }
+
+          /** 落地后立刻停止绘制，但服务端可以多活几 tick（见 22.4 末尾）。 */
+          public boolean isLanded() {
+              return this.landed;
+          }
+
+          @Override
+          public void onUpdate() {
+              super.onUpdate();
+              if(this.onGround) this.landed = true;
+          }
+
+          @Override
+          public void writeEntityToNBT(NBTTagCompound nbt) {
+              super.writeEntityToNBT(nbt);
+              nbt.setBoolean("MyMod_Landed", this.landed);
+          }
+
+          @Override
+          public void readEntityFromNBT(NBTTagCompound nbt) {
+              super.readEntityFromNBT(nbt);
+              this.landed = nbt.getBoolean("MyMod_Landed");
+          }
+      }
+
+  ★ `stack.copy()` 不是可选项：传进来的是那个即将被 setDead 的原版实体身上的栈，
+    直接塞给新实体会让两个实体短暂共享同一个 ItemStack 实例。
+  ★ 实体的无参构造（`EntityMyItem(World)`）必须保留 —— 原版从存档加载实体走的是
+    「反射 new + readEntityFromNBT」，没有它会在读档时崩。
+
+  22.3 为什么必须自己写渲染器
+------------------------------------------------------------------------------------------------
+  普通掉落物是 RenderItem 画的，它对所有掉落物做 billboard（始终正对镜头，
+  `180 - playerViewY`）。你在 onUpdate 里绕 Y 轴自旋，渲染时又被抵消，看起来不动。
+
+  所以只要实体的外观不是「躺在地上的平面图标」，就必须注册自己的渲染器：
+
+      // ClientProxy 里（@SideOnly(Side.CLIENT)），preInit 或 init 都行
+      RenderingRegistry.registerEntityRenderingHandler(EntityMyItem.class, new RenderMyItem());
+
+  渲染器全文（手绘双面 quad，自旋只绕 Y 轴）：
+
+      package mymod.client;
+
+      import mymod.entity.EntityMyItem;
+      import net.minecraft.client.renderer.Tessellator;
+      import net.minecraft.client.renderer.entity.Render;
+      import net.minecraft.client.renderer.texture.TextureMap;
+      import net.minecraft.entity.Entity;
+      import net.minecraft.item.ItemStack;
+      import net.minecraft.util.IIcon;
+      import net.minecraft.util.ResourceLocation;
+
+      import org.lwjgl.opengl.GL11;
+
+      public class RenderMyItem extends Render {
+
+          @Override
+          public void doRender(Entity entity, double x, double y, double z,
+                               float yaw, float partialTick) {
+              EntityMyItem item = (EntityMyItem) entity;
+              if(item.isLanded()) return;                       // 已经砸碎/落地：不画
+
+              ItemStack stack = item.getEntityItem();
+              if(stack == null || stack.getItem() == null) return;
+              IIcon icon = stack.getItem().getIconFromDamage(stack.getItemDamage());
+              if(icon == null) return;
+
+              this.bindTexture(TextureMap.locationItemsTexture);
+
+              GL11.glPushAttrib(GL11.GL_ENABLE_BIT);            // 整段还原 GL 开关
+              GL11.glPushMatrix();
+              GL11.glTranslated(x, y + 0.25D, z);
+              GL11.glRotatef(EntityMyItem.spinAngle(item.ticksExisted), 0.0F, 1.0F, 0.0F);
+              GL11.glDisable(GL11.GL_LIGHTING);
+              GL11.glEnable(GL11.GL_BLEND);
+              GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+              GL11.glDisable(GL11.GL_CULL_FACE);                // 双面，否则背面剔透
+
+              float s = 0.25F;
+              float u0 = icon.getMinU(), u1 = icon.getMaxU();
+              float v0 = icon.getMinV(), v1 = icon.getMaxV();
+
+              Tessellator t = Tessellator.instance;
+              t.startDrawingQuads();
+              t.setNormal(0.0F, 0.0F, 1.0F);
+              t.addVertexWithUV(-s, -s, 0.0D, u0, v1);
+              t.addVertexWithUV( s, -s, 0.0D, u1, v1);
+              t.addVertexWithUV( s,  s, 0.0D, u1, v0);
+              t.addVertexWithUV(-s,  s, 0.0D, u0, v0);
+              t.draw();
+
+              GL11.glPopMatrix();
+              GL11.glPopAttrib();
+          }
+
+          @Override
+          protected ResourceLocation getEntityTexture(Entity entity) {
+              return TextureMap.locationItemsTexture;
+          }
+      }
+
+  ★ `Render` 的两个方法都是 abstract，少实现一个就编译不过。
+  ★ 矩阵不归 GL_ENABLE_BIT 管，必须另配 glPushMatrix / glPopMatrix；
+    只 pushAttrib 不 pushMatrix，画完之后整个世界都会歪。
+  ★ 渲染器类上也要打 @SideOnly(Side.CLIENT)，否则专用服务端加载到
+    Render / Tessellator 会 NoClassDefFoundError（同 7.1 的代理问题）。
+
+  注意注册的是**实体类**，不是物品：任何物品掉成这个实体都会自动用同一个渲染器。
+
+  22.4 状态同步：能算的不要同步
+------------------------------------------------------------------------------------------------
+  掉落物在客户端也要动，但 1.7.10 的实体同步只带位置/速度。做法是把运动学写成
+  `ticksExisted` 的纯函数：
+
+      float rpmAt(int ticks)      { return Math.min(MAX_RPM, ticks * RPM_PER_TICK); }
+      float liftAt(int ticks)     { ... }
+      float spinAngle(int ticks)  { ... }        // 由 rpm 积分，别累积浮点误差
+
+  好处：不用发包、不用落盘、客户端能预测、读档后姿势也对。
+  服务端只负责「什么时候起飞/销毁」，两端算同一个函数不会漂。
+
+  ★ 想施加持续上升时，重力常数到底是 0.08 还是 0.04 —— 别背错实体：
+
+      EntityLivingBase  每 tick motionY = (motionY - 0.08) * 0.98     // 生物
+      EntityItem        每 tick motionY -= 0.04;  再 moveEntity（里面末尾 *= 0.98）
+
+    1.7.10 的 EntityItem.onUpdate 原文就三行（行号见 EntityItem.java）：
+
+        this.motionY -= 0.03999999910593033D;              // 118 先扣
+        this.moveEntity(this.motionX, this.motionY, this.motionZ);  // 120 再走
+        this.motionY *= 0.9800000190734863D;              // 147 走完才衰减（下一 tick 生效）
+
+    所以**本 tick 的净位移 = 你写入的 motionY − 0.04**，反解就一句：
+
+        motionY = 目标位移 + 0.04D;
+
+    ★ 不要写 `v / 0.98 + 0.04`。那个 ×0.98 作用在「下一 tick 的 motionY」上，
+      而这类实体每 tick 都会整值重写 motionY，写进去的值根本没机会被衰减，
+      多除一个 0.98 等于每 tick 多走 2%（本项目早期版本就这么错，24 格冲出半格）。
+    ★ `-= 0.04` 不在 onGround 判断里，贴地时照减，补偿不能按「只有空中才减」写。
+
+  22.5 坑表
+------------------------------------------------------------------------------------------------
+  | 现象                          | 原因 / 处理                                        |
+  |-------------------------------|----------------------------------------------------|
+  | 实体瞬移到 0,0,0 或原地不动     | createEntity 没抄位置/运动/延迟                     |
+  | 自旋在游戏里看不出来            | RenderItem 的 billboard 抵消了绕 Y 旋转             |
+  | 换了实体但画成紫黑格            | 没注册渲染器，或渲染器注册成了物品                   |
+  | 实体无限递归替换                | 替换判定是精确类匹配，子类不会二次触发；若真递归，  |
+  |                               | 说明你在 createEntity 里返回了 new EntityItem       |
+  | 掉落物能捡但演出还在            | 演出与 canPickup 是两件事，需要自己控制             |
+  | 悬停高度每次不同                | 用了累积浮点，改成 ticksExisted 纯函数              |
+
+  22.6 检查清单
+------------------------------------------------------------------------------------------------
+    [ ] hasCustomEntity 返回 true，createEntity 抄全了位置/运动/延迟
+    [ ] 自定义渲染器按实体类注册，且 GL 状态成对 push/pop
+    [ ] 运动学是 ticksExisted 纯函数，客户端能独立算出来
+    [ ] 方块形态有对应的 ItemBlock 子类
+    [ ] 掉落物销毁/落地后不再渲染（否则服务端多活的几 tick 会被看到）
+    [ ] 进游戏验证：丢弃、炸方块、打碎箱子、/give 四种来源都换了实体
+
+  第 22 章结束
+
 
   文件结束
 ================================================================================================

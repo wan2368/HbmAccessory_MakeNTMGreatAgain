@@ -24,13 +24,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 /**
- * 把 HBM 砧的一键配方转换成装配机配方，并生成“空模板 + 砧 → 等级模板”的砧配方。
+ * 把 HBM 砧的配方转换成装配机配方，并生成「空模板 + 砧 → 等级模板」。
  *
- * <p>过滤规则（和砧内保留的一致）：模具/锻模、板、线、管、壳、流体管道、
- * 警报声轨、稀土分解不进入装配机。</p>
- *
- * <p>等级模板的配方池是累计的：tierN 模板包含所有 tierLower <= N 的配方；
- * 暗黑砧模板包含全部配方。</p>
+ * <p>过滤：模具/锻模、板（装甲板除外）、线、管、壳、流体管道、警报声轨、稀土分解。
+ * 等级池累计：tierN 含所有 tierLower <= N 的配方，暗黑砧含全部。</p>
  */
 public final class AnvilAssemblyTemplates {
 
@@ -82,7 +79,7 @@ public final class AnvilAssemblyTemplates {
                 converted.outputItems(outputs);
                 converted.setPoolsAllow528(poolsFor(recipe.tierLower));
 
-                AssemblyMachineRecipes.INSTANCE.register(converted);
+                RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, converted);
                 added++;
 
             } catch(Throwable t) {

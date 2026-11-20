@@ -1,0 +1,30 @@
+{
+	"name": "Addon Ores",
+	"title": {
+		"en_US": "Addon Ores",
+		"zh_CN": "附属矿石"
+	},
+	"icon": [
+		"makentmgreatagain:ore_leadzinc",
+		1,
+		0
+	],
+	"content": {
+		"en_US": "The addon ores do not follow HBM's normal routes. Pick the wrong tool and the wet-processing chain breaks.<br><br>Silk Touch required: lead-zinc ore and refractory gold ore only drop the block itself with Silk Touch. A normal pickaxe gives powder only - no ore block for the flotation line.<br><br>Scheelite cannot be smelted: a furnace yields nothing. Crush it to powder first, then run the wet route.<br><br>Generation:<br>Lead-zinc: Y 20-45, about 70% of chunks<br>Refractory gold: Y 15-40, about 60% of chunks<br>Scheelite: Y 10-48, about 8% of chunks, a solid blob of radius 6<br>Salt veins: Y 20-52<br>All three have Duna variants at the same depths. Mining level is iron.<br><br>Deep sea nodules: Overworld ocean biomes only, at least 20 blocks below sea level. One patch holds 30-48 nodules, but only about 2% of ocean chunks have one - note the coordinates. Each nodule allows 30 extractions, then becomes a depleted nodule. Breaking it resets the count, so use Silk Touch to keep progress.<br><br>Core fissure: Nether Y=0 only, about 1% of chunks. The fissure block is unbreakable - spot it by the deep rock pile on bedrock. The Core Lava Extractor only runs directly above one.<br><br>See also:<br>[[Riser Rig|Riser Rig]]<br>[[Seawater Processing|Seawater Processing]]",
+		"zh_CN": "附属的矿石不走 HBM 的普通路线。工具用错, 整条湿法链当场断掉。<br><br>必须精准采集: 铅锌矿和含砷金矿只有精准采集才掉矿方块本身。普通镐只给粉, 拿不到浮选线要的矿方块。<br><br>白钨矿不能冶炼: 放进熔炉没有任何产物。先粉碎成粉, 再走湿法路线。<br><br>生成高度:<br>铅锌矿: Y 20-45, 约 70% 区块<br>含砷金矿: Y 15-40, 约 60% 区块<br>白钨矿: Y 10-48, 约 8% 区块, 一窝是半径 6 的实心矿囊<br>盐矿脉: Y 20-52<br>三种矿在 Duna 星球另有变体, 高度相同。挖掘等级都是铁镐。<br><br>深海结核: 只在主世界海洋群系海床, 水深至少 20 格。一窝 30-48 格, 但只有约 2% 的海洋区块有, 找到就记下坐标。一个结核可采 30 次, 采空后变成空结核。用镐子挖走再放下会把次数重置, 想保留进度请用精准采集。<br><br>地核熔岩裂隙: 只在下界 Y=0, 约 1% 的区块。裂隙方块本身不可破坏, 靠基岩上的深岩堆来认。地核熔岩开采机必须架在它正上方才工作。<br><br>另见:<br>[[海面立管钻机|Riser Rig]]<br>[[海水处理|Seawater Processing]]"
+	},
+	"trigger": [
+		[
+			"makentmgreatagain:ore_leadzinc"
+		],
+		[
+			"makentmgreatagain:ore_refractory_gold"
+		],
+		[
+			"makentmgreatagain:ore_scheelite"
+		],
+		[
+			"makentmgreatagain:deep_sea_nodule"
+		]
+	]
+}

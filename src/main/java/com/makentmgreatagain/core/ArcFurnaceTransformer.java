@@ -28,10 +28,17 @@ public class ArcFurnaceTransformer implements IClassTransformer {
 	public byte[] transform(String name, String transformedName, byte[] basicClass) {
 		if (basicClass == null) return null;
 
-		for (String target : CHECK_CLASSES) {
-			if (transformedName.equals(target)) return patchChecks(basicClass, transformedName);
+		try {
+			for (String target : CHECK_CLASSES) {
+				if (transformedName.equals(target)) return patchChecks(basicClass, transformedName);
+			}
+			if (transformedName.equals(DAMAGE_CLASS)) return patchDamage(basicClass);
+		} catch (Throwable t) {
+			// 兜底：换了 HBM 版本、字节码模式对不上时，放弃补丁返回原字节码，
+			// 而不是让异常冒到 LaunchWrapper 导致游戏启动直接崩溃
+			System.out.println("[MakeNTMGreatAgain] 电弧炉补丁跳过（与本版本字节码不匹配）: " + transformedName);
+			t.printStackTrace();
 		}
-		if (transformedName.equals(DAMAGE_CLASS)) return patchDamage(basicClass);
 		return basicClass;
 	}
 

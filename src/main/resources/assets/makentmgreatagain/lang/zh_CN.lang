@@ -1,7 +1,9 @@
+
 itemGroup.makentmgreatagain_resources=让HBM再次伟大：资源
 itemGroup.makentmgreatagain_blocks=让HBM再次伟大：方块
 itemGroup.makentmgreatagain_machines=让HBM再次伟大：机器
 itemGroup.makentmgreatagain_gear=让HBM再次伟大：装备
+itemGroup.makentmgreatagain_nuclear=让HBM再次伟大：核拓展
 item.ingot_advanced_alloy.name=高级合金锭
 item.cmb_.electrode.name=CMB电极
 item.cmb_.electrode.desc=由CMB钢与双中子素制成的电极。$§bUnbreakable! 无法破坏！
@@ -19,13 +21,11 @@ item.cigarette_drx.desc=§8香烟,我只抽瑞克5代...$§c含迪伽马香烟,�
 item.meth_impure.name=甲基苯丙胺粗品
 item.meth_crystal.name=甲基苯丙胺晶体
 item.meth_pill.name=(2R)-N-甲基-1-苯基丙-2-胺
-item.meth_pill.desc.radiation=§a食用后立即清除自身全部辐射（含迪伽马）
+item.meth_pill.desc.radiation=§a食用后立即清除自身全部辐射
 item.meth_pill.desc.effects=§9抗辐射 3:00 · 急迫 II 3:00 · 速度 I 3:00
 item.meth_pill.desc.weakness=§c虚弱 II 5:00
 hbmfluid.methylamine=甲胺
 hbmfluid.phenylacetone=苯基丙酮
-achievement.escape_abyss=§0逃离深渊
-achievement.escape_abyss.desc=§c你终究还是逃了出来……
 item.alloy_blades_reborn.name=高级合金刀片
 item.scrap_blades_alloy_reborn.name=破损的高级合金刀片
 tile.advanced_block_alloy.name=高级合金块
@@ -36,7 +36,7 @@ item.powder_carbon_tungsten_mixture.name=碳化钨粉
 item.powder_cobalt_tungsten_mixture.name=高强度碳化钨粉
 item.powder_cobalt_tungsten_ingot.name=高强度碳化钨锭
 hbmfluid.salt_water=盐水
-hbmfluid.example_fluid=示例流体（全属性）
+hbmfluid.example_fluid=示例流体
 hbmfluid.hot_salt_water=热盐水
 hbmfluid.sea_water=海水
 hbmfluid.hcl=盐酸
@@ -59,6 +59,8 @@ hbmfluid.avgas_ru=高辛烷航空汽油
 hbmfluid.n2o4=四氧化二氮
 hbmfluid.methanol=甲醇
 hbmfluid.ammonia=氨
+hbmfluid.bio_crude=生物原油
+hbmfluid.raw_synth_oil=粗合成油
 item.gypsum.name=石膏
 item.gypsum.desc=硫酸钙。掺进水泥里能延缓凝结。
 item.celestite.name=天青石
@@ -90,68 +92,52 @@ item.solid_fuel_adv.desc=硝基甲烷压制的富氧推进剂。
 
 # ---- 电力悬浮作业背包 ----
 item.hover_jetpack.name=电力悬浮作业背包
+item.hover_jetpack.desc=喷气背包与悬浮背包二合一，靠电力驱动。$默认矢量模式(按住空格沿视线飞行)，按模式键切到悬浮模式(空格上升、Shift 下沉)$开关沿用 HBM 喷气背包快捷键(默认 C)
 item.armor_battery_mk4.name=动力装甲电池组 Mk4
+item.armor_battery_mk4.desc=将所装配甲的储电量提升至三倍(+200%)。
+item.neutrino_goggles.name=中微子眼镜
+item.neutrino_goggles.desc=提供持续夜视
+item.neutrino_goggles.toggle=使用功能键切换(默认 V )。
+item.neutrino_goggles.locator=定位键(默认 G )：短按扫描，长按打开选择界面。
+makentmgreatagain.key.neutrinoLocator=中微子眼镜-方块定位
+gui.makentmgreatagain.neutrino_locator.title=中微子定位仪
+gui.makentmgreatagain.neutrino_locator.search=搜索方块或矿物类别
+gui.makentmgreatagain.neutrino_locator.empty=未找到匹配目标
+gui.makentmgreatagain.neutrino_locator.confirm=确认样本
+gui.makentmgreatagain.neutrino_locator.inventory=点击背包中的方块设置唯一样本
+gui.makentmgreatagain.neutrino_locator.sample_slot=当前样本(右键清空)
+gui.makentmgreatagain.neutrino_locator.focus_hint=点击搜索框或按 Tab 搜索
+gui.makentmgreatagain.neutrino_locator.multiple=附近找到 %s 处
+gui.makentmgreatagain.neutrino_locator.multiple_min=附近至少找到 %s 处
+gui.makentmgreatagain.neutrino_locator.ore_family=矿物类别：%s
+gui.makentmgreatagain.neutrino_locator.scanning=正在定位：%s
+gui.makentmgreatagain.neutrino_locator.no_match=已扫描范围内未发现目标
+gui.makentmgreatagain.neutrino_locator.cooldown=定位仪正在冷却，请稍后重试
+gui.makentmgreatagain.neutrino_locator.disabled=中微子眼镜未启用
+gui.makentmgreatagain.neutrino_locator.invalid=无法扫描此目标
+gui.makentmgreatagain.neutrino_locator.busy=定位仪忙，请稍后重试
+gui.makentmgreatagain.neutrino_locator.cancelled=定位已取消
+gui.makentmgreatagain.neutrino_locator.timeout=扫描超时，请重试
+gui.makentmgreatagain.neutrino_locator.lost=目标已离开范围或已被移除
+gui.makentmgreatagain.neutrino_locator.ahead=前方
+gui.makentmgreatagain.neutrino_locator.left=左方
+gui.makentmgreatagain.neutrino_locator.right=右方
+gui.makentmgreatagain.neutrino_locator.behind=后方
+gui.makentmgreatagain.neutrino_locator.reading=%s · %s · %s 格 · %s
+gui.makentmgreatagain.neutrino_locator.level=同一高度
+gui.makentmgreatagain.neutrino_locator.above=上方 %s 格
+gui.makentmgreatagain.neutrino_locator.below=下方 %s 格
 item.armor_battery_mk5.name=动力装甲电池组 Mk5
 makentmgreatagain.key.group=让HBM再次伟大：热键
 makentmgreatagain.key.hoverMode=悬浮背包 - 切换矢量/悬浮模式
-makentmgreatagain.key.achievements=打开成就界面
 
-# ---- 成就系统（独立于 Minecraft 原生成就页）----
-mntga.ach.gui.title=成就
-mntga.ach.gui.done=已达成
-mntga.ach.gui.locked=尚未达成
-mntga.ach.toast.label=成就达成
-mntga.ach.cat.tungsten=白钨矿
-mntga.ach.cat.industry=海水与冶金
-mntga.ach.cat.misc=杂项
-
-mntga.ach.scheelite_mined.title=芜！
-mntga.ach.scheelite_mined.desc=挖到第一块白钨矿。它烧不出东西，先去粉碎。
-
-mntga.ach.scheelite_acid.title=这是什么能喝吗？
-mntga.ach.scheelite_acid.desc=做出钨酸。黄色的滤饼，一点都不好喝。
-
-mntga.ach.beryllium_conc.title=尘封的故事
-mntga.ach.beryllium_conc.desc=从浸出渣里分出一份铍精矿——铍在地壳里比钨还稀少。
-
-mntga.ach.arsenic_cake.title=别舔
-mntga.ach.arsenic_cake.desc=三氧化二砷，也就是白砷。摸完记得洗手。
-
-mntga.ach.arsenic_nugget.title=拿命换的
-mntga.ach.arsenic_nugget.desc=把白砷还原成砷粒。砷青铜和砷化镓都在等它。
-
-mntga.ach.nothing_smelt.title=滚木？
-mntga.ach.nothing_smelt.desc=你把白钨矿丢进了熔炉。熔炉认真地烧完了，然后什么也没给你。
-
-mntga.ach.waste_acid.title=我应该把世界泡在酸里。
-mntga.ach.waste_acid.desc=攒够 16 份钨酸，等于存下了一万多毫桶废酸。别喝。
-
-mntga.ach.scheelite_300.title=这就是全部了
-mntga.ach.scheelite_300.desc=累计挖掉 300 块白钨矿，差不多是半条大矿脉。
-
-mntga.ach.tungsten_carbide.title=高强度碳化钨
-mntga.ach.tungsten_carbide.desc=做出碳化钨锭。熔点第二，硬度第一。
-
-mntga.ach.seawater.title=抽上来的不是水
-mntga.ach.seawater.desc=环境地下泵抽出了海水。它按群系决定产物，不看脚下。
-
-mntga.ach.chlorine.title=两种都要命的
-mntga.ach.chlorine.desc=电解出氯气。同一锅的另一半是碱液——两样都不该直接碰。
-
-mntga.ach.lithium.title=从这锂开始
-mntga.ach.lithium.desc=从含矿液里提出锂粉。电池、润滑脂、氚增殖剂，都从这开始。
-
-mntga.ach.zinc.title=我的“心”都碎了！
-mntga.ach.zinc.desc=烧结块粉化之后，锌以氧化物的形态留在了那一堆灰里。
-
-mntga.ach.hover.title=我飞了
-mntga.ach.hover.desc=穿着电力悬浮作业背包离地。它不会让你永远悬着，电会尽。
-
-mntga.ach.escape_abyss.title=逃离深渊
-mntga.ach.escape_abyss.desc=尼古丁中毒身亡。你飞升了，或者说，跳过了结算界面。
+# ---- 电叉 ----
+item.electric_fork.name=电叉
+item.electric_fork.desc=准星对水方块按右键可电鱼，冷却 20 秒
+death.attack.electricFork=%1$s 被电叉电成了焦炭
 
 tile.environment_pump.name=环境地下泵
-tile.environment_pump.desc=按所在群系抽取不同流体$开采等级每高一级，耗电在基础值上多叠 50%$偏离正常高度区间还会再按每 5 格 25% 叠加$同档位下每 5 格还多要 5% 输入、少给 5% 产出，20 档产出归零$五级可抽取重水、经验汁等稀有介质
+tile.environment_pump.desc=按所在群系抽取不同流体$开采等级每高一级，耗电在基础值上多叠 50%%$偏离正常高度区间还会再按每 5 格 25%% 叠加$同档位下每 5 格还多要 5%% 输入、少给 5%% 产出，20 档产出归零$五级可抽取重水、经验汁等稀有介质
 info.environment_pump.biome=群系
 info.environment_pump.tier=开采等级
 info.environment_pump.base_power=基础
@@ -178,7 +164,6 @@ nei.environment_pump.tier.3=III 级 · 油气与盐碱
 nei.environment_pump.tier.4=IV 级 · 矿液
 nei.environment_pump.tier.5=V 级 · 特殊
 
-
 item.cobalt_tungsten_axe.name=高强度碳化钨斧
 item.cobalt_tungsten_shovel.name=高强度碳化钨锹
 item.cobalt_tungsten_hoe.name=高强度碳化钨锄
@@ -190,13 +175,78 @@ item.cobalt_tungsten_plate.name=高强度碳化钨胸甲
 item.cobalt_tungsten_legs.name=高强度碳化钨护腿
 item.cobalt_tungsten_boots.name=高强度碳化钨靴子
 
+item.helicopter_helmet.name=耐摔合金头盔
+item.helicopter_plate.name=耐摔合金胸甲
+item.helicopter_legs.name=耐摔合金护腿
+item.helicopter_boots.name=耐摔合金靴子
+# ---- 耐摔合金全套说明(ItemArmorHelicopter.addInformation 用，格式照 HBM armor.* 条目)----
+mnga.armor.heli.nodamage=免疫除摔落外的一切伤害
+mnga.armor.heli.fireproof=免疫火焰与燃烧
+mnga.armor.heli.no_debuff=清除一切负面效果
+mnga.armor.heli.no_rad=完全免疫所有类型辐射
+mnga.armor.heli.stun_punch=空手攻击附加震撼 XXIV
+mnga.armor.heli.manout=MANBA OUT!
+
+item.ingot_helicopter.name=耐摔合金锭
+item.ingot_helicopter.desc=HeLiCoPtEr
+
+item.ingot_platinum.name=铂锭
+
+item.ingot_erbium.name=铒锭
+
+# ---- HeLiCoPtEr / Pt / Er 八类部件(贴图位于 textures/items/parts/) ----
+item.plate_helicopter.name=耐摔合金板
+item.plate_cast_helicopter.name=铸造耐摔合金板
+item.plate_welded_helicopter.name=焊接耐摔合金板
+item.wire_helicopter.name=耐摔合金线
+item.wire_dense_helicopter.name=致密耐摔合金线
+item.bolt_helicopter.name=耐摔合金螺栓
+item.pipe_helicopter.name=耐摔合金管
+item.shell_helicopter.name=耐摔合金壳
+
+item.plate_platinum.name=铂板
+item.plate_cast_platinum.name=铂铸造板
+item.plate_welded_platinum.name=焊接铂板
+item.wire_platinum.name=铂线
+item.wire_dense_platinum.name=铂致密线
+item.bolt_platinum.name=铂螺栓
+item.pipe_platinum.name=铂管
+item.shell_platinum.name=铂壳
+
+item.plate_erbium.name=铒板
+item.plate_cast_erbium.name=铒铸造板
+item.plate_welded_erbium.name=铒焊接板
+item.wire_erbium.name=铒线
+item.wire_dense_erbium.name=铒致密线
+item.bolt_erbium.name=铒螺栓
+item.pipe_erbium.name=铒管
+item.shell_erbium.name=铒壳
+
+# ---- 同上三材质的粉末与储存块 ----
+item.powder_helicopter.name=耐摔合金粉
+item.powder_erbium.name=铒粉
+item.powder_platinum.name=铂粉
+item.nugget_helicopter.name=耐摔合金粒
+item.nugget_erbium.name=铒粒
+item.nugget_platinum.name=铂粒
+item.ingot_helium.name=氦气凝锭
+tile.block_helicopter.name=耐摔合金块
+tile.block_erbium.name=铒块
+tile.block_platinum.name=铂块
+
+# ---- 熔融材质名(坩埚 / 铸造机 / NEI 显示) ----
+hbmmat.helicopter=耐摔合金
+hbmmat.erbium=铒
+hbmmat.platinum=铂
+hbmmat.helium=氦
+
 # ---- 天然气加工 ----
 makentmgreatagain.gas.helium=天然气深冷提氦
-makentmgreatagain.fus.dd3=氘-氘等离子体（氦-3 支路）
+makentmgreatagain.fus.dd3=氘-氘等离子体
 
 # ---- 集成式换热加热器 ----
 tile.heatex_reborn.name=集成式换热加热器
-tile.heatex_reborn.desc=一端泵入热流体、另一端泵出冷却后的流体，顶部 3×3 热面供热管抽取$换热回收的热量比普通换热器多 25%，机内热量可直接用于加热流体（水 → 蒸汽）$GUI 内的识别码只切换换热的可冷却流体，潜行对外壳用识别码设置被加热流体
+tile.heatex_reborn.desc=一端泵入热流体、另一端泵出冷却后的流体，顶部 3×3 热面供热管抽取$换热回收的热量比普通换热器多 25%%，机内热量可直接用于加热流体(水 → 蒸汽)$GUI 内的识别码只切换换热的可冷却流体，潜行对外壳用识别码设置被加热流体
 container.heatex_reborn=集成式换热加热器
 info.heatex_reborn.input_port=→输入口
 info.heatex_reborn.output_port=←输出口
@@ -208,7 +258,126 @@ info.heatex_reborn.heat=热量
 info.heatex_reborn.amount_per_cycle=单次最大换热流量
 info.heatex_reborn.cycle_delay=换热间隔/tick
 
-# ---- 铅锌冶炼（ISP 法）----
+# ---- 流体冷却机 ----
+tile.machine_fluid_cooler.name=流体冷却机
+container.fluid_cooler=流体冷却机
+info.fluid_cooler.coolant_set=冷却剂已切换为
+
+# ---- 小型排液管 ----
+tile.machine_drain_steel.name=小型钢排液管
+tile.machine_drain_tungsten.name=小型钨排液管
+
+# ---- 混合催化分馏塔 ----
+tile.machine_hybrid_catalytic_fraction_tower.name=混合催化分馏塔
+container.hybrid_catalytic_fraction_tower=混合催化分馏塔
+gui.hybrid_catalytic_fraction_tower.title=分馏塔
+nei.hybrid_fraction_tower.name=混合催化分馏塔
+item.platinum_converter.name=铂合金催化转换器
+item.cmb_converter.name=CMB催化转换器
+
+# ---- 大型催化化工厂 ----
+tile.machine_large_catalytic_chemical_factory.name=大型催化化工厂
+tile.machine_electric_blast_furnace.name=电力高炉
+tile.machine_nuclear_explosion_generator.name=次临界核爆发生器
+container.nuclear_explosion_generator=次临界核爆发生器
+gui.nuclear_explosion.no_core=无核心
+gui.nuclear_explosion.no_coating=无覆层
+gui.nuclear_explosion.no_power=能源不足
+gui.nuclear_explosion.no_coolant=冷却剂不足
+gui.nuclear_explosion.no_output_space=输出空间不足
+gui.nuclear_explosion.non_explosive=无法启动
+info.core.non_explosive=§c不能进行裂变以核爆
+gui.nuclear_explosion.no_item=当前没有需要增殖的物品
+gui.nuclear_explosion.breedable=可增殖物品：
+gui.nuclear_explosion.need_flux=需要中子通量：%s
+gui.nuclear_explosion.min_flux=最低中子通量：%s
+gui.nuclear_explosion.flux=中子通量：%s / %s（%s%%）
+gui.nuclear_explosion.flux_blocked=通量已达标，输出槽已满或物品不匹配
+gui.nuclear_explosion.output=产物：%s
+gui.nuclear_explosion.cannot_breed=该物品无法增殖
+gui.nuclear_explosion.sodium_in=消耗液态钠：%s mB
+gui.nuclear_explosion.sodium_out=产生高温液态钠：%s mB
+gui.nuclear_explosion.run_tip_cancel=与正常模式不冲突
+gui.nuclear_explosion.run_tip_start=点击启动核爆
+gui.nuclear_explosion.run_tip_auto=Shift+点击则开启自动开启模式
+gui.nuclear_explosion.run_tip_auto_ready=自动开启情况下，如果所有条件合格
+gui.nuclear_explosion.run_tip_auto_loop=将会在每次冷却20s后10s后再次引爆
+info.core.shift=按住 <LSHIFT> 查看核心数据
+info.core.header=核心数据
+info.core.flux=中子通量：%s
+info.core.power=耗电量：%s HE
+info.core.sodium=消耗液态钠：%s mB
+container.electric_blast_furnace=电力高炉
+container.large_catalytic_chemical_factory=大型催化化工厂
+
+# ---- 小型电解机 ----
+tile.electrolyzer_reborn.name=小型电解机
+tile.electrolyzer_reborn.desc=只接受无固体副产、两路流体输出的纯流体电解配方$潜行对机体使用流体识别码可切换
+container.electrolyzer_reborn=小型电解机
+info.electrolyzer_reborn.changed=已切换电解配方为
+info.electrolyzer_reborn.no_recipe=该流体没有可用配方(仅接受无固体副产、两路流体输出的电解配方)
+info.electrolyzer_reborn.byproduct=副产物
+info.electrolyzer_reborn.power=电力
+
+# ---- 电弧加热器 ----
+tile.arc_heater.name=电弧加热器
+tile.large_centrifuge.name=大型离心机
+tile.core_lava_extractor.name=地核熔岩开采机
+tile.industrial_gas_turbine.name=工业燃气轮机
+container.industrial_gas_turbine=工业燃气轮机
+mnga.turbine.on=开启机器
+mnga.turbine.off=关闭机器
+mnga.turbine.throttle=流量：%s mB/t
+mnga.turbine.readout.flow=当前流量：%s mB/t
+mnga.turbine.readout.power=当前发电：%s HE/t
+mnga.turbine.upgrade.power=发电量：%s
+mnga.turbine.upgrade.cons=燃料消耗：%s
+mnga.turbine.title=燃气轮机
+mnga.turbine.fueleff=燃料效率：
+tile.core_fissure.name=地核熔岩裂隙
+container.core_lava_extractor=地核熔岩开采机
+container.large_centrifuge=大型离心机
+container.large_centrifuge.parallel=并行倍率
+container.large_centrifuge.parallel.1=1×并行
+container.large_centrifuge.parallel.2=2×并行
+container.large_centrifuge.parallel.3=4×并行
+container.large_centrifuge.parallel.4=8×并行
+tile.arc_heater.desc=3×2 立式电弧加热机柜$耗电最高 100,000 HE/t，产热最高 10,000 TU/t$
+container.arc_heater=电弧加热器
+
+# ---- 海面立管钻机 ----
+tile.riser_rig.name=海面立管钻机
+tile.riser_rig.desc=7×7 平台、16 格高桁架井架$±X 两面各 3 个接口，共 6 格，均可接电并收发流体
+container.riser_rig=海面立管钻机
+container.riser_rig.mining=采掘
+container.riser_rig.mining.tip=需要 ≥8000mB 高性能溶剂；当前每格消耗 %smB
+container.riser_rig.mining.base=需要底部 5×5×5 完全实心方块作为地基
+container.riser_rig.mining.output=需要 3×3 物品输出格有空位，且三个输出流体罐都不能满
+container.riser_rig.mining.power=常开耗电 %s HE/t
+container.riser_rig.mining.ore_solvent=每开采一颗结核消耗 %smB 高性能溶剂
+container.riser_rig.mining.progress=开采中 %s%%
+container.riser_rig.mining.nodule=钻头下方暂无结核矿
+container.riser_rig.crusher=粉碎
+container.riser_rig.crusher.on=已开启：精矿直接粉碎成混粉
+container.riser_rig.crusher.off=已关闭：精矿原样输出
+tile.riser_pipe.name=输送管道
+tile.empty_deep_sea_nodule.name=空深海结核混合物
+item.cobalt_polymetallic_concentrate.name=高钴多金属精矿
+item.heavy_sand_concentrate.name=重砂精矿
+item.rare_earth_concentrate.name=稀土精矿
+hbmfluid.tailings_slurry=尾砂浆
+hbmfluid.heavy_sand_slurry=重砂浆
+upgrade.riser_rig.speed=工作速度 %s
+upgrade.riser_rig.consumption=消耗 %s
+upgrade.riser_rig.output=单次资源产出量 %s
+upgrade.riser_rig.range=开采范围 %s
+nei.riser_rig.name=海面立管钻机 · 深海结核开采
+nei.riser_rig.cycle=每20秒开采一次
+nei.nuclear_explosion.name=次临界核爆发生器 · 增殖
+nei.nuclear_explosion.min=最低中子通量：%s
+nei.nuclear_explosion.req=需求中子通量：%s
+
+# ---- 铅锌冶炼(ISP 法)----
 tile.ore_leadzinc.name=铅锌矿
 item.leadzinc_concentrate.name=铅锌精矿
 item.leadzinc_sinter.name=铅锌烧结块
@@ -219,6 +388,9 @@ item.powder_sodium_sulfate.name=硫酸钠
 hbmfluid.sulfur_dioxide=二氧化硫
 hbmfluid.cadmium_liquor=含镉浸出液
 hbmfluid.zinc_sulfate=硫酸锌溶液
+hbmfluid.acetic_acid=乙酸
+hbmfluid.propylene_oxide=环氧丙烷
+hbmfluid.ethyl_acetate=乙酸乙酯
 hbmfluid.sodium_sulphite=亚硫酸钠溶液
 makentmgreatagain.leadzinc.float=铅锌矿浮选
 makentmgreatagain.leadzinc.roast=铅锌精矿氧化焙烧
@@ -230,7 +402,7 @@ makentmgreatagain.leadzinc.cementation=锌粉置换镉
 makentmgreatagain.leadzinc.shaft=铅锌烧结块还原熔炼
 makentmgreatagain.leadzinc.dearsenify=砷料脱砷浸出
 
-# ---- 白钨矿（湿法炼钨）----
+# ---- 白钨矿(湿法炼钨)----
 tile.ore_scheelite.name=白钨矿
 item.powder_scheelite.name=白钨矿粉
 item.scheelite_concentrate.name=白钨精矿
@@ -242,20 +414,264 @@ item.beryllium_concentrate.name=铍精矿
 item.zirconium_concentrate.name=锆精矿
 hbmfluid.sodium_tungstate=钨酸钠液
 hbmfluid.waste_acid=废酸
+hbmfluid.arsine=砷化氢
 
-# ---- 无氰浸金（硫代硫酸盐法）----
+# ---- 无氰浸金(硫代硫酸盐法)----
 tile.ore_refractory_gold.name=含砷金矿
 item.arsenical_residue.name=砷浸出渣
-# 流体名的 key 固定是 hbmfluid.<ModFluids 里 def() 第一个参数的全小写>，
-# 和第四个参数（贴图名）无关：SODIUM_THIOSULFATE 是 F 拼写，别照抄贴图名的 ph
 hbmfluid.sodium_thiosulfate=硫代硫酸钠溶液
 hbmfluid.gold_thiosulfate=金硫代硫酸溶液
+
+# ---- Duna(火星)变体矿石 ----
+tile.ore_leadzinc_duna.name=铅锌矿
+tile.ore_refractory_gold_duna.name=含砷金矿
+tile.ore_scheelite_duna.name=白钨矿
 makentmgreatagain.gold.thiosulfate=硫代硫酸钠合成
 makentmgreatagain.gold.leach=含砷金矿硫代硫酸盐浸出
+makentmgreatagain.gold.leachDuna=含砷金矿硫代硫酸盐浸出
 makentmgreatagain.gold.cementation=锌粉置换沉金
 makentmgreatagain.gold.residueRoast=砷浸出渣还原焙烧
 makentmgreatagain.chloralkali.thiosulfateDechlor=硫代硫酸钠脱氯
 makentmgreatagain.leadzinc.sulphite=碱液吸收二氧化硫
-makentmgreatagain.pulp.jungle.sulfate=丛林浆（硫酸盐法·芒硝）
+makentmgreatagain.pulp.jungle.sulfate=丛林浆
 makentmgreatagain.chloralkali.dechlor=亚硫酸钠脱氯
 makentmgreatagain.leadzinc.arsenicReduction=白砷碳热还原
+makentmgreatagain.leadzinc.arsine=白砷还原制砷化氢
+
+# ---- 复合材料储罐(护腿护甲改装件)----
+item.composite_tank.name=复合材料储罐
+desc.composite_tank.1=有效治疗易燃易爆和敏感肌
+desc.composite_tank.2=背包内[易燃易爆][遇水反应][自燃]不再触发
+
+# ---- 自动灭火器(护腿护甲改装件)----
+item.auto_extinguisher.name=自动灭火器
+desc.auto_extinguisher.1=着火时压制火势，并扑灭身边的火焰
+desc.auto_extinguisher.2=装在护腿上，放进储罐即可补充二氧化碳
+desc.auto_extinguisher.3=CO2
+desc.auto_extinguisher.4=站在岩浆里不工作；身上带着易燃易爆等危险品时不扑方块火
+
+tile.pipe_anchor_advanced.name=高级管锚
+tile.iron_mass_storage.name=大规模存储单元
+container.ironMassStorage=存储
+tile.deep_sea_nodule.name=深海结核混合物
+
+tile.mnga_battery.name=蓄电池(元件)
+tile.mnga_battery_lithium.name=锂蓄电池(元件)
+tile.mnga_battery_sodium.name=钠离子蓄电池(元件)
+tile.mnga_battery_schrabidium.name=Sa326蓄电池(元件)
+tile.mnga_battery_quantum.name=量子蓄电池(元件)
+tile.mnga_capacitor_gold.name=金电容(元件)
+tile.mnga_capacitor_niobium.name=铌电容(元件)
+tile.mnga_capacitor_tantalium.name=钽电容器(元件)
+tile.mnga_capacitor_schrabidate.name=Sa酸铁电容(元件)
+tile.mnga_battery_array_casing.name=电池组外壳
+tile.mnga_battery_array_port.name=电池组端口
+tile.mnga_battery_array_controller.name=电池组控制器
+tile.mnga_battery_array_shell.name=电池组外壳(成型)
+container.mnga_battery_array=大型电池组
+
+item.helicopter_pickaxe.name=耐摔合金镐
+item.helicopter_axe.name=耐摔合金斧
+
+item.heavy_sand_mix.name=重砂混粉
+item.thorium_concentrate.name=钍精矿
+item.pgm_concentrate.name=铂族精矿
+item.rare_earth_calcine.name=稀土熟料
+item.alkali_fused_sand.name=碱熔砂
+item.rare_earth_mix.name=稀土混粉
+item.mixed_re_hydroxide.name=混合稀土氢氧化物
+item.erbium_enriched_powder.name=铒富集粉
+item.polymetallic_mix.name=多金属混粉
+item.cobalt_hydroxide.name=氢氧化钴
+item.anode_mud.name=阳极泥
+item.potassium_chloroplatinate.name=氯铂酸钾
+
+hbmfluid.tailings_chloride=尾氯化气
+hbmfluid.tailings_heavy_fraction=尾氯重馏分
+hbmfluid.crude_platinum=粗铂液
+hbmfluid.re_mother_liquor=稀土母液
+hbmfluid.cobalt_liquor=钴料液
+hbmfluid.core_slurry=高密度地核原浆
+hbmfluid.core_melt=熔融地核混合物
+hbmfluid.heavy_slag=重核渣浆
+hbmfluid.ferro_melt=铁系熔融混合物
+hbmfluid.pgm_melt=铂系熔融混合物
+
+# 耐摔合金砸落的死亡播报(%1$s 是死者名字)
+death.attack.mnga.helicopter=%1$s 被牢大肘飞了...
+
+gui.recipe.heat=热量
+gui.recipe.catalyst=所需催化剂
+makentmgreatagain.gui.recipe.power=耗电
+makentmgreatagain.large.balefireQuench=野火淬灭
+makentmgreatagain.large.watzTreatment=毒泥浆热处理
+makentmgreatagain.pyro.solidfuel=固体燃料合成
+makentmgreatagain.pyro.solidfuel.desc1=4个输入罐可同时装4种可制燃料的流体$各罐按自身比例独立产出固体燃料
+makentmgreatagain.pyro.solidfuel.desc2=余料不足一块燃料时,自动烧成细烟灰
+
+# ---- 成就(Minecraft 原生成就系统，成就界面里单独一页：MNGA)----
+
+achievement.mnga_scheelite_mined=芜！
+achievement.mnga_scheelite_mined.desc=你的第一块白钨矿。
+
+achievement.mnga_scheelite_acid=这是什么，能吃吗？
+achievement.mnga_scheelite_acid.desc=黄色的滤饼，一点都不好吃。
+
+achievement.mnga_tungsten_carbide=高强度碳化钨
+achievement.mnga_tungsten_carbide.desc=熔点第二，硬度第一。
+
+achievement.mnga_nothing_smelt=滚木？
+achievement.mnga_nothing_smelt.desc=你把白钨矿丢进了熔炉。熔炉认真地烧完了，然后什么也没给你。
+
+achievement.mnga_scheelite_300=这就是全部了
+achievement.mnga_scheelite_300.desc=累计挖掉 300 块白钨矿。
+
+achievement.mnga_waste_acid=我应该把世界泡在酸里。
+achievement.mnga_waste_acid.desc=攒够 16 份钨酸，等于存下了一万多毫桶废酸。别喝。
+
+achievement.mnga_beryllium_conc=尘封的故事
+achievement.mnga_beryllium_conc.desc=从浸出渣里分出一份铍精矿。
+
+achievement.mnga_arsenic_cake=别舔
+achievement.mnga_arsenic_cake.desc=三氧化二砷。摸完记得洗手。
+
+achievement.mnga_arsenic_nugget=拿命换的
+achievement.mnga_arsenic_nugget.desc=把白砷还原成砷粒。
+
+achievement.mnga_seawater=抽上来的不是水
+achievement.mnga_seawater.desc=泵里抽出来的水，怎么这么咸？
+
+achievement.mnga_chlorine=这是要命的！
+achievement.mnga_chlorine.desc=电解出氯气。
+
+achievement.mnga_lithium=从这锂开始
+achievement.mnga_lithium.desc=从含矿液里提出锂粉。
+
+achievement.mnga_zinc=我的“心”都碎了！
+achievement.mnga_zinc.desc=断头台夺走了我的心！
+
+achievement.mnga_hover=我飞了
+achievement.mnga_hover.desc=穿着电力悬浮作业背包离地。
+
+achievement.mnga_escape_abyss=逃离深渊
+achievement.mnga_escape_abyss.desc=尼古丁中毒身亡。你飞升了，或者说，跳过了结算界面。
+
+achievement.mnga_fork_shock=酥酥麻麻
+achievement.mnga_fork_shock.desc=这个不小心的家伙把自己当成鱼了。
+
+achievement.mnga_pump_overworked=吃力不讨好
+achievement.mnga_pump_overworked.desc=她好像不太开心，是为什么呢？
+
+achievement.mnga_sea_dredge=海底捞
+achievement.mnga_sea_dredge.desc=原来这才是真的海底捞。
+
+achievement.mnga_big_is_good=大就是好
+achievement.mnga_big_is_good.desc=放下大型催化化工厂或混合催化分馏塔。
+
+achievement.mnga_absolute_zero=绝对零度
+achievement.mnga_absolute_zero.desc=你是怎么做到的！？
+
+achievement.mnga_helicopter=MAN！
+achievement.mnga_helicopter.desc=做出一架直升机。
+
+achievement.mnga_pump_strike=她罢工了
+achievement.mnga_pump_strike.desc=你把她架到了云上。她算了算，觉得不值，于是坐下了。
+
+achievement.mnga_helicopter_elements=HeLiCoPtEr
+achievement.mnga_helicopter_elements.desc=氦锂钴铂铒。很奇怪的合金，念一遍试试？
+
+achievement.mnga_ruin_estate=遗迹房地产
+achievement.mnga_ruin_estate.desc=你装修了一座没人要的屋子。
+
+# ---- 电锅炉（移植原版） ----
+tile.machine_boiler_electric_off.name=电锅炉
+tile.machine_boiler_electric_on.name=电锅炉
+container.machineElectricBoiler=电锅炉
+makentmgreatagain.electric_boiler.heat_info=产热速率：$  1.5°C/tick$  即 30°C/秒$耗热速率：$  0.15°C/tick$  即 3.0°C/秒（基础）$  0.25°C/tick$  即 5.0°C/秒（达到沸点后）$  0.4°C/tick$  即 8.0°C/秒（每再叠加一倍沸点热值）
+makentmgreatagain.electric_boiler.rate_info=沸腾速率：$  基础速率 × 热量已达到的$  沸点热值整数倍
+makentmgreatagain.electric_boiler.error_info=错误：该液体无法被加热沸腾！
+item.ingot_threx.name=Threx锭
+item.ingot_threx.desc=§cIt's too heavy!!!
+item.powder_threx.name=Threx粉
+item.powder_threx.desc=§cIt's too heavy!!!
+tile.block_threx.name=Threx块
+tile.block_threx.desc=§cIt's too heavy!!!
+tile.threx_shield_brick.name=Threx屏蔽砖
+tile.threx_shield_glass.name=Threx屏蔽玻璃
+
+item.core_uranium_fuel.name=铀燃料核心
+item.core_thorium_fuel.name=钍燃料核心
+item.core_plutonium_fuel.name=钚燃料核心
+item.core_sr90.name=锶-90核心
+item.core_cs137.name=铯-137核心
+item.core_i131.name=碘-131核心
+item.core_co60.name=钴-60核心
+item.core_u233.name=铀-233核心
+item.core_u235.name=铀-235核心
+item.core_pu239.name=钚-239核心
+item.core_pu241.name=钚-241核心
+item.core_am241.name=镅-241核心
+item.core_am242.name=镅-242核心
+item.core_schrabidium.name=Sa326核心
+item.core_lithium_deuteride.name=氘化锂核心
+item.core_helium.name=气凝氦核心
+item.core_balefire.name=野火核心
+tooltip.makentmgreatagain.edible=§7[可食用]
+tooltip.makentmgreatagain.inedible=§8[不可食用]
+
+# 机器覆层（五级，接手 HBM 的 fusion_shield_* 遗留位）
+item.coating_tungsten.name=钨金属覆层
+item.coating_cmb.name=CMB覆层（铸造）
+item.coating_threx.name=Threx覆层
+item.coating_chlorophyte.name=叶绿覆层
+item.coating_dnt.name=Dnt覆层
+desc.coating.stored=已装：%s mB
+item.core_sa327.name=Sa327核心
+item.core_australium_greater.name=富集奥斯核心
+item.core_mamba.name=曼巴核心
+item.coating_mamba.name=曼巴覆层
+desc.coating.capacity=流体容量上限：%s mB
+item.core_platinum_residue.name=高密度地核铂残渣
+
+# ===== 塔可夫食物与杂项（17 件，ModTarkovFood）=====
+itemGroup.makentmgreatagain_food=让HBM再次伟大：食物与杂项
+item.can_gigabeef.name=GigaBeef 咸牛肉罐头
+item.can_condensed_milk.name=炼乳罐头
+item.can_tushonka.name=炖牛肉罐头
+item.can_green_peas.name=青豆罐头
+item.can_sprats.name=油浸西鲱鱼罐头
+item.can_duck_pate.name=鸭肝酱罐头
+item.can_squash.name=蔬菜泥罐头
+item.bar_alyonka.name=阿廖卡巧克力
+item.bar_slickers.name=士腻架
+item.pack_sugar.name=方糖
+item.jar_devildog.name=DevilDog 蛋黄酱
+item.bottle_moonshine.name=私酒
+item.bottle_vodka.name=伏特加
+item.bottle_whiskey.name=威士忌
+item.bottle_beer.name=啤酒
+item.croutons_emelya.name=叶梅利亚面包块
+item.bread_baguette.name=法棍
+
+# ===== 塔可夫食物原始描述（游戏内 tooltip，取自塔可夫官方文本）=====
+desc.can_gigabeef=限量款的超大号 GigaBeef 咸牛肉罐头，采用传统英式配方制作。有人说，在享用完这么高水准的一餐之后，连思路都更加清晰了……至于效果确实如此，还是在渴死之前的幻觉，自然是因人而异。
+desc.can_condensed_milk=炼乳在俄语中被称作“Sguschyonka”，也就是所谓的稠牛奶。虽然炼乳罐头最早在美国南北战争时期作为联邦军的野战配给大量配发，但其真正流行却是在苏东国家，几乎是过去唯一常见的乳制品。罐装炼乳可储存数十年而不腐坏，依然保留着苏联时代的香甜口感与营养。
+desc.can_tushonka=一大罐炖牛肉罐头，通常被叫做 Tushonka，可储存数年之久。这使它在军事和旅游时的食品供应中，重要性堪比炼乳。
+desc.can_green_peas=富含维生素和硒的豌豆罐头，在“诺文斯克”地区更能凸显出它的价值。
+desc.can_sprats=Alconafter 公司制造的美味西鲱鱼罐头，开罐即食。
+desc.can_duck_pate=诺尔文斯克家禽厂生产的熟制肉制品，开罐即食，涂在面包上吃香极了。本品制作过程中没有任何鸭子受到伤害，大概吧。
+desc.can_squash=跟什么都很配的一罐精品蔬菜泥，富含维生素与矿物质。
+desc.bar_alyonka=后苏联时代最好的牛奶巧克力，香甜又多脂。
+desc.bar_slickers=可供快速食用的甜味能量棒，含有均衡的蛋白质、膳食纤维和维他命，就是甜得有点腻。
+desc.pack_sugar=一包方糖。在食物短缺的状况下是很珍贵的东西，它也可以被用作酿造。
+desc.jar_devildog=Devildog牌蛋黄酱在塔科夫相当有名，推荐与煮土豆一起食用。
+desc.bottle_moonshine=一等一的“月光”（私酒）从藏身处径直流出。经过六次蒸馏、纯化、结晶和电离的煮沸过程，才创造出了这79度的饮料。请记住，喝酒会导致令人悲伤的后果。
+desc.bottle_vodka=塔科夫斯卡娅火焰水“Tarkovskaya fire water”。原则上不建议使用，酒精是有害的，但有时战斗过后很需要放松。毕竟，喝了之后不需要冲进51区就可以看到那些外星人。
+desc.bottle_whiskey=PMC中最为流行的威士忌。这种饮料的独特过滤方式是通过燃烧取得萨马拉糖白桦获得的木炭来实现的。饮料看上去像是含有酒精的，而酒精是有害的。特别是对像你这样的战士来说。
+desc.bottle_beer=Mmmmm... Pevko。来自塔科夫街区的传奇饮品。
+desc.croutons_emelya=Emelya什锦口味的烤黑麦面包块曾是青少年和酒鬼们的最爱，可那些人离开了，零食却被遗留了下来。
+desc.bread_baguette=一根传统法式法棍，严格遵循 1993 年《法国面包法令》的标准烘焙而成。许多 TerraGroup 员工甚至愿意在上班途中特意绕远路，只为买上一根。每根法棍上都印有烘焙师留下的独特“Cocaoo_”印记，因此很容易辨认。
+
+# ===== 无线充电 =====
+tile.wireless_station.name=无线充电站
+item.wireless_connector.name=无线充电连接器

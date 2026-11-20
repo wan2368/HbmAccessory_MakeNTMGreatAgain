@@ -37,7 +37,7 @@ public class ItemFluidDestroyer extends ItemWithDesc {
 	/** 这种流体是否会把这个罐子吃掉 */
 	public boolean isDestroyedBy(FluidType type) {
 		if(type == null) return false;
-		if(this.diesToHighlyCorrosive && type.isHighlyCorrosive()) return true;
+		if(this.diesToHighlyCorrosive && com.makentmgreatagain.compat.HBMVersionCompat.isHighlyCorrosive(type)) return true;
 		if(this.diesToCorrosive && type.isCorrosive()) return true;
 		return false;
 	}

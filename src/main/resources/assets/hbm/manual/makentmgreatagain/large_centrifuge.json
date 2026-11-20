@@ -1,0 +1,21 @@
+{
+	"name": "Large Centrifuge",
+	"icon": [
+		"makentmgreatagain:large_centrifuge",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:large_centrifuge"
+		]
+	],
+	"title": {
+		"en_US": "Large Centrifuge",
+		"zh_CN": "大型离心机"
+	},
+	"content": {
+		"en_US": "5x5x3. Two item lines share one progress bar, plus a separate fluid line. The two do not run at the same time.<br><br>All twelve ports are universal - power, fluid and items on every one. No need to match output tanks to compass directions.<br><br>Parallel 1/2/4/8 in the GUI. It does not raise power use, which stays a flat 10,000 HE/t x upgrade multiplier.<br><br>WARNING: coolant is cold tetrafluoromethane at 3 mB/t x multiplier x parallel x 2. It is drained whenever the switch is on, even with no input. Running out cancels the batch and the output is lost, with no message.<br><br>Changing recipe or fluid resets progress to zero. Base speed is 180 ticks per batch.<br><br>See also:<br>[[Ores and Mining|Addon Ores]]<br>[[Fluid Cooler|Fluid Cooler]]",
+		"zh_CN": "两条物品线共用一条进度, 另有一条独立流体线, 两者不同时运行。<br><br>并行 1/2/4/8 在 GUI 里设, 不增加耗电, 耗电恒为 10,000 HE/t x 升级倍率。<br><br>注意: 冷却剂是冷四氟甲烷, 3 mB/t x 倍率 x 并行 x 2。只要开关开着就照扣, 与有没有原料无关。冷却剂耗尽会取消当批、产物直接丢失, 且不提示。<br><br>换配方或换流体会把进度清零。基础 180 tick 一批。<br><br>另见:<br>[[矿物与采掘|Addon Ores]]<br>[[流体冷却机|Fluid Cooler]]"
+	}
+}

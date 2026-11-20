@@ -1,0 +1,30 @@
+{
+	"name": "Nuclear Explosion Generator",
+	"icon": [
+		"makentmgreatagain:machine_nuclear_explosion_generator",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:machine_nuclear_explosion_generator"
+		],
+		[
+			"makentmgreatagain:coating_tungsten"
+		],
+		[
+			"makentmgreatagain:coating_cmb"
+		],
+		[
+			"makentmgreatagain:coating_threx"
+		]
+	],
+	"title": {
+		"en_US": "Subcritical Nuclear Explosion Generator",
+		"zh_CN": "次临界核爆发生器"
+	},
+	"content": {
+		"en_US": "13x13x17 tower. Charges for 20 seconds, detonates, dissipates for 20, turning liquid sodium into hot sodium and flooding neutron flux into items to breed them.<br><br>The cladding sets the sodium tank capacity. Without cladding you get only 64,000 mB, but cores need 150k to 8M - so with no cladding it always reads low coolant and can never run.<br><br>WARNING: taking the cladding out while it charges detonates immediately at double yield. Breaking any structure block while charging does the same, and doubles the fallout.<br><br>Power is charged the instant you press the button; losing power afterwards does not stop the run. Cancelling does not refund it.<br><br>Auto mode: shift-click the run key. It waits 10 extra seconds after cooling before firing again.<br><br>Only the breeding output slots can be pulled by pipes.<br><br>See also:<br>[[Core Lava Extractor|Core Lava Extractor]]",
+		"zh_CN": "使用Threx高密度腔体, 把液态钠转成高温钠, 并向物品灌中子通量做增殖。<br><br>覆层决定钠罐容量。不插覆层只有 64,000 mB, 而核心需钠 15 万~800 万, 所以没覆层时永远报「冷却剂不足」。<br><br>注意: 充能中取走覆层会立即引爆, 当量翻倍。充能中拆掉任意一块结构同样引爆, 且辐射再翻倍。<br><br>电在按下按钮那一刻扣完, 之后断电不影响本轮, 但取消不退电。<br><br>自动模式: Shift 点运行键, 冷却结束后再等 10 秒才引爆。<br><br>另见:<br>[[地核熔岩开采机|Core Lava Extractor]]"
+	}
+}

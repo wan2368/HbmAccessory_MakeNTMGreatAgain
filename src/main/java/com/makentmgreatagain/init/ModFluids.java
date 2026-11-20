@@ -36,6 +36,7 @@ import com.hbm.util.ArmorRegistry.HazardClass;
 import com.hbm.render.util.EnumSymbol;
 import com.hbm.util.CompatFluidRegistry;
 import com.makentmgreatagain.MakeNTMGreatAgain;
+import com.makentmgreatagain.fluid.FT_CoreTank;
 
 import api.hbm.fluidmk2.IFluidRegisterListener;
 import net.minecraft.item.ItemStack;
@@ -43,36 +44,20 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
 
 /**
- * 本模组的 HBM 流体注册中心。
+ * 本模组的 HBM 流体注册中心。加一种新流体只需在常量区写一行 def(...)，
+ * 容器、metaOrder、燃料特性、储罐贴图都由下面的 FluidDef 统一处理。
  *
- * <p>设计目标：<b>加一种新流体只需要写一行 def(...)</b>，不用再碰 init()、监听器、metaOrder、
- * 容器、燃料特性这些样板代码 —— 全部由下面的 FluidDef 统一处理。</p>
- *
- * <h3>加一种新流体（三步，其中只有第 1 步是必须的）</h3>
  * <pre>
- * // 1) 在下面的常量区加一行：
  * public static final FluidDef BRINE = def("BRINE", 2002, 0x1DBBF5, "water").liquid().canister(0x1DBBF5);
- *
- * // 2) 想让它能烧（可选）：
- * public static final FluidDef MY_FUEL = def("MY_FUEL", 2003, 0xFFAA00, "fuel")
- *         .liquid()
- *         .fuel(120_000L, FuelGrade.MEDIUM, 2.5D)   // 每桶 120k 热量，燃烧值 = 120k*2.5
- *         .canister(0xFFAA00);
- *
- * // 3) 用的时候：ModFluids.BRINE.type / ModFluids.BRINE.stack(1000)
+ * // 能烧的再加 .fuel(120_000L, FuelGrade.MEDIUM, 2.5D)
+ * // 用的时候：ModFluids.BRINE.type / ModFluids.BRINE.stack(1000)
  * </pre>
  *
- * <h3>燃料特性对应哪些机器（源码依据）</h3>
- * <ul>
- *   <li>{@link FT_Flammable}：产热（TU）。加热器 TileEntityHeaterOilburner 每 mB 得到
- *       heatEnergy/1000 点热量；燃气火炬 TileEntityMachineGasFlare 拿它发电；火焰炮塔也读它。</li>
- *   <li>{@link FT_Combustible}：产电（HE）。内燃机 TileEntityMachineCombustionEngine
- *       每 mB 得到 combustionEnergy/10000 * 效率 的 HE；柴油发电机、燃气轮机、涡轮风扇同理。</li>
- *   <li>FuelGrade 决定“哪类机器愿意烧”：LOW=加热油/工业油，MEDIUM=汽油，HIGH=柴油，
- *       AERO=煤油/航空燃料，GAS=天然气/可燃气。</li>
- * </ul>
+ * <p>{@link FT_Flammable} 产热（TU，加热器与火炬读它）；{@link FT_Combustible} 产电（HE，
+ * 内燃机、柴油机、燃气轮机读它）。FuelGrade 决定哪类机器愿意烧：
+ * LOW 加热油/工业油，MEDIUM 汽油，HIGH 柴油，AERO 煤油，GAS 天然气。</p>
  *
- * <p>注意：ID 与内部名一旦发布就不能改（存档、管道、容器 meta、配方 JSON 都按它们记录）。</p>
+ * <p>ID 与内部名一旦发布就不能改（存档、管道、容器 meta、配方 JSON 都按它们记录）。</p>
  */
 public final class ModFluids {
     private static final List<FluidDef> ALL = new ArrayList<FluidDef>();
@@ -80,10 +65,8 @@ public final class ModFluids {
     /**
      * 流体 -> 储罐模型贴图。
      *
-     * 为什么需要这张表：HBM 的 FluidType 里只存了“GUI 里罐子的液体贴图”，
-     * 储罐模型贴图是 RenderFluidTank 按 hbm 命名空间 + 流体内部名拼出来的
-     * （hbm:textures/models/tank/tank_<NAME>.png），附属的图它永远找不到。
-     * 所以这里给每个流体单独记一张，客户端渲染器 RenderModFluidTank 按 FluidType 查。
+     * <p>HBM 的 RenderFluidTank 按 hbm 命名空间拼 {@code tank_<NAME>.png}，找不到附属的图，
+     * 所以这里单独记一张，由 RenderModFluidTank 按 FluidType 查。</p>
      */
     private static final Map<FluidType, ResourceLocation> TANK_TEXTURES = new HashMap<FluidType, ResourceLocation>();
 
@@ -134,6 +117,21 @@ public final class ModFluids {
 			.temp(20)
 			.canister(0x008DB6)
 			.tankTexture("tank_SALT_SEA_WATER");
+
+	/** 乙酸 */
+	public static final FluidDef ACETIC_ACID = def("ACETIC_ACID", 2049, 0xdddddd, "acetic_acid")
+		.liquid()
+		.canister(0xdddddd)
+		.temp(20)
+		.tankTexture("tank_ACETIC_ACID");
+
+	/** 环氧丙烷 */
+	public static final FluidDef PROPYLENE_OXIDE = def("PROPYLENE_OXIDE", 2050, 0x8FD4C4, "propylene_oxide")
+		.liquid()
+		.canister(0x8FD4C4)
+		.temp(20)
+		.flammable(120_000L)
+		.tankTexture("tank_PROPYLENE_OXIDE");
 
 	/** 含矿液：树脂吸附海水后富集出来的混合矿液，锂、铀、硼的原料。 */
 	public static final FluidDef ORE_LIQUOR = def("ORE_LIQUOR", 2011, 0x9A6B1E, "ore_liquor")
@@ -233,7 +231,7 @@ public final class ModFluids {
 			.viscous()                                    // 黏稠：不能喷雾/雾化
 			.temp(20)
 			.hazard(0, 1, 0, EnumSymbol.NONE)
-			.fuel(100_000L, FuelGrade.LOW, 2.0D)          // 甘油：10万 TU / 20万 HE，闪点 160°C 只配当低级油
+			.fuel(140_000L, FuelGrade.LOW, 2.0D)          // 甘油：14万 TU / 28万 HE，闪点 160°C 只配当低级油
 			.canister(0xE8E4D2)
 			.tankTexture("tank_GLYCEROL");
 
@@ -242,7 +240,7 @@ public final class ModFluids {
 			.liquid()
 			.temp(20)
 			.hazard(1, 3, 2, EnumSymbol.NONE)             // 可燃 3：闪点低、蒸气易爆
-			.fuel(430_000L, FuelGrade.HIGH, 5.4D)         // 硝基甲烷：40万 TU / 200万 HE，加压制得，自带氧可极富油燃烧
+			.fuel(780_000L, FuelGrade.HIGH, 5.4D)         // 硝基甲烷：78万 TU / 421.2万 HE，加压制得，自带氧可极富油燃烧
 			.trait(Fluids.P_FUEL)                         // 燃烧生 NOx：按精炼油排放
 			.canister(0xE0D48E)
 			.tankTexture("tank_NITROMETHANE");
@@ -252,7 +250,7 @@ public final class ModFluids {
 			.liquid()
 			.temp(20)
 			.hazard(2, 2, 0, EnumSymbol.NONE)             // 毒 2：经皮吸收，伤血红素
-			.fuel(550_000L, FuelGrade.MEDIUM, 5.5D)       // 硝基苯：32万 TU / 160万 HE，芳环燃烧冒黑烟
+			.fuel(854_000L, FuelGrade.MEDIUM, 5.5D)       // 硝基苯：85.4万 TU / 469.7万 HE，芳环燃烧冒黑烟
 			.trait(SOOT_AROMATIC)
 			.canister(0xC6C266)
 			.tankTexture("tank_NITROBENZENE");
@@ -262,7 +260,7 @@ public final class ModFluids {
 			.liquid()
 			.temp(20)
 			.hazard(3, 1, 2, EnumSymbol.NONE)             // 毒 3 / 反应 2：受热或混入还原剂会剧烈分解
-			.fuel(610_000L, FuelGrade.HIGH, 9.3D)         // 二硝基苯：48万 TU / 336万 HE，富氧爆燃做功强
+			.fuel(960_000L, FuelGrade.HIGH, 9.3D)         // 二硝基苯：96万 TU / 892.8万 HE，富氧爆燃做功强
 			.trait(SOOT_AROMATIC)
 			.canister(0xD2A63C)
 			.tankTexture("tank_DINITROBENZENE");
@@ -272,7 +270,7 @@ public final class ModFluids {
 			.liquid()
 			.temp(20)
 			.hazard(3, 1, 0, EnumSymbol.NONE)             // 毒 3：血液毒，HBM 里按高毒处理
-			.fuel(720_000L, FuelGrade.MEDIUM, 15.0D)      // 苯胺：35万 TU / 350万 HE，压过煤油，三期主力
+			.fuel(1350_000L, FuelGrade.MEDIUM, 15.0D)      // 苯胺：135万 TU / 2025万 HE，压过煤油，三期主力
 			.trait(SOOT_ANILINE)
 			.canister(0xA86632)
 			.tankTexture("tank_ANILINE");
@@ -282,7 +280,7 @@ public final class ModFluids {
 			.liquid()
 			.temp(20)
 			.hazard(1, 2, 0, EnumSymbol.NONE)
-			.fuel(660_000L, FuelGrade.AERO, 17.0D)        
+			.fuel(975_000L, FuelGrade.AERO, 17.0D)        
 			.trait(Fluids.P_FUEL)
 			.canister(0xBEC49A)
 			.tankTexture("tank_TBP_KERO");
@@ -292,7 +290,7 @@ public final class ModFluids {
 			.liquid()
 			.temp(20)
 			.hazard(1, 3, 0, EnumSymbol.NONE)
-			.fuel(950_000L, FuelGrade.HIGH, 19.0D) 
+			.fuel(2750_000L, FuelGrade.HIGH, 11.0D) 
 			.trait(Fluids.P_FUEL)
 			.canister(0x3F8AA0)                           // 铁罐压深一档，免得罐身与液体同色看不清
 			.tankTexture("tank_AVGAS_RU");
@@ -350,7 +348,7 @@ public final class ModFluids {
 			.liquid()
 			.temp(20)
 			.hazard(2, 2, 0, EnumSymbol.NONE)
-			.fuel(300_000L, FuelGrade.MEDIUM, 6.0D)       // 30万 TU / 180万 HE，芳酮类溶剂
+			.fuel(430_000L, FuelGrade.MEDIUM, 6.0D)       // 43万 TU / 258万 HE，芳酮类溶剂
 			.trait(SOOT_AROMATIC)
 			.canister(0xD8C078)
 			.tankTexture("tank_PHENYLACETONE");
@@ -358,13 +356,8 @@ public final class ModFluids {
 
 	//注意从2005开始：
     /**
-     * 【全属性示例流体】—— 把所有能加的属性都加了一遍，用来对照“写法 ↔ 实际效果”。
-     *
-     * 这是真会注册的流体（id 2999），不需要就整段删掉/注释掉。
-     * 其中“互斥/极端”的属性（反物质、纯铅罐、隐藏 ID、禁止容器）用注释给出写法，默认不启用，
-     * 否则会盖掉普通容器的行为。
-     *
-     * 具体每个属性的效果见下方 FluidDef 各方法的注释；游戏内可用流体识别码选“示例流体”验证。
+     * 【全属性示例流体】把所有能加的属性都写了一遍，当作「写法 ↔ 实际效果」的对照表。
+     * 真正会注册（id 2999），不需要就整段删掉；互斥/极端的属性在下面用注释给出写法。
      */
     public static final FluidDef EXAMPLE = def("EXAMPLE_FLUID", 2999, 0xFF00FF, "water")
             .liquid()                 // 液体：喷雾/雾化、多数机器只收液体
@@ -450,7 +443,7 @@ public final class ModFluids {
     /**
      * 硫代硫酸钠溶液（大苏打）：无色透明，微凉感，工业上最常用的无氰还原剂。
      */
-    public static final FluidDef SODIUM_THIOSULFATE = def("SODIUM_THIOSULFATE", 2044, 0xDCE4E0, "sodium_thiosulphate")
+    public static final FluidDef SODIUM_THIOSULFATE = def("SODIUM_THIOSULFATE", 2044, 0xDCE4E0, "sodium_thiosulfate")
             .liquid()
             .temp(30)
             .hazard(1, 0, 0, EnumSymbol.NONE)
@@ -460,7 +453,7 @@ public final class ModFluids {
     /**
      * 金硫代硫酸溶液：含金络合物 {@code [Au(S2O3)2]3-} 的淡金色浸出液。
      */
-    public static final FluidDef GOLD_THIOSULFATE = def("GOLD_THIOSULFATE", 2045, 0xD9A93C, "gold_thiosulphate")
+    public static final FluidDef GOLD_THIOSULFATE = def("GOLD_THIOSULFATE", 2045, 0xD9A93C, "gold_thiosulfate")
             .liquid()
             .temp(40)
             .hazard(1, 0, 0, EnumSymbol.NONE)
@@ -502,6 +495,346 @@ public final class ModFluids {
             .tankTexture("tank_WASTE_ACID");
 
     /**
+     * 砷化氢 AsH₃：白砷被锌粉在硫酸里还原出来的气体，是"白砷 → 砷粒"唯一通道。
+     *
+     * <p>现实里 As₂O₃ + 3Zn + 3H₂SO₄ → 2AsH₃ + 3ZnSO₄ + 3H₂O，砷以胘化物形式逸出后
+     * 再热分解才得到单质砷。走这条线而不是高炉碳热还原，是因为它必须消耗锌粉，
+     * 而锌粉只从本模组 ISP 铅锌线来 —— 砷是 HBM 的 RBMK 之后门控材料
+     * （{@code OreDictManager.ANY_BISMOID}），不该被白钨矿副产物绕过去。</p>
+     *
+     * <p>毒性照 HBM 自己的氯气/光气同一口径：{@code ToxinDirectDamage(cloud, 2F, 20, GAS_LUNG)}，
+     * 按防毒面具判定，无防护时每 20 tick 扣 2 点血。泄漏记重金属污染（砷是类金属毒物，
+     * 语义上比 POISON 更贴切），量级取 HBM "剧毒"档 POISON_EXTREME 的同等系数 0.025。</p>
+     *
+     * <p>不给燃烧值：砷化氢现实中极易燃甚至常温自燃，但一旦挂上 FT_Flammable/FT_Combustible，
+     * 玩家就会把它当燃料烧掉来"处理"，这条链的门槛就没了。所以刻意做成不可燃。</p>
+     */
+    public static final FluidDef ARSINE = def("ARSINE", 2048, 0x5E8C7A, "arsine")
+            .gaseous()
+            .temp(-60)                                       // 沸点 -62.5°C
+            .hazard(4, 4, 0, EnumSymbol.NONE)                 // NFPA 健康 4 / 易燃 4 / 反应 0
+            .toxin(new FT_Toxin.ToxinDirectDamage(com.hbm.lib.ModDamageSource.cloud, 2F, 20, HazardClass.GAS_LUNG, false))
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.025F))
+            .gasTank(0x5E8C7A, 0xFFFFFF)
+            .tankTexture("tank_ARSINE");
+
+    // =====================================================================================
+    //  深海结核开采 · id 2051 ~ 2052（湿法线的入口：两股矿浆）
+    //
+    //  这两个是「浆」不是「液」，所以都带 .viscous()：管道流速减半、不能喷雾，
+    //  和化冶线那 5 个料液（刻意不加 viscous）正好形成对照 —— 浆要慢慢走，料液要快。
+    //
+    //  属性参照对象是 HBM 自己的赤泥 REDMUD（拜耳法废渣，同一类东西）：
+    //    FluidType("REDMUD", 0xD85638, 3, 0, 4).addTraits(LIQUID, VISCOUS, LEADCON,
+    //        new FT_Corrosive(60), new FT_Polluting().release(POISON, POISON_EXTREME))
+    //    + FT_Toxin(ToxinEffects(GAS_BLISTERING) + 凋零 II 30s)
+    //  赤泥是 pH 12~13 的强碱渣，我们这两股只是洗选/重选加水磨出来的矿浆（近中性偏碱），
+    //  所以腐蚀只给 15~20，毒素也削一档 —— 不要照抄 60 和凋零，那是拜耳法的量级。
+    //
+    //  FT_Toxin 的生效场合要留意：只有 EntityMist（雾）和 EntityChemical（化学弹）会调
+    //  FT_Toxin.affect()，站在液体里本身不会中毒。也就是说这两条毒素实际生效的场景是
+    //  「罐子被打破溅一身 / 挨了化学弹」，而不是「掉进尾矿池就掉血」。
+    //
+    //  两股都不给 FT_Flammable：矿浆烧不起来，写了也只会误导玩家拿去烧。
+    // =====================================================================================
+
+    /**
+     * 尾砂浆：结核洗选后剩下的细粒尾矿浆，灰褐色悬浮液。
+     *
+     * <p>选矿废水，pH 8~9（弱碱），带走的细泥里有镍铜钴锰的氢氧化物胶体，所以：
+     * 腐蚀 20（弱碱，是赤泥 60 的三分之一）、毒污染 0.15×POISON_EXTREME、重金属 0.06。
+     *
+     * <p>毒素只给「皮肤刺激 + 短暂挖掘疲劳」：泥浆糊手上会打滑，但不至于中毒 ——
+     * 尾砂浆在整条链里的定位恰恰是「好东西已经被选走了」，毒性比后面任何一股料液都低。
+     * 挖掘疲劳取 120 tick（6 秒）、等级 I，够让玩家意识到该洗个手，不影响正常干活。</p>
+     */
+    public static final FluidDef TAILINGS_SLURRY = def("TAILINGS_SLURRY", 2051, 0x8C8577, "tailings_slurry")
+            .liquid()
+            .viscous()
+            .temp(20)
+            .hazard(1, 0, 0, EnumSymbol.NONE)         // 健康 1：弱碱废水，不燃不爆
+            .corrosive(20)                            // 弱碱，赤泥(60)的三分之一
+            .toxin(new FT_Toxin.ToxinEffects(HazardClass.GAS_BLISTERING, false)
+                    .add(new net.minecraft.potion.PotionEffect(net.minecraft.potion.Potion.digSlowdown.id, 120, 0)))
+            .polluting(new FT_Polluting()
+                    .release(PollutionType.POISON, Fluids.POISON_EXTREME * 0.15F)
+                    .release(PollutionType.HEAVYMETAL,
+                            com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.06F))
+            .canister(0x8C8577)
+            .tankTexture("tank_TAILINGS_SLURRY");
+
+    /**
+     * 重砂浆：重选富集出来的重矿物浓浆（锆石、钛铁矿、独居石、磷钇矿），深褐色。
+     *
+     * <p>这是两股里重金属浓度最高的一股：独居石本身就是铈镧系与钍的磷酸盐，锆石里还
+     * 常带铀钍，所以重金属污染给 0.12 —— 尾砂浆的两倍、钴料液的 1.5 倍。腐蚀只给 15，
+     * 重选全程是清水介质，比洗选废水还温和。
+     *
+     * <p><b>刻意不给 FALLOUT（核沉降污染）</b>：独居石确实含 ThO₂（通常 5~10%），
+     * 但矿浆阶段钍还锁在磷酸盐晶格里，既不挥发也不溶出；判成核污染会让整片矿区变成
+     * 辐射区，手感和平衡都不对。钍的放射性留到「钍精矿 → 酸浸」那一步再单独处理。
+     *
+     * <p>毒素给「皮肤刺激 + 轻度中毒」：重金属细颗粒沾在皮肤上会起疹、吸进去会中毒，
+     * 中毒取 100 tick（5 秒）、等级 I（不会致死，最低留 1 点血）。</p>
+     */
+    public static final FluidDef HEAVY_SAND_SLURRY = def("HEAVY_SAND_SLURRY", 2052, 0x6B5A44, "heavy_sand_slurry")
+            .liquid()
+            .viscous()
+            .temp(20)
+            .hazard(2, 0, 0, EnumSymbol.NONE)         // 健康 2：重矿物 + 伴生钍，仍不可燃
+            .corrosive(15)                            // 清水介质，比尾砂浆还温和
+            .toxin(new FT_Toxin.ToxinEffects(HazardClass.GAS_BLISTERING, false)
+                    .add(new net.minecraft.potion.PotionEffect(net.minecraft.potion.Potion.poison.id, 100, 0)))
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.12F))
+            .canister(0x6B5A44)
+            .tankTexture("tank_HEAVY_SAND_SLURRY");
+
+    // =====================================================================================
+    //  化冶线 · id 2053 ~ 2057（深海结核湿法支线的 5 个中间流体）
+    //
+    //  贴图已落盘，路径固定：
+    //    GUI 小图   assets/makentmgreatagain/textures/gui/fluids/<textureName>.png
+    //    储罐模型   assets/makentmgreatagain/textures/tank/tank_<NAME>.png
+    //  罐子必须逐条 .tankTexture()：HBM 的 RenderFluidTank 按 hbm 命名空间拼路径，
+    //  只把文件放进去不登记，是找不到这张图的。
+    //
+    //  属性口径（照 HBM 本体那套，不要自己另发明一套）：
+    //    · 腐蚀 FT_Corrosive 是 **0~100**，不是 0~3。HBM 本体参考值：
+    //      溶剂 30 / 硫酸 50 / 硝酸 60 / WATZ 60 / 最毒 80；>50 才算「强腐蚀」，
+    //      并且会实际影响喷雾、化学弹和容器限制，填 1、2 等于几乎没有腐蚀。
+    //    · 毒素用 FT_Toxin（FT_Poison 在 HBM 里已标 @Deprecated）：
+    //      气体伤肺用 HazardClass.GAS_LUNG（它的 lang 键就是「氯气」），
+    //      酸液溅皮肤用 HazardClass.GAS_BLISTERING（lang 键「腐蚀性物质」）。
+    //    · 污染 FT_Polluting：.release() 是泄漏/排放时加的污染，.burn() 只在
+    //      有 FT_Flammable/FT_Combustible 时才生效，没有燃料属性的流体写了也白写。
+    //      量级基准 Fluids.POISON_EXTREME = POISON_PER_SECOND * 0.025。
+    // =====================================================================================
+
+    /**
+     * 尾氯化气：氯化焙烧 / 氯化浸出之后排出的尾气，黄绿色，带游离氯。
+     *
+     * <p>按气体处理（GUI 图 alpha 150 半透明）。含氯 → 呛肺、湿气下强腐蚀，
+     * 所以挂了 {@link FT_Toxin}（GAS_LUNG 正是「氯气」这个危险类别）+ 腐蚀 40。
+     * 毒伤取 1.5 点/秒（delay 20），戴防毒面具可挡；比 HBM 的芥子气（4 点/10t）轻得多，
+     * 免得玩家在产线旁边路过一次就掉半管血。</p>
+     */
+    public static final FluidDef TAILINGS_CHLORIDE = def("TAILINGS_CHLORIDE", 2053, 0xB4CC48, "tailings_chloride")
+            .gaseous()
+            .temp(60)
+            .hazard(3, 0, 1, EnumSymbol.ASPHYXIANT)   // 健康 3 / 反应 1：氯气是窒息性刺激气
+            .corrosive(40)                            // 湿氯气腐蚀，介于溶剂 30 与硫酸 50 之间
+            .toxin(new FT_Toxin.ToxinDirectDamage(com.hbm.lib.ModDamageSource.cloud, 1.5F, 20, HazardClass.GAS_LUNG, false))
+            .polluting(new FT_Polluting().release(PollutionType.POISON, Fluids.POISON_EXTREME * 0.6F))
+            .gasTank(0xB4CC48, 0xFFFFFF)
+            .tankTexture("tank_TAILINGS_CHLORIDE");
+
+    /**
+     * 尾氯重馏分：尾氯化气冷凝下来的重馏分，深褐色，氯化有机物为主。
+     *
+     * <p>重馏分 → {@code .viscous()}（流速慢、不能喷雾），这点和同组其余四个料液不一样。
+     * 有毒（氯化烃）但不算强酸，腐蚀只给 25。NFPA 可燃标 1 只是标识，
+     * <b>没有给 FT_Flammable</b>，所以它烧不起来、也不进燃气火炬。</p>
+     */
+    public static final FluidDef TAILINGS_HEAVY_FRACTION = def("TAILINGS_HEAVY_FRACTION", 2054, 0x6B4414, "tailings_heavy_fraction")
+            .liquid()
+            .viscous()
+            .temp(40)
+            .hazard(2, 1, 0, EnumSymbol.NONE)         // 有毒、微可燃
+            .corrosive(25)
+            .polluting(new FT_Polluting().release(PollutionType.POISON, Fluids.POISON_EXTREME * 0.5F))
+            .canister(0x6B4414)
+            .tankTexture("tank_TAILINGS_HEAVY_FRACTION");
+
+    /**
+     * 粗铂液：铂族精矿用王水/盐酸-氯气体系溶解后得到的含铂贵液，琥珀金。
+     *
+     * <p>这套溶解体系本身就是强酸强氧化，所以腐蚀给到 60（与 HBM 硝酸同级），
+     * 泄漏时既算毒污染也算重金属污染 —— 溶着的铂、钯、铑都是重金属。</p>
+     */
+    public static final FluidDef CRUDE_PLATINUM = def("CRUDE_PLATINUM", 2055, 0xE0A840, "crude_platinum")
+            .liquid()
+            .temp(40)
+            .hazard(3, 0, 2, EnumSymbol.ACID)         // 强酸 + 反应 2
+            .corrosive(60)                            // 王水级，等同 HBM 硝酸
+            .toxin(new FT_Toxin.ToxinDirectDamage(com.hbm.lib.ModDamageSource.cloud, 1.0F, 20, HazardClass.GAS_BLISTERING, false))
+            .polluting(new FT_Polluting()
+                    .release(PollutionType.POISON, Fluids.POISON_EXTREME * 0.4F)
+                    .release(PollutionType.HEAVYMETAL, com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.10F))
+            .canister(0xE0A840)
+            .tankTexture("tank_CRUDE_PLATINUM");
+
+    /**
+     * 稀土母液：混合稀土氢氧化物沉淀之后剩下的母液，浅琥珀，还溶着可回收的重稀土。
+     *
+     * <p>碱性盐溶液，本身不烈：腐蚀 15（弱碱）、健康标识 1。但母液里带着钍和重稀土，
+     * 泄漏算重金属污染 —— 这也是现实里稀土厂最头疼的那一项。</p>
+     */
+    public static final FluidDef RE_MOTHER_LIQUOR = def("RE_MOTHER_LIQUOR", 2056, 0xDCAE80, "re_mother_liquor")
+            .liquid()
+            .temp(30)
+            .hazard(1, 0, 0, EnumSymbol.NONE)
+            .corrosive(15)
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.04F))
+            .canister(0xDCAE80)
+            .tankTexture("tank_RE_MOTHER_LIQUOR");
+
+    /**
+     * 钴料液：多金属混粉浸出、除杂之后的含钴溶液，玫瑰红；碱沉淀即得氢氧化钴。
+     *
+     * <p>钴盐是重金属毒，接触会眩晕恶心（GAS_BLISTERING 这个危险类别在 HBM 里的
+     * 含义就是「腐蚀性物质，同时伤皮肤」，戴全套防护可挡）。腐蚀 30，与 HBM 溶剂同级。</p>
+     */
+    public static final FluidDef COBALT_LIQUOR = def("COBALT_LIQUOR", 2057, 0xC44468, "cobalt_liquor")
+            .liquid()
+            .temp(30)
+            .hazard(3, 0, 0, EnumSymbol.NONE)         // 重金属毒，不可燃
+            .corrosive(30)
+            .toxin(new FT_Toxin.ToxinEffects(HazardClass.GAS_BLISTERING, false)
+                    .add(new net.minecraft.potion.PotionEffect(net.minecraft.potion.Potion.confusion.id, 120, 0)))
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.08F))
+            .canister(0xC44468)
+            .tankTexture("tank_COBALT_LIQUOR");
+
+    // =====================================================================================
+    //  地核线：从地狱深处抽上来的熔核，一路熔融、分离成铁族与铂族两股
+    // =====================================================================================
+
+    /**
+     * 高密度地核原浆：刚抽上来、还没熔开的核物质，暗褐紫，稠得几乎不流动。
+     *
+     * <p>它不是「热液体」而是「带压的核废浆」，所以四条都拉满：毒 4、反应 3（遇水即爆）、
+     * 腐蚀 75（比王水还狠，HBM 里 50 以上就算强腐蚀）、放热辐射 0.25/mB。
+     * 泄漏时按重金属 + 剧毒双算污染。</p>
+     *
+     * <p>容器门槛由 {@link FT_CoreTank} 标记 + {@code CoreFluidTankHook} 实现：<b>放置在地上的</b>
+     * 储罐只认大型储罐、「巨尻」、重型反物质储罐与磁约束反物质容器，普通储罐会被溶到破裂、
+     * 小桶直接溶穿。它<b>不是</b>反物质（不挂 FT_Amat），所以面板上没有「反物质」条目，
+     * 也不会触发反物质爆炸。</p>
+     *
+     * <p><b>手持容器</b>另走一套：{@code leadContainer()} 只放行危险品罐（铅罐），
+     * 普通流体罐 / 流体桶 / 32k 流体包全部挡掉 —— 铅罐本身就是为强腐蚀危险流体设计的，
+     * 与「地上容器只认超大型」并不冲突：一个管搬运，一个管储存。</p>
+     */
+    public static final FluidDef CORE_SLURRY = def("CORE_SLURRY", 2060, 0x4A1A2E, "core_slurry")
+            .liquid()
+            .viscous()
+            .temp(1200)
+            .hazard(4, 0, 3, EnumSymbol.RADIATION)
+            .corrosive(75)
+            .ventRadiation(0.25F)
+            .polluting(new FT_Polluting()
+                    .release(PollutionType.HEAVYMETAL,
+                            com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.20F)
+                    .release(PollutionType.POISON, Fluids.POISON_EXTREME * 0.5F))
+            .trait(new FT_CoreTank())
+            .leadContainer();
+
+    /**
+     * 熔融地核混合物：原浆熔开之后的铁镍核熔体，白热。
+     *
+     * <p>温度 2400（HBM 岩浆 1200、铅热 1500，这里取「地核」量级），反应 4 —— 熔体和
+     * 水/冷却液直接接触就是蒸汽爆炸。腐蚀降到 60：熔体对容器是「溶」而不是「酸蚀」。
+     * 容器门槛同原浆：{@link FT_CoreTank} + {@code CoreFluidTankHook} 管地上储罐，
+     * {@code leadContainer()} 管手持容器（只放行危险品罐），不是反物质。</p>
+     */
+    public static final FluidDef CORE_MELT = def("CORE_MELT", 2061, 0xFF8C24, "core_melt")
+            .liquid()
+            .temp(2400)
+            .hazard(4, 0, 4, EnumSymbol.RADIATION)
+            .corrosive(60)
+            .ventRadiation(0.35F)
+            .polluting(new FT_Polluting()
+                    .release(PollutionType.HEAVYMETAL,
+                            com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.30F)
+                    .release(PollutionType.POISON, Fluids.POISON_EXTREME * 0.6F))
+            .trait(new FT_CoreTank())
+            .leadContainer();
+
+    /**
+     * 重核渣浆：熔融地核混合物在大型离心机里甩出来的渣相 —— 甩不下去的难熔相、
+     * 铂族重砂与锕系核素全在这一股里，暗橄榄褐、近黑、带砂。
+     *
+     * <p>属性照原浆（{@code CORE_SLURRY}）改三处，逻辑都是「同一锅料，更浓缩的那一半」：</p>
+     * <ul>
+     *   <li>温度 2200 —— 刚从 2400 的熔体里分出来，还没凉；</li>
+     *   <li>辐射 0.30（原浆 0.25）—— 锕系核素在渣里富集，比原浆更烫手；</li>
+     *   <li>腐蚀 65（原浆 75）—— 渣相是「磨」不是「酸蚀」，但仍是强腐蚀档（HBM 50 以上算强）。</li>
+     * </ul>
+     *
+     * <p>毒 4 / 反应 3 / 重金属 0.25 / 剧毒 0.55 与原浆同档略高。容器门槛完全一致：
+     * {@link FT_CoreTank} + {@code CoreFluidTankHook} 管地上储罐（只认大型储罐、「巨尻」、
+     * 重型反物质储罐与反物质容器），{@code leadContainer()} 管手持容器，**不配储罐贴图**。</p>
+     */
+    public static final FluidDef HEAVY_SLAG = def("HEAVY_SLAG", 2064, 0x453C28, "heavy_slag")
+            .liquid()
+            .viscous()
+            .temp(2200)
+            .hazard(4, 0, 3, EnumSymbol.RADIATION)
+            .corrosive(65)
+            .ventRadiation(0.30F)
+            .polluting(new FT_Polluting()
+                    .release(PollutionType.HEAVYMETAL,
+                            com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.25F)
+                    .release(PollutionType.POISON, Fluids.POISON_EXTREME * 0.55F))
+            .trait(new FT_CoreTank())
+            .leadContainer();
+
+    /**
+     * 铁系熔融混合物：地核熔体里分出来的铁族（铁/钴/镍）那一股，钢蓝，冷下来就是铁锭。
+     *
+     * <p>1550℃ 恰好是铁的熔点量级，所以只标 NOWATER（碰水炸），不算腐蚀也不算毒；
+     * 泄漏按重金属轻污染。和 HBM 的热流体（LEAD_HOT / SODIUM_HOT）一样不给铁罐，
+     * 只能用储罐 + 管道搬 —— 1550 度的东西装铁罐本来就不合理。</p>
+     */
+    public static final FluidDef FERRO_MELT = def("FERRO_MELT", 2062, 0xA8B2BE, "ferro_melt")
+            .liquid()
+            .temp(1550)
+            .hazard(1, 0, 0, EnumSymbol.NOWATER)
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.10F))
+            .tankTexture("tank_FERRO_MELT");
+
+    /**
+     * 铂系熔融混合物：同一锅熔体里的铂族（铂/锇/铱/钌/铑）那一股，淡银紫、带金色结晶。
+     *
+     * <p>1800℃（铂熔点 1768℃），比铁系更高，所以保持 NOWATER。铂族蒸气是重金属毒，
+     * 健康标识给 2、泄漏重金属污染比铁系重一档；本身不腐蚀、不可燃、同样不给铁罐。</p>
+     */
+    public static final FluidDef PGM_MELT = def("PGM_MELT", 2063, 0xD9D2E4, "pgm_melt")
+            .liquid()
+            .temp(1800)
+            .hazard(2, 0, 0, EnumSymbol.NOWATER)
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.18F))
+            .tankTexture("tank_PGM_MELT");
+
+    // =====================================================================================
+    //  木浆制油线 · id 2065 ~ 2066（三段链规格见 BioOilChainSpec）
+
+    /** 生物原油：木浆解聚后的含氧粗油，深棕黏稠。加氢脱氧后进粗合成油。LOW 级可燃，堵线时可当低级燃料。 */
+    public static final FluidDef BIO_CRUDE = def("BIO_CRUDE", 2065, 0x4A3520, "bio_crude")
+            .liquid()
+            .viscous()
+            .temp(20)
+            .hazard(0, 2, 0, EnumSymbol.NONE)
+            .fuel(30_000L, FuelGrade.LOW, 2.0D)   // 3万 TU / 6万 HE 每桶
+            .canister(0x4A3520)
+            .tankTexture("tank_BIO_CRUDE");
+
+    /** 粗合成油：生物原油加氢脱氧后的烃类混合物，琥珀色。异构重整后得原油。LOW 级可燃。 */
+    public static final FluidDef RAW_SYNTH_OIL = def("RAW_SYNTH_OIL", 2066, 0x8A6A2F, "raw_synth_oil")
+            .liquid()
+            .temp(20)
+            .hazard(0, 2, 0, EnumSymbol.NONE)
+            .fuel(60_000L, FuelGrade.LOW, 2.0D)   // 6万 TU / 12万 HE 每桶
+            .canister(0x8A6A2F)
+            .tankTexture("tank_RAW_SYNTH_OIL");
+
+    /**
      * 最简示例（复制这一行改参数即可）：
      * 一种可燃烧的燃料，每桶 120,000 热量，燃烧值 300,000，MEDIUM 级。
      */
@@ -515,10 +848,8 @@ public final class ModFluids {
 
     /**
      * 当前是否正处在 Fluids.reloadFluids() 的回调里。
-     *
-     * 这个回调是 HBM 唯一会“先清空外来流体、再回调、最后统一把 foreignFluids 加回
-     * metaOrder”的路径。回调期间任何一方都不该再往 metaOrder 里塞东西，否则收尾时
-     * 会再塞一次，同名条目重复 → 装配机的装罐配方 duplicate ID 崩档。
+     * 回调收尾会把 foreignFluids 统一塞进 metaOrder，期间谁再插手就会条目重复，
+     * 装配机的装罐配方撞 duplicate ID 直接崩档。
      */
     private static boolean duringReload = false;
 
@@ -531,18 +862,17 @@ public final class ModFluids {
         registerAll(false);
         HBMCompat.ensureHCL();   // 必须直接调用：HBM 的 Fluids.init() 早于附属 preInit，
                                  // 首次 onFluidsLoad 回调早已跑完，只挂监听器永远不会触发
+        HBMCompat.ensureTitaniumTetrachloride();   // 旧版 HBM 没有四氯化钛，同点补注册
         Fluids.additionalListeners.add(new IFluidRegisterListener() {
             @Override
             public void onFluidsLoad() {
-                // 这一次只会被 Fluids.reloadFluids() 触发（HBM PostLoad 与 /ntmreload）。
-                // 它清空 foreignFluids 后回调我们，回调返回之后还会执行
-                //     for(FluidType custom : foreignFluids) metaOrder.add(custom);
-                // 所以这里**不能**再往 metaOrder 里加，否则每个流体会出现两次，
-                // 装配机的装罐配方就会撞上面那个 duplicate ID。
+                // 只会在 Fluids.reloadFluids() 时触发，收尾由它把 foreignFluids 加进 metaOrder，
+                // 所以这里不能再入列，否则每个流体会出现两次。
                 duringReload = true;
                 try {
                     registerAll(true);
                     HBMCompat.ensureHCL();   // /ntmreload 重载流体后再次补注册
+                    HBMCompat.ensureTitaniumTetrachloride();   // 重载会清空 foreignFluids，四氯化钛同样要补
                 } finally {
                     duringReload = false;
                 }
@@ -621,22 +951,48 @@ public final class ModFluids {
         }
         linkFluids();
         addConduitRecipes();
+        addLeadContainerRecipes();
+    }
+
+    /** 已经补过危险品罐容器的流体 id，避免重载时重复注册。 */
+    private static final Set<Integer> LEAD_CON_DONE = new HashSet<Integer>();
+
+    /**
+     * 补「危险品罐」容器映射（只给带 {@code leadContainer()} 的附属流体）。
+     *
+     * <p>HBM 在 {@code MainRegistry} 里一次性遍历 {@code Fluids.getAll()} 生成整张容器表，
+     * 而附属流体注册在其 preInit 之后 —— 那一轮遍历里还没有我们的 id，
+     * 不补的话 {@code getFullContainer} 永远返回 null，危险品罐装不进也倒不出。
+     * 这里照 {@code addConduitRecipes} 的同一套做法补上，LEAD_CON_DONE 防重。</p>
+     *
+     * <p>只注册危险品罐（铅罐）这一种：普通流体罐 / 流体桶 / 32k 流体包都不给，
+     * 与 {@code leadContainer()} 的语义一致 —— 强腐蚀流体只准铅罐搬运。</p>
+     */
+    private static void addLeadContainerRecipes() {
+        for (FluidDef def : ALL) {
+            FluidType type = def.type;
+            if (type == null || type == Fluids.NONE) continue;
+            if (!type.needsLeadContainer()) continue;
+            int id = type.getID();
+            if (id <= 0 || type.hasNoID()) continue;
+            if (!LEAD_CON_DONE.add(id)) continue;
+
+            com.hbm.inventory.FluidContainerRegistry.registerContainer(
+                    new com.hbm.inventory.FluidContainer(
+                            new ItemStack(ModItems.fluid_tank_lead_full, 1, id),
+                            new ItemStack(ModItems.fluid_tank_lead_empty), type, 1000));
+        }
     }
 
     /** 已经补过管道配方的流体 id，避免重载时重复注册。 */
     private static final Set<Integer> CONDUIT_DONE = new HashSet<Integer>();
 
     /**
-     * 补流体识别码 / 流体管道的合成配方。
+     * 补流体识别码 / 流体管道配方。
      *
-     * HBM 在它自己的 preInit 里（MainRegistry.PreLoad → CraftingManager.mainRegistry）
-     * 用 `for(int i = 1; i < Fluids.getAll().length; i++)` 生成这批配方。附属的 preInit
-     * 排在其后（实测 hbm 13:10:21、附属 13:10:30），那时数组长度还停在原版流体的数量上，
-     * 我们 2021~2030 这些 id 完全不在循环范围内 —— 后果是做不出带自家流体染色参
-     * 的管道，玩家在 NEI 和机器里都"找不到"这些新流体。
-     *
-     * 这里按 HBM 原版那四条的写法逐条补上（流体管道 1 个 / 8 个，分别从空管道和
-     * 任意已有管道转换）。用 CONDUIT_DONE 防重，重载回调时不会重复注册。
+     * <p>HBM 在它自己的 preInit 里按 {@code Fluids.getAll().length} 生成这批配方，而附属的
+     * preInit 排在其后，那时数组里还没有我们的 id —— 不补就做不出带自家流体染色的管道，
+     * NEI 和机器里也「找不到」这些流体。CONDUIT_DONE 防重。</p>
      */
     private static void addConduitRecipes() {
         for (FluidDef def : ALL) {
@@ -673,13 +1029,14 @@ public final class ModFluids {
      */
     private static void linkFluids() {
 
-        // 盐水 --锅炉(100 TU/1mB)--> 热盐水
+        // 盐水 --锅炉(300 TU/1mB)--> 热盐水，1:1 转换。
         SALT_WATER.type.addTraits(new FT_Heatable()
                 .setEff(FT_Heatable.HeatingType.BOILER, 1.0D)
-                .addStep(300, 1, HOT_SALT_WATER.type, 1000));
+                .addStep(300, 1, HOT_SALT_WATER.type, 1));
 
-        // 热盐水 --涡轮/热交换(放热 100 TU/1000mB)--> 盐水（不想要可以删掉）
-        HOT_SALT_WATER.type.addTraits(new FT_Coolable(SALT_WATER.type, 1, 1_000, 300)
+        // 热盐水 --热交换(放热 300 TU/1mB)--> 盐水，1:1 等量回冷。
+        // 热盐水与盐水同物质冷热回路按 1:1 转换；热量参数与上面的加热步骤一致。
+        HOT_SALT_WATER.type.addTraits(new FT_Coolable(SALT_WATER.type, 1, 1, 300)
                 .setEff(FT_Coolable.CoolingType.HEATEXCHANGER, 1.0D));
     }
 	
@@ -834,7 +1191,14 @@ public final class ModFluids {
 
         // ----- 其它特性（每条都对应一个 FluidTrait）---------------------------------
 
-        /** 腐蚀性：等级 0~3。影响喷雾/化学弹伤害；高腐蚀流体储罐会用 DANGER 贴图。 */
+        /**
+         * 腐蚀性：量程 <b>0~100</b>（不是 0~3）。影响喷雾/化学弹伤害与容器限制，
+         * {@code >50} 才算「强腐蚀」；填 1、2 基本等于没有腐蚀。
+         *
+         * <p>HBM 本体参考值：溶剂 30、硫酸 50、硝酸 60、WATZ 60、最高 80。
+         * 本模组早期几处写成 1/2 的（含镉浸出液、硫酸锌、亚硫酸钠等）其实是按 0~3
+         * 的误解填的，效果约等于无腐蚀 —— 要真起作用得改成 20~60 这个量级。</p>
+         */
         public FluidDef corrosive(int rating) { return trait(new FT_Corrosive(rating)); }
 
         /** 毒性：接触/背包中按 HazardClass 判定防护后中毒（可给直接伤害或药水效果）。 */
@@ -904,27 +1268,15 @@ public final class ModFluids {
 
         void register() {
 
-            // 幂等，但判据不能只是 type != null。
-            //
-            // HBM 的 MainRegistry.PostLoad → Fluids.reloadFluids() 会先把 foreignFluids 里
-            // 每一个外来流体从 idMapping / nameMapping / registerOrder / metaOrder 中移除，
-            // 清空 foreignFluids，然后才回调 onFluidsLoad()，最后再把 foreignFluids 加回
-            // metaOrder。我们这 21 个注册成功的流体全都在 foreignFluids 里。
-            // 如果回调时只看 type != null 就 return，那么 foreignFluids 依然是空的，
-            // 最后那一步加回 0 个 —— 流体就此从注册表消失：NEI 里没有、管道和储罐都不认、
-            // 化工厂配方引用的是孤儿对象。所以必须确认它此刻真的还在表里。
-            //
-            // 仍然复用同一个 FluidType 对象（CompatFluidRegistry 会先查 fluidMigration），
-            // 不会产生第二个同名对象，也就不存在 metaOrder 重名导致的装罐配方崩溃。
+            // 幂等判据不能只看 type != null：reloadFluids 会先把我们踢出注册表再回调，
+            // 那时 type 还在但表里已经没有，必须确认它此刻真的能在表里查到。
             if(this.type != null && Fluids.fromName(this.name) == this.type) return;
 
-            // 走到这里且 type 非 null，说明是 reloadFluids 把我们从注册表里清掉之后的重登记
+            // 走到这里且 type 非 null，说明是被 reloadFluids 清掉后的重登记
             boolean reregister = this.type != null;
 
-            // 同名流体已被别的模组（典型是航天版 NTM: Space 的 AMMONIA）注册时，直接复用，绝不覆盖。
-            // 原因：CompatFluidRegistry → FluidType.setupForeign → Fluids.register() 内部是
-            // nameMapping.put(getName(), fluid)，后注册者静默顶掉先注册者；一旦顶掉，对方已存档的
-            // 管道/储罐按名字查表会查到我们这份，ID 与特性全变，等于毁档。
+            // 同名流体已被别的模组（典型是航天版的 AMMONIA）注册时直接复用，绝不覆盖：
+            // Fluids.register 内部是 nameMapping.put，后注册者会静默顶掉先注册者，等于毁对方的档。
             FluidType sameName = Fluids.fromName(this.name);
             if(this.type == null && sameName != null && sameName != Fluids.NONE) {
                 MakeNTMGreatAgain.LOG.info("[流体] " + this.name + " 已由其他模组注册，复用其定义，不重复注册");
@@ -970,12 +1322,8 @@ public final class ModFluids {
         void enterMetaOrderOnce() {
             if (this.type == null) return;
 
-            // 按“本地化名”查重，而不是按对象身份（List.contains 用的就是身份）。
-            // 宿主（NTM: Space H261）里 METHANOL 存在两个不同的 FluidType 对象：
-            //   - metaOrder 里放的是其中一个（第 137 位）
-            //   - nameMapping 按名字查到的是另一个
-            // 只按身份查重会漏掉，把第二个也塞进 metaOrder，于是装配机的装罐配方
-            // "ass.package" + "hbmfluid.methanol" 被注册两次，HBM PostLoad 直接崩游戏。
+            // 按本地化名查重而不是对象身份：宿主里 METHANOL 存在两个不同的 FluidType 对象，
+            // 只比身份会漏掉，第二个进 metaOrder 后装罐配方重名，HBM PostLoad 直接崩游戏。
             String u = this.type.getUnlocalizedName();
             for (FluidType t : Fluids.metaOrder) {
                 if (t == this.type || (t != null && u.equals(t.getUnlocalizedName()))) {

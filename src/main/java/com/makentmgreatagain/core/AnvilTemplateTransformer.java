@@ -20,6 +20,7 @@ public class AnvilTemplateTransformer implements IClassTransformer {
             ClassNode node = new ClassNode();
             reader.accept(node, 0);
 
+            boolean replaced = false;
             for(int i = 0; i < node.methods.size(); i++) {
                 MethodNode old = node.methods.get(i);
                 if(!old.name.equals("addInformation") && !old.name.equals("func_77624_a")) continue;
@@ -37,7 +38,13 @@ public class AnvilTemplateTransformer implements IClassTransformer {
                 replacement.maxLocals = 4;
 
                 node.methods.set(i, replacement);
+                replaced = true;
                 break;
+            }
+
+            // 目标方法没命中（HBM 改版改名/改签名）时必须出声，否则补丁静默失效没人知道
+            if(!replaced) {
+                System.out.println("[MakeNTMGreatAgain] 警告: ItemBlueprints.addInformation 未命中，等级装配蓝图 tooltip 分页补丁失效");
             }
 
             ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);

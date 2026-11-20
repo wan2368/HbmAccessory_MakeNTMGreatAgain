@@ -43,7 +43,7 @@ public class FT_Heatable extends FluidTrait {
 
 	@Override
 	public void addInfoHidden(List<String> info) {
-		info.add(EnumChatFormatting.RED + I18nUtil.resolveKey("hbmfluid.trait.thermalCapacity") + ": " + this.getFirstStep().heatReq + " " + I18nUtil.resolveKey("hbmfluid.trait.perTU") + " " + this.getFirstStep().amountReq + "mB");
+		info.add(EnumChatFormatting.RED + I18nUtil.resolveKey("hbmfluid.trait.thermalCapacity") + ": " + this.getFirstStep().heatReq + " TU / " + this.getFirstStep().amountReq + "mB");
 		for(HeatingType type : HeatingType.values()) {
 			
 			double eff = getEfficiency(type);

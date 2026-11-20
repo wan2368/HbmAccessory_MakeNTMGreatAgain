@@ -13,7 +13,13 @@ public class MakeNTMGreatAgainCorePlugin implements IFMLLoadingPlugin {
 				"com.makentmgreatagain.core.ArcFurnaceTransformer",
 				"com.makentmgreatagain.core.AnvilTemplateTransformer",
 				"com.makentmgreatagain.core.PinyinSearchTransformer",
-				"com.makentmgreatagain.core.CoFHArbiterTransformer"
+				"com.makentmgreatagain.core.CoFHArbiterTransformer",
+				"com.makentmgreatagain.core.BedrockOreGuardTransformer",
+				"com.makentmgreatagain.core.HelicopterGuardTransformer",
+				"com.makentmgreatagain.core.CoreFluidTankTransformer",
+				"com.makentmgreatagain.core.PipeAnchorCtorTransformer",
+				"com.makentmgreatagain.core.PrismThrexResistanceTransformer",
+				"com.makentmgreatagain.core.NeutrinoNightVisionTransformer"
 		};
 	}
 

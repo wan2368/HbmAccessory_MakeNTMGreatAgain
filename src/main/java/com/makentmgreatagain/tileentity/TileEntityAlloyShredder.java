@@ -184,6 +184,7 @@ public class TileEntityAlloyShredder extends TileEntityMachineBase implements IE
 			boolean merged = false;
 			for(int o = SLOT_OUTPUT_START; o <= SLOT_OUTPUT_END; o++) {
 				if(slots[o] != null && slots[o].getItem() == out.getItem() && slots[o].getItemDamage() == out.getItemDamage()
+						&& ItemStack.areItemStackTagsEqual(slots[o], out)
 						&& slots[o].stackSize + out.stackSize <= out.getMaxStackSize()) {
 					slots[o].stackSize += out.stackSize;
 					merged = true;
@@ -209,7 +210,10 @@ public class TileEntityAlloyShredder extends TileEntityMachineBase implements IE
 
 		for(int i = SLOT_OUTPUT_START; i <= SLOT_OUTPUT_END; i++) {
 			if(slots[i] == null) return true;
+			// 与 processItem 的合并判定同源：必须比 NBT，否则同物品异 NBT 时
+			// hasSpace 放行、实际合并失败又无空格，输入照扣产物丢失
 			if(slots[i].getItem() == result.getItem() && slots[i].getItemDamage() == result.getItemDamage()
+					&& ItemStack.areItemStackTagsEqual(slots[i], result)
 					&& slots[i].stackSize + result.stackSize <= result.getMaxStackSize()) return true;
 		}
 		return false;

@@ -3,14 +3,20 @@ package com.makentmgreatagain.client;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.hbm.qmaw.GuiQMAW;
 import com.hbm.qmaw.QMAWLoader;
+import com.hbm.qmaw.QuickManualAndWiki;
 import com.makentmgreatagain.MakeNTMGreatAgain;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
+import net.minecraftforge.client.event.GuiOpenEvent;
 
 /**
  * QMAW（F1 手册）的第二条注入路径。
@@ -29,13 +35,37 @@ public class QMAWManualHook implements IResourceManagerReloadListener {
 
 	/** 手册页的相对路径，新增页面时在这里补一行 */
 	private static final String[] PAGES = {
+			"alloy_shredder.json",
 			"environment_pump.json",
 			"environment_pump_media.json",
 			"environment_pump_altitude.json",
-			"seawater.json"
+			"seawater.json",
+			"riser_rig.json",
+			"hybrid_fraction_tower.json",
+			"addon_ores.json",
+			"electric_blast_furnace.json",
+			"large_chemical_factory.json",
+			"large_centrifuge.json",
+			"battery_array.json",
+			"nuclear_explosion_generator.json",
+			"core_lava_extractor.json",
+			"industrial_gas_turbine.json",
+			"fluid_cooler.json",
 	};
 
 	private static final String ROOT = "/assets/hbm/manual/makentmgreatagain/";
+
+	private final Set<String> addonPageIds = new HashSet<>();
+
+	@SubscribeEvent
+	public void onGuiOpen(GuiOpenEvent event) {
+		// F1, calculator search, link clicks and history all open through GuiOpenEvent.
+		if (event.gui == null || event.gui.getClass() != GuiQMAW.class) return;
+		GuiQMAW original = (GuiQMAW) event.gui;
+		if (!addonPageIds.contains(original.qmawID)) return;
+		QuickManualAndWiki page = QMAWLoader.qmaw.get(original.qmawID);
+		if (page != null) event.gui = new GuiMNGAManual(page, original);
+	}
 
 	@Override
 	public void onResourceManagerReload(IResourceManager resMan) {
@@ -45,6 +75,7 @@ public class QMAWManualHook implements IResourceManagerReloadListener {
 	/** 缺哪页补哪页；jar 那条路径已经登记过的直接跳过 */
 	public void injectMissingPages() {
 
+		addonPageIds.clear();
 		int added = 0;
 
 		for(String page : PAGES) {
@@ -57,6 +88,7 @@ public class QMAWManualHook implements IResourceManagerReloadListener {
 				if(!json.has("name")) continue;
 
 				String name = json.get("name").getAsString();
+				addonPageIds.add(name);
 				if(QMAWLoader.qmaw.containsKey(name)) continue;
 
 				QMAWLoader.registerJson("makentmgreatagain/" + page, json);

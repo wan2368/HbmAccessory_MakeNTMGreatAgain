@@ -1,0 +1,14 @@
+{
+    "man": {
+        "category": "player",
+        "sounds": [
+            "makentmgreatagain:man"
+        ]
+    },
+    "manout": {
+        "category": "player",
+        "sounds": [
+            "makentmgreatagain:manout"
+        ]
+    }
+}

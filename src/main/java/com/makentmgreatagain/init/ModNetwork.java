@@ -1,7 +1,7 @@
 package com.makentmgreatagain.init;
 
-import com.makentmgreatagain.packet.AchievementPacket;
 import com.makentmgreatagain.packet.CigaretteDrxEffectPacket;
+import com.makentmgreatagain.packet.ExtractorSwitchPacket;
 import com.makentmgreatagain.packet.HoverJetpackModePacket;
 
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -30,11 +30,36 @@ public class ModNetwork {
 				HoverJetpackModePacket.Ack.class,
 				2,
 				Side.CLIENT);
-		// 成就同步（S→C）：登录全量 + 解锁单条
+		// 地核熔岩开采机：开关切换请求（C→S）
 		NETWORK.registerMessage(
-				AchievementPacket.Handler.class,
-				AchievementPacket.class,
+				ExtractorSwitchPacket.Handler.class,
+				ExtractorSwitchPacket.Request.class,
 				3,
+				Side.SERVER);
+		// 可控核爆炸发生器：运行键请求（C→S），20 秒周期内不可取消
+		NETWORK.registerMessage(
+				com.makentmgreatagain.packet.NukeRunPacket.Handler.class,
+				com.makentmgreatagain.packet.NukeRunPacket.Request.class,
+				4,
+				Side.SERVER);
+		// 可控核爆炸发生器：核爆屏幕抖动（S→C）
+		NETWORK.registerMessage(
+				com.makentmgreatagain.packet.NukeShakePacket.Handler.class,
+				com.makentmgreatagain.packet.NukeShakePacket.Message.class,
+				5,
 				Side.CLIENT);
+		// 可控核爆炸发生器：右键开界面（C→S）。模型外壳超出方块体积，不能靠原版 C08 的距离检查
+		NETWORK.registerMessage(
+				com.makentmgreatagain.packet.NukeOpenGuiPacket.Handler.class,
+				com.makentmgreatagain.packet.NukeOpenGuiPacket.Message.class,
+				6,
+				Side.SERVER);
+		// 工业燃气轮机：开关/节流阀控制（C→S）
+		NETWORK.registerMessage(
+				com.makentmgreatagain.packet.TurbineControlPacket.Handler.class,
+				com.makentmgreatagain.packet.TurbineControlPacket.class,
+				7,
+				Side.SERVER);
+		// 成就走 Minecraft 原生的 S37PacketStatistics，不再需要自定义包
 	}
 }
