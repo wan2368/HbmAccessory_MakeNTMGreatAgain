@@ -46,7 +46,7 @@ public class TurbineControlPacket implements IMessage {
 			final EntityPlayer player = ctx.getServerHandler().playerEntity;
 			if(player == null) return null;
 
-			ExtractorSwitchPacket.MAIN_THREAD_TASKS.add(new Runnable() {
+			ExtractorSwitchPacket.schedule(new Runnable() {
 				@Override
 				public void run() {
 					World world = player.worldObj;

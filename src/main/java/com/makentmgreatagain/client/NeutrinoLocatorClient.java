@@ -37,6 +37,8 @@ public final class NeutrinoLocatorClient {
 	private static final String[] DIRECTIONS = {"ahead", "right", "behind", "left"};
 	private static final int HOLD_TICKS = 8;
 	private static final int TIMEOUT_TICKS = 2400;
+	/** 双击判定窗口：两次短按间隔 ≤10tick(0.5s) 视为双击 G 开始寻找；单击 G 取消定位 */
+	private static final int DOUBLE_TAP_TICKS = 10;
 
 	private final Minecraft mc = Minecraft.getMinecraft();
 	private Target target;
@@ -45,6 +47,7 @@ public final class NeutrinoLocatorClient {
 	private List<Target> scanTargets = Collections.emptyList();
 	private Position marker;
 	private int sequence, pendingTicks, heldTicks, messageTicks, nearbyMatches;
+	private long lastTapTick = -1000;
 	private boolean waitForRelease, drewHotbar;
 	private String message;
 
@@ -73,7 +76,16 @@ public final class NeutrinoLocatorClient {
 			waitForRelease = down;
 		} else if(!down) {
 			if(!waitForRelease && (heldTicks > 0 || pressed)) {
-				if(target != null || !GuiNeutrinoLocator.currentSamples().isEmpty()) scanAll();
+				long now = world.getTotalWorldTime();
+				if(now - lastTapTick <= DOUBLE_TAP_TICKS) {
+					// 双击 G：开始寻找（有样本或上次目标时扫描）
+					lastTapTick = -1000;
+					if(target != null || !GuiNeutrinoLocator.currentSamples().isEmpty()) scanAll();
+				} else {
+					// 单击 G：取消当前定位显示；无定位时单击无动作
+					lastTapTick = now;
+					if(marker != null || !results.isEmpty() || pendingTicks > 0) cancelLocate();
+				}
 			}
 			heldTicks = 0;
 			waitForRelease = false;
@@ -160,6 +172,12 @@ public final class NeutrinoLocatorClient {
 		pendingTicks = messageTicks = nearbyMatches = 0;
 		results = Collections.emptyList();
 		marker = null;
+	}
+
+	/** 单击 G：取消当前定位显示（保留样本目标，双击 G 可重新扫描） */
+	private void cancelLocate() {
+		resetScan();
+		notify("cancelled");
 	}
 
 	private void notify(String key) {

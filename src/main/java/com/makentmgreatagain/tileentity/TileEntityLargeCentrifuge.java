@@ -49,8 +49,12 @@ import net.minecraftforge.common.util.ForgeDirection;
  * 大型离心机核心。
  *
  * <p>两条物品进料线互相独立：A、B 两个输入槽各自匹配配方并计时，可以同时处理。
- * 输入罐里的流体也会单独匹配流体配方并行处理。产物先进 8 个物品输出槽和 4 个输出罐，
+ * 输入罐里的流体也会单独匹配流体配方处理。产物先进 8 个物品输出槽和 4 个输出罐，
  * 再由右侧的容器槽把输出罐灌进空罐。</p>
+ *
+ * <p><b>优先级：物品优先于流体。</b>两条线共用同一批物品输出槽，而流体配方往往一次吐出
+ * 3~4 种物品产物（六氟化铀 / 六氟化钚），谁先跑谁就把槽占住。因此只要物品槽里还有
+ * 料齐的配方（{@link #hasItemWork()}），流体线一律不开工；流体线只在物品线彻底没活时才跑。</p>
  *
  * <p>冷却剂：冷四氟甲烷进入机器后变成四氟甲烷，运行时按升级后的速率消耗。</p>
  */
@@ -234,18 +238,10 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 	 */
 	private boolean tickItemStage() {
 
-		CentrifugeRecipe ra = LargeCentrifugeRecipes.forItem(this.slots[SLOT_IN_A]);
-		CentrifugeRecipe rb = LargeCentrifugeRecipes.forItem(this.slots[SLOT_IN_B]);
-
-		// 多物品配方要靠两个槽凑料，只由 A 代表；B 再单独跑一份只会重复消耗
-		if(ra != null && ra.inputItems.size() > 1) rb = null;
-		if(rb != null && rb.inputItems.size() > 1) rb = null;
-		// 两槽是同一个配方时只跑一次
-		if(ra != null && rb == ra) rb = null;
-
-		// 料不够的槽不参与
-		if(ra != null && !hasItemCount(this.slots[SLOT_IN_A], ra)) ra = null;
-		if(rb != null && !hasItemCount(this.slots[SLOT_IN_B], rb)) rb = null;
+		CentrifugeRecipe[] found = new CentrifugeRecipe[2];
+		resolveItemRecipes(found);
+		CentrifugeRecipe ra = found[0];
+		CentrifugeRecipe rb = found[1];
 
 		if(ra == null && rb == null) {
 			stopItemStage();
@@ -267,7 +263,7 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 			// 两个不同配方也吃并行倍率：按滑块档位逐级回落，找两边能一起跑的份数。
 			// 输入流体必须校验合计：各自canStart只查单份，两线同吃一罐会把存量扣成负数
 			for(int batch = getParallel(); batch >= 1; batch >>= 1) {
-				if(canStart(ra, true, batch) && canStart(rb, true, batch)
+				if(canStart(ra, batch) && canStart(rb, batch)
 						&& hasCombinedFluidInput(ra, batch, rb, batch)
 						&& hasCombinedSpace(ra, batch, rb, batch)) {
 					batchA = batch;
@@ -278,19 +274,19 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 
 			if(batchA <= 0) {
 				// 一起装不下：这轮先跑单独装得下的那一边，另一边留到下一轮
-				batchA = resolveBatch(ra, true);
+				batchA = resolveBatch(ra);
 				if(batchA <= 0) {
 					ra = null;
-					batchB = resolveBatch(rb, true);
+					batchB = resolveBatch(rb);
 					if(batchB <= 0) rb = null;
 				} else {
 					rb = null;
 				}
 			}
 		} else if(ra != null) {
-			batchA = resolveBatch(ra, true);
+			batchA = resolveBatch(ra);
 		} else if(rb != null) {
-			batchB = resolveBatch(rb, true);
+			batchB = resolveBatch(rb);
 		}
 
 		if(ra != null && batchA <= 0) ra = null;
@@ -327,6 +323,16 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 			return false;
 		}
 
+		// 物品线优先：只要物品槽里还有「配料齐全、罐里也有它要的流体」的配方，
+		// 本 tick 就不让流体线开工——流体配方同样是往那 8 个物品输出槽出料
+		// （六氟化铀一次 3 种、六氟化钚一次 4 种），抢先跑会把槽占满，物品线永远等不到空间。
+		// 这里用 hasItemWork() 而不是「本 tick 是否真的跑起来」做判据：物品线因并行份数回落
+		// 或空间刚腾出来时也能立刻接管，不会被流体线插队。
+		if(hasItemWork()) {
+			stopFluidLine();
+			return false;
+		}
+
 		// 输入罐正被物品线的配方占用时，流体线不抢这批流体，
 		// 否则水会先被纯水配方抽干，钨酸那条永远启动不了
 		if(isTankReservedForItemLines()) {
@@ -349,7 +355,7 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 		}
 
 		// 实际并行份数：设定倍率不够时逐级回落 8→4→2→1
-		int batch = resolveBatch(recipe, false);
+		int batch = resolveBatch(recipe);
 
 		if(batch <= 0) {
 			stopFluidLine();
@@ -403,28 +409,13 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 		return false;
 	}
 
-	/** 配方要求的物品是否都能在两个输入槽里凑齐（多种物品必须分属不同槽） */
-	private boolean hasAllInputs(CentrifugeRecipe recipe) {
-
-		if(recipe.inputItems.isEmpty()) return true;
-
-		if(recipe.inputItems.size() == 1) {
-			AStack required = recipe.inputItems.get(0);
-			return matchesInput(required, this.slots[SLOT_IN_A]) || matchesInput(required, this.slots[SLOT_IN_B]);
-		}
-
-		AStack first = recipe.inputItems.get(0);
-		AStack second = recipe.inputItems.get(1);
-
-		return (matchesInput(first, this.slots[SLOT_IN_A]) && matchesInput(second, this.slots[SLOT_IN_B]))
-			|| (matchesInput(second, this.slots[SLOT_IN_A]) && matchesInput(first, this.slots[SLOT_IN_B]));
-	}
-
-	private static boolean matchesInput(AStack required, ItemStack stack) {
-		return stack != null && required.matchesRecipe(stack, true) && stack.stackSize >= Math.max(1, required.stacksize);
-	}
-
-	/** 两个输入槽里的匹配物品总数是否够 {@code batch} 份配方（多物品配方按种类分别统计） */
+	/**
+	 * 两个输入槽里的匹配物品总数是否够 {@code batch} 份配方（多物品配方按种类分别统计）。
+	 *
+	 * <p>这是唯一的「料够不够」判定：驱动槽识别见 {@link #resolveItemRecipes}，
+	 * 份数校验全部走这里。不再保留「单槽够单份」的那套旁路判定——两套口径并存时，
+	 * 同种原料分放两槽的摆放方式会让两套给出相反的结论。</p>
+	 */
 	private boolean hasInputsFor(CentrifugeRecipe recipe, int batch) {
 
 		for(AStack required : recipe.inputItems) {
@@ -442,14 +433,85 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 		return true;
 	}
 
-	/** 两个物品槽里是否有正在等当前罐流体的配方（这时候流体线要让路） */
+	/**
+	 * 解析两个输入槽当前能驱动哪几条配方，写进 {@code out[0..1]}（未用位置置 null），返回条数。
+	 *
+	 * <p>规则与 {@link #tickItemStage()} 完全同源：多物品配方要靠两槽凑料、只由 A 槽代表；
+	 * 两槽是同一配方时只跑一次；驱动槽里的数量不足配方单份需求的不算。</p>
+	 *
+	 * <p><b>为什么要抽成一个方法</b>：{@link #hasItemWork()} 判「物品线有没有活」、
+	 * {@link #tickItemStage()} 判「这一 tick 跑不跑」，两处必须用同一把尺子。曾各自写一套
+	 * ——前者用跨槽累加的 {@code hasInputsFor}、后者用单槽的 {@code hasItemCount}——
+	 * 结果同种原料分放两槽（各 2 个、配方要 4）时，前者判「有活」把流体线永久拦住，
+	 * 后者却因单槽不足一分工都开不了，整台机器死锁。</p>
+	 */
+	private int resolveItemRecipes(CentrifugeRecipe[] out) {
+
+		out[0] = null;
+		out[1] = null;
+
+		CentrifugeRecipe ra = LargeCentrifugeRecipes.forItem(this.slots[SLOT_IN_A]);
+		CentrifugeRecipe rb = LargeCentrifugeRecipes.forItem(this.slots[SLOT_IN_B]);
+
+		// 多物品配方要靠两个槽凑料，只由 A 代表；B 再单独跑一份只会重复消耗
+		if(ra != null && ra.inputItems.size() > 1) rb = null;
+		if(rb != null && rb.inputItems.size() > 1) rb = null;
+		// 两槽是同一个配方时只跑一次
+		if(ra != null && rb == ra) rb = null;
+
+		// 料不够的槽不参与
+		if(ra != null && !hasItemCount(this.slots[SLOT_IN_A], ra)) ra = null;
+		if(rb != null && !hasItemCount(this.slots[SLOT_IN_B], rb)) rb = null;
+
+		int n = 0;
+		if(ra != null) out[n++] = ra;
+		if(rb != null) out[n++] = rb;
+		return n;
+	}
+
+	/**
+	 * 物品线是否「有活可干」：驱动槽里有配方、物品按 1 份凑齐、进料罐里流体类型 / 数量 / 压力都满足。
+	 * <b>不看</b>输出空间、电力、冷却剂——那些只决定「这一 tick 跑不跑得动」，
+	 * 不改变「物品线排在前面」这件事。
+	 *
+	 * <p>它是 {@link #canStart(CentrifugeRecipe, int)} 去掉「电 / 冷却剂 / 输出空间」三项后的版本，
+	 * 与真实执行共用 {@link #resolveItemRecipes} 和 {@link #hasMaterials} 两层判定，
+	 * 不存在「说有活却跑不起来」或「跑得起来却被判没活」的分歧。</p>
+	 *
+	 * <p>必须把进料罐的流体条件算进来：{@code items + fluid} 的配方占本机自定义配方的绝大多数，
+	 * 若罐里流体类型不对或量不够，这条配方一步都走不了，此时再据此拦住流体线就等于把机器锁死。</p>
+	 */
+	private boolean hasItemWork() {
+
+		CentrifugeRecipe[] found = new CentrifugeRecipe[2];
+		int n = resolveItemRecipes(found);
+
+		for(int i = 0; i < n; i++) {
+			if(hasMaterials(found[i], 1)) return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * 两个物品槽里是否有「物品已凑齐、正等着当前罐这种流体」的配方——这时候流体线不许抢罐。
+	 *
+	 * <p>与 {@link #hasItemWork()} 的区别只有一处：这里<b>不校验流体数量</b>（只校验类型）。
+	 * 因为要拦的正是「罐里流体类型对、但量还不够物品线开跑」这个区间——若按 hasItemWork 判，
+	 * 此时它返回 false，同罐的纯流体配方就会先把流体抽干，物品线永远等不到补料。</p>
+	 */
 	private boolean isTankReservedForItemLines() {
 
-		for(int slot = SLOT_IN_A; slot <= SLOT_IN_B; slot++) {
-			CentrifugeRecipe recipe = LargeCentrifugeRecipes.forItem(this.slots[slot]);
-			if(recipe == null || recipe.inputFluid == null) continue;
+		CentrifugeRecipe[] found = new CentrifugeRecipe[2];
+		int n = resolveItemRecipes(found);
+
+		for(int i = 0; i < n; i++) {
+			CentrifugeRecipe recipe = found[i];
+			if(recipe.inputFluid == null) continue;
 			if(recipe.inputFluid.type != this.tankIn.getTankType()) continue;
-			if(hasAllInputs(recipe)) return true;
+			// 物品没凑齐就不算「在等这个罐」：缺料是玩家侧的问题，不该连累纯流体配方
+			if(!hasInputsFor(recipe, 1)) continue;
+			return true;
 		}
 
 		return false;
@@ -459,20 +521,26 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 	 * 实际并行份数：从设定倍率开始按 8→4→2→1 逐级回落，
 	 * 取第一个输入、输出空间、电力、冷却剂都够的份数；一个都不够返回 0。
 	 */
-	private int resolveBatch(CentrifugeRecipe recipe, boolean itemLine) {
+	private int resolveBatch(CentrifugeRecipe recipe) {
 
 		for(int batch = getParallel(); batch >= 1; batch >>= 1) {
-			if(canStart(recipe, itemLine, batch)) return batch;
+			if(canStart(recipe, batch)) return batch;
 		}
 
 		return 0;
 	}
 
-	/** 启动条件：输入物品、输入流体、输出空间、电力都不缺（按并行份数校验） */
-	private boolean canStart(CentrifugeRecipe recipe, boolean itemLine, int batch) {
+	/**
+	 * 原料层判定：物品按 {@code batch} 份凑齐（两种物品跨两槽按种类分别统计），
+	 * 进料罐的流体类型、数量、压力也满足。
+	 *
+	 * <p>单独抽出来供两处复用：{@link #canStart} 用它做完整启动判定的一部分，
+	 * {@link #hasItemWork} 用它判「物品线有没有活」。纯流体配方的 {@code inputItems} 为空，
+	 * {@code hasInputsFor} 自然返回 true，所以两条线可以共用同一份实现。</p>
+	 */
+	private boolean hasMaterials(CentrifugeRecipe recipe, int batch) {
 
-		// 物品线要凑齐配方要求的全部物品；流体线只跑纯流体配方，不走这里
-		if(itemLine && !hasInputsFor(recipe, batch)) return false;
+		if(!hasInputsFor(recipe, batch)) return false;
 
 		if(recipe.inputFluid != null) {
 			if(this.tankIn.getTankType() != recipe.inputFluid.type) return false;
@@ -481,6 +549,14 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 			if(recipe.inputFluid.pressure != 0
 					&& this.tankIn.getPressure() != recipe.inputFluid.pressure) return false;
 		}
+
+		return true;
+	}
+
+	/** 启动条件：原料、输出空间、电力、冷却剂都不缺（按并行份数校验） */
+	private boolean canStart(CentrifugeRecipe recipe, int batch) {
+
+		if(!hasMaterials(recipe, batch)) return false;
 
 		// 耗电固定按单线功率结算（并行不增加耗电）；冷却剂按滑块档位结算且为原来的 2 倍，
 		// 原料不足而回落份数时也不会少扣
@@ -495,7 +571,15 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 		return true;
 	}
 
+	/**
+	 * 进度走完整批结算。
+	 *
+	 * <p>结算前再确认一次输出空间：装不下就<b>整批不结算</b>——原料不扣、产物不生，
+	 * 等玩家或物流腾出空间。绝不允许「先扣料、再让 insertItem 把塞不下的产物丢掉」。</p>
+	 */
 	private void finish(CentrifugeRecipe recipe, int slot, int batch) {
+
+		if(!hasItemSpace(recipe, batch) || !hasFluidSpace(recipe, batch)) return;
 
 		if(slot >= 0) {
 			consumeInputs(recipe, slot, batch);
@@ -543,38 +627,37 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 
 	/* ---------------- 输出空间 ---------------- */
 
+	/**
+	 * 出料空间校验：把这一批产物按<b>真实插入顺序</b>在一份副本上模拟一遍。
+	 *
+	 * <p><b>不能按产物逐条独立算空间。</b>一条配方有 4 个不同产物、输出区只剩 2 个空槽时，
+	 * 每个产物单独看都「装得下 1 个」（空槽按 64 计），于是照常开工；
+	 * 可真正 {@code insertItem} 时只有 2 个槽能被占，余下的当场蒸发——
+	 * 这就是「配方 4 个物品、实际只吐 2 个，其它全吞掉」的原因。
+	 * 现在只要模拟放不下就压根不开工，原料一个也不会被扣。</p>
+	 */
 	private boolean hasItemSpace(CentrifugeRecipe recipe, int batch) {
 
-		for(ItemStack out : recipe.outputItems) {
-			if(getItemSpace(out) < out.stackSize * batch) return false;
+		ItemStack[] sim = new ItemStack[8];
+		for(int i = 0; i < 8; i++) {
+			ItemStack slot = this.slots[SLOT_OUT + i];
+			sim[i] = slot == null ? null : slot.copy();
 		}
 
-		return true;
+		return simulateItems(sim, recipe, batch);
 	}
 
-	private int getItemSpace(ItemStack stack) {
-
-		int space = 0;
-
-		for(int i = SLOT_OUT; i < SLOT_OUT + 8; i++) {
-			ItemStack slot = this.slots[i];
-			if(slot == null) {
-				space += stack.getMaxStackSize();
-			} else if(slot.getItem() == stack.getItem() && slot.getItemDamage() == stack.getItemDamage()
-					&& ItemStack.areItemStackTagsEqual(slot, stack)) {
-				space += Math.max(0, Math.min(slot.getMaxStackSize(), 64) - slot.stackSize);
-			}
-		}
-
-		return space;
-	}
-
-	private void insertItem(ItemStack stack) {
+	/**
+	 * 把 {@code stack} 塞进 {@code slots[start, end)}，返回<b>没塞进去的数量</b>。
+	 * 真实插入与空间模拟共用这一份逻辑，保证「模拟说放得下」= 「真的放得下」，
+	 * 不会出现两套规则对不上、产物被默默丢掉的情况。
+	 */
+	private static int insertItemInto(ItemStack[] slots, int start, int end, ItemStack stack) {
 
 		int max = Math.min(stack.getMaxStackSize(), 64);
 
-		for(int i = SLOT_OUT; i < SLOT_OUT + 8 && stack.stackSize > 0; i++) {
-			ItemStack slot = this.slots[i];
+		for(int i = start; i < end && stack.stackSize > 0; i++) {
+			ItemStack slot = slots[i];
 			if(slot != null && slot.getItem() == stack.getItem() && slot.getItemDamage() == stack.getItemDamage()
 					&& ItemStack.areItemStackTagsEqual(slot, stack) && slot.stackSize < max) {
 				int add = Math.min(max - slot.stackSize, stack.stackSize);
@@ -583,33 +666,34 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 			}
 		}
 
-		for(int i = SLOT_OUT; i < SLOT_OUT + 8 && stack.stackSize > 0; i++) {
-			if(this.slots[i] == null) {
+		for(int i = start; i < end && stack.stackSize > 0; i++) {
+			if(slots[i] == null) {
 				int add = Math.min(max, stack.stackSize);
 				ItemStack copy = stack.copy();
 				copy.stackSize = add;
-				this.slots[i] = copy;
+				slots[i] = copy;
 				stack.stackSize -= add;
 			}
 		}
+
+		return stack.stackSize;
 	}
 
+	private void insertItem(ItemStack stack) {
+		insertItemInto(this.slots, SLOT_OUT, SLOT_OUT + 8, stack);
+	}
+
+	/** 流体出料空间：按「第 i 种产物只进第 i 个罐」的真实写入顺序模拟。 */
 	private boolean hasFluidSpace(CentrifugeRecipe recipe, int batch) {
 
-		// 一一对应：第 i 种流体只进第 i 个罐，对应罐装不下就停机，不串罐
-		for(int i = 0; i < recipe.outputFluids.size(); i++) {
-			FluidStack out = recipe.outputFluids.get(i);
-			if(out == null || i >= this.tanksOut.length) return false;
-
-			FluidTank tank = this.tanksOut[i];
-			boolean compatible = tank.getTankType() == out.type
-					|| tank.getTankType() == Fluids.NONE || tank.getFill() == 0;
-			if(!compatible) return false;
-
-			if(TANK_CAP - tank.getFill() < out.fill * batch) return false;
+		FluidType[] types = new FluidType[4];
+		int[] fills = new int[4];
+		for(int i = 0; i < 4; i++) {
+			types[i] = this.tanksOut[i].getTankType();
+			fills[i] = this.tanksOut[i].getFill();
 		}
 
-		return true;
+		return simulateFluids(types, fills, recipe, batch);
 	}
 
 	private void insertFluid(FluidStack stack, int index) {
@@ -628,10 +712,6 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 		tank.setFill(tank.getFill() + add);
 	}
 
-	/**
-	 * A、B 两个配方同一轮出料时，8 个物品输出槽和 4 个流体输出罐要能一起装下。
-	 * 按现有内容模拟插入一遍，避免两边单独都装得下、合起来却溢出。
-	 */
 	/** 两条线同时跑时输入罐存量必须够两边合计消耗（同罐同型；类型不同则canStart已各自拦下） */
 	private boolean hasCombinedFluidInput(CentrifugeRecipe ra, int batchA, CentrifugeRecipe rb, int batchB) {
 		long need = 0;
@@ -640,6 +720,10 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 		return this.tankIn.getFill() >= need;
 	}
 
+	/**
+	 * A、B 两个配方同一轮出料时，8 个物品输出槽和 4 个流体输出罐要能一起装下。
+	 * 按现有内容模拟插入一遍，避免两边单独都装得下、合起来却溢出。
+	 */
 	private boolean hasCombinedSpace(CentrifugeRecipe ra, int batchA, CentrifugeRecipe rb, int batchB) {
 
 		ItemStack[] itemSlots = new ItemStack[8];
@@ -660,42 +744,16 @@ public class TileEntityLargeCentrifuge extends TileEntityLoadedBase implements I
 		return simulateFluids(types, fills, ra, batchA) && simulateFluids(types, fills, rb, batchB);
 	}
 
+	/** 在副本上按真实插入顺序试塞整批产物；只要有一件塞不下就判不合格。 */
 	private static boolean simulateItems(ItemStack[] slots, CentrifugeRecipe recipe, int batch) {
 
 		for(int i = 0; i < batch; i++) {
 			for(ItemStack out : recipe.outputItems) {
-				if(!simulateInsertItem(slots, out.copy())) return false;
+				if(insertItemInto(slots, 0, slots.length, out.copy()) > 0) return false;
 			}
 		}
 
 		return true;
-	}
-
-	private static boolean simulateInsertItem(ItemStack[] slots, ItemStack stack) {
-
-		int max = Math.min(stack.getMaxStackSize(), 64);
-
-		for(int i = 0; i < slots.length && stack.stackSize > 0; i++) {
-			ItemStack slot = slots[i];
-			if(slot != null && slot.getItem() == stack.getItem() && slot.getItemDamage() == stack.getItemDamage()
-					&& ItemStack.areItemStackTagsEqual(slot, stack) && slot.stackSize < max) {
-				int add = Math.min(max - slot.stackSize, stack.stackSize);
-				slot.stackSize += add;
-				stack.stackSize -= add;
-			}
-		}
-
-		for(int i = 0; i < slots.length && stack.stackSize > 0; i++) {
-			if(slots[i] == null) {
-				int add = Math.min(max, stack.stackSize);
-				ItemStack copy = stack.copy();
-				copy.stackSize = add;
-				slots[i] = copy;
-				stack.stackSize -= add;
-			}
-		}
-
-		return stack.stackSize <= 0;
 	}
 
 	private static boolean simulateFluids(FluidType[] types, int[] fills, CentrifugeRecipe recipe, int batch) {

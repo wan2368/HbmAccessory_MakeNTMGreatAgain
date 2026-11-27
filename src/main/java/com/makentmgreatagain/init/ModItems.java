@@ -218,6 +218,10 @@ public class ModItems {
 	public static Item powder_cobalt_tungsten_mixture;
 	/** 高强度碳化钨锭 */
 	public static Item powder_cobalt_tungsten_ingot;
+	/** 正电子胶囊（旧版 HBM 移除后由附属补回） */
+	public static Item particle_positron;
+	/** 正电子单元：聚变配方「正-反物质等离子体」在配方界面上的图标（cell 家族） */
+	public static Item cell_positron;
 	/** 高级合金刀片（重生版） */
 	public static Item blades_alloy_reborn;
 	/** 破损的高级合金刀片（重生版） */
@@ -239,6 +243,15 @@ public class ModItems {
     public static Item alloy_hoe_reborn;
 	/** '中华牌'香烟 */
 	public static Item cigarette_drx;
+
+	/** PEEK 特种工程塑料（聚醚醚酮）锭与粉末 */
+	public static Item ingot_peek;
+	public static Item powder_peek;
+
+	/** PEEK 并行运算升级芯片（1~3 级，可叠加至最高 4x 并行） */
+	public static Item upgrade_parallel_1;
+	public static Item upgrade_parallel_2;
+	public static Item upgrade_parallel_3;
 
 	/** 流体销毁罐 */
 	public static Item inf_destroy;
@@ -274,6 +287,14 @@ public class ModItems {
 	public static Item helicopter_boots;
 	/** 无线充电连接器：装进靴子的靴子专用槽 */
 	public static Item wireless_connector;
+	/** 稳定X晶体：稳定X晶体簇被破坏后的掉落物 */
+	public static Item crystal_xen;
+	/** 不稳态X晶体：SILEX 可见光分离产物（33%） */
+	public static Item crystal_xen_unstable;
+	/** 亚稳态X晶体：SILEX 可见光分离产物（13.3%） */
+	public static Item crystal_xen_metastable;
+	/** 乱码X晶体：SILEX 可见光分离稀有产物（3.3%），NEI 不显示但可正常分离 */
+	public static Item crystal_xen_glitch;
 
 	/** 高级固态燃料 */
 	public static Item solid_fuel_adv;
@@ -297,6 +318,9 @@ public class ModItems {
 
 	/** 自动灭火器（装胸甲占护腿槽的改装件，16000 mB 二氧化碳） */
 	public static Item auto_extinguisher;
+
+	/** 丰饶之角：只能从战利品中极低概率开出的永久遗物食物 */
+	public static Item horn_of_plenty;
 
     public static void init() {
         System.out.println("[MakeNTMGreatAgain] ModItems initialized.");
@@ -326,32 +350,33 @@ public class ModItems {
 
 		// ---- HeLiCoPtEr / Pt / Er 的八类部件：每材质每形态各一件独立物品 ----
 		// 贴图走独立子目录 textures/items/parts/，不与根目录的锭混放
-		plate_helicopter = part("helicopter", "plate");
+		// 无下游配方的部件仅从创造模式物品栏隐藏（保留注册、矿辞与原有加工配方）
+		plate_helicopter = part("helicopter", "plate", false);
 		plate_cast_helicopter = part("helicopter", "plate_cast");
 		plate_welded_helicopter = part("helicopter", "plate_welded");
-		wire_helicopter = part("helicopter", "wire");
-		wire_dense_helicopter = part("helicopter", "wire_dense");
-		bolt_helicopter = part("helicopter", "bolt");
-		pipe_helicopter = part("helicopter", "pipe");
-		shell_helicopter = part("helicopter", "shell");
+		wire_helicopter = part("helicopter", "wire", false);
+		wire_dense_helicopter = part("helicopter", "wire_dense", false);
+		bolt_helicopter = part("helicopter", "bolt", false);
+		pipe_helicopter = part("helicopter", "pipe", false);
+		shell_helicopter = part("helicopter", "shell", false);
 
 		plate_platinum = part("platinum", "plate");
 		plate_cast_platinum = part("platinum", "plate_cast");
-		plate_welded_platinum = part("platinum", "plate_welded");
+		plate_welded_platinum = part("platinum", "plate_welded", false);
 		wire_platinum = part("platinum", "wire");
-		wire_dense_platinum = part("platinum", "wire_dense");
-		bolt_platinum = part("platinum", "bolt");
-		pipe_platinum = part("platinum", "pipe");
-		shell_platinum = part("platinum", "shell");
+		wire_dense_platinum = part("platinum", "wire_dense", false);
+		bolt_platinum = part("platinum", "bolt", false);
+		pipe_platinum = part("platinum", "pipe", false);
+		shell_platinum = part("platinum", "shell", false);
 
 		plate_erbium = part("erbium", "plate");
-		plate_cast_erbium = part("erbium", "plate_cast");
-		plate_welded_erbium = part("erbium", "plate_welded");
-		wire_erbium = part("erbium", "wire");
-		wire_dense_erbium = part("erbium", "wire_dense");
-		bolt_erbium = part("erbium", "bolt");
-		pipe_erbium = part("erbium", "pipe");
-		shell_erbium = part("erbium", "shell");
+		plate_cast_erbium = part("erbium", "plate_cast", false);
+		plate_welded_erbium = part("erbium", "plate_welded", false);
+		wire_erbium = part("erbium", "wire", false);
+		wire_dense_erbium = part("erbium", "wire_dense", false);
+		bolt_erbium = part("erbium", "bolt", false);
+		pipe_erbium = part("erbium", "pipe", false);
+		shell_erbium = part("erbium", "shell", false);
 
 		// 三材质的粉末，贴图直接在 textures/items/ 根目录
 		powder_helicopter = powder("helicopter");
@@ -399,6 +424,10 @@ public class ModItems {
 		// 塔可夫食物与杂项：17 件罐头 / 巧克力 / 酒 / 面包，工作台配方随注册一起走
 		// 战利品注入必须在 postInit（ItemPool 在 HBM 的 PostLoad 里才建表）
 		ModTarkovFood.register();
+
+		// 丰饶之角：只能从战利品中极低概率开出
+		horn_of_plenty = new com.makentmgreatagain.items.ItemHornOfPlenty();
+		GameRegistry.registerItem(horn_of_plenty, "horn_of_plenty");
 
         // 动力装甲电池组 Mk4：HBM 的 mod 是乘数（maxPower * mod），3D = 上限 ×3
         armor_battery_mk4 = new com.hbm.items.armor.ItemModBattery(3D);
@@ -712,12 +741,30 @@ public class ModItems {
 		powder_cobalt_tungsten_mixture.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
 		GameRegistry.registerItem(powder_cobalt_tungsten_mixture, "powder_cobalt_tungsten_mixture");
 
-		// 高强度碳化钨锭（IconCheckItem：首次取图标时往日志打一行自检，定位贴图异常用）
-		powder_cobalt_tungsten_ingot = new IconCheckItem();
+		// 高强度碳化钨锭（物品栏图标放大 20% 由 client/BigIconRender 替换渲染实例实现）
+		powder_cobalt_tungsten_ingot = new Item();
 		powder_cobalt_tungsten_ingot.setUnlocalizedName("powder_cobalt_tungsten_ingot");
 		powder_cobalt_tungsten_ingot.setTextureName("makentmgreatagain:powder_cobalt_tungsten_ingot");
 		powder_cobalt_tungsten_ingot.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
 		GameRegistry.registerItem(powder_cobalt_tungsten_ingot, "powder_cobalt_tungsten_ingot");
+
+		// 正电子胶囊：旧版 HBM 的 particle_aelectron 在 5852 移除，附属补回；空胶囊返还
+		particle_positron = new Item();
+		particle_positron.setUnlocalizedName("particle_positron");
+		particle_positron.setTextureName("makentmgreatagain:particle_positron");
+		particle_positron.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		particle_positron.setContainerItem(com.hbm.items.ModItems.particle_empty);
+		GameRegistry.registerItem(particle_positron, "particle_positron");
+
+		// 正电子单元：cell 家族（斜胶囊造型，同 HBM 的 cell_deuterium），内容带为正电子青蓝。
+		// 用途：聚变配方「正-反物质等离子体」在加热器/仿星器配方界面上的图标，
+		// 之前错用了 cell_antimatter，导致与「反物质等离子体」那条配方图标重样。
+		cell_positron = new Item();
+		cell_positron.setUnlocalizedName("cell_positron");
+		cell_positron.setTextureName("makentmgreatagain:cell_positron");
+		cell_positron.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		cell_positron.setContainerItem(com.hbm.items.ModItems.cell_empty);
+		GameRegistry.registerItem(cell_positron, "cell_positron");
 
         // CMB 电极（稀有度 rare = 青名）
         cmb_electrode = new ItemWithDesc().setRarity(EnumRarity.rare);
@@ -796,6 +843,15 @@ public class ModItems {
 		potassium_chloroplatinate  = resource("potassium_chloroplatinate");  
 		anode_mud                  = resource("anode_mud");                  
 
+		// ---- PEEK 特种工程塑料 ----
+		ingot_peek  = resource("ingot_peek");
+		powder_peek = resource("powder_peek");
+
+		// ---- PEEK 并行运算升级芯片（1~3 级） ----
+		upgrade_parallel_1 = parallelUpgrade(1);
+		upgrade_parallel_2 = parallelUpgrade(2);
+		upgrade_parallel_3 = parallelUpgrade(3);
+
 
         // 高级合金装备（重生版）
         registerAlloyReborn();
@@ -806,6 +862,16 @@ public class ModItems {
      */
     private static Item resource(String name) {
         Item item = new ItemWithDesc();
+        item.setUnlocalizedName(name);
+        item.setTextureName("makentmgreatagain:" + name);
+        item.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+        GameRegistry.registerItem(item, name);
+        return item;
+    }
+
+    private static Item parallelUpgrade(int tier) {
+        String name = "upgrade_parallel_" + tier;
+        Item item = new com.makentmgreatagain.items.ItemParallelUpgrade(tier);
         item.setUnlocalizedName(name);
         item.setTextureName("makentmgreatagain:" + name);
         item.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
@@ -827,11 +893,15 @@ public class ModItems {
      * @param shape 形态前缀，如 plate / plate_cast / wire_dense
      */
     private static Item part(String mat, String shape) {
+        return part(mat, shape, true);
+    }
+
+    private static Item part(String mat, String shape, boolean showInCreative) {
         String name = shape + "_" + mat;
         Item item = materialItem(mat);
         item.setUnlocalizedName(name);
         item.setTextureName("makentmgreatagain:parts/" + name);
-        item.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+        item.setCreativeTab(showInCreative ? ModCreativeTabs.TAB_RESOURCES : null);
         GameRegistry.registerItem(item, name);
         return item;
     }
@@ -1121,29 +1191,184 @@ public class ModItems {
         wireless_connector = new ItemWirelessConnector();
         GameRegistry.registerItem(wireless_connector, "wireless_connector");
 
+        // 稳定X晶体：晶体簇的掉落物，本身也是合成材料
+        // 注意不能用 "crystal_xen"：HBM 原版已有同名物品（人造X晶体），
+        // lang 键 item.crystal_xen.name 会被 HBM 那条覆盖，游戏里就会显示成「人造X晶体」
+        crystal_xen = new Item()
+                .setUnlocalizedName("stable_crystal_xen")
+                .setTextureName("makentmgreatagain:crystal_xen")
+                .setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+        GameRegistry.registerItem(crystal_xen, "stable_crystal_xen");
+
+        // 不稳态X晶体：SILEX 40%，右键末地石可种下幼苗期X晶簇
+        crystal_xen_unstable = new UnstableXenCrystalItem()
+                .setUnlocalizedName("crystal_xen_unstable")
+                .setTextureName("makentmgreatagain:crystal_xen_unstable")
+                .setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+        GameRegistry.registerItem(crystal_xen_unstable, "crystal_xen_unstable");
+
+        // 亚稳态X晶体：SILEX 可见光分离 13.3%（携带有衰变倒计时与核爆机制，不可堆叠）
+        crystal_xen_metastable = new MetastableCrystalItem()
+                .setMaxStackSize(1)
+                .setUnlocalizedName("crystal_xen_metastable")
+                .setTextureName("makentmgreatagain:crystal_xen_metastable")
+                .setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+        GameRegistry.registerItem(crystal_xen_metastable, "crystal_xen_metastable");
+
+        // 乱码X晶体：4 个乱码字符、颜色字母来回换（OBFUSCATED），NEI 配方不显示但机器可分离
+        crystal_xen_glitch = new GlitchCrystalItem()
+                .setUnlocalizedName("crystal_xen_glitch")
+                .setTextureName("makentmgreatagain:crystal_xen_glitch")
+                .setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+        GameRegistry.registerItem(crystal_xen_glitch, "crystal_xen_glitch");
+
         System.out.println("[MakeNTMGreatAgain] Alloy Reborn gear registered (22 items).");
     }
 
 	/**
-	 * 临时诊断子类：高强度碳化钨锭在部分运行时显示缺失贴图占位，但静态链路
-	 * （注册串、包内 png、资源包覆盖、重复注册）已全部排除。首次取图标时打印
-	 * 图标名与图集 UV：UV 全 0 说明图标没进图集（注册环节问题），UV 正常则
-	 * 问题在渲染/图集槽位侧。定位后删除本类、改回 new Item()。
+	 * 乱码X晶体：显示名整串用 {@code §k} 遮挡（渲染成每帧都不同的随机字符），
+	 * 只轮流放出一个可读字，像信号扫描 —— 参考 HBM 迪伽马系列
+	 * （{@code ItemFELCrystal} 的 {@code OBFUSCATED + "THERADIANCEOFATHOUSANDSUNS"}、
+	 * {@code rbmk_pellet_drx} 的 {@code OBFUSCATED + "can't you hear..."}）的做法，
+	 * 但这里用在 displayName 上而不是 lore。
+	 *
+	 * <p>名字长度取自 lang（中文「乱码X晶体」5 字 / 英文 19 字符），先把可能残留的
+	 * 格式码剥掉，避免 lang 里再带颜色时套两层。周期按长度自适应，固定约 1.5 秒扫完一轮。</p>
 	 */
-	private static class IconCheckItem extends Item {
-		private boolean logged;
+	private static class GlitchCrystalItem extends Item {
+
+		/** 直接写字面量格式码，不依赖 EnumChatFormatting.toString() 的实现细节 */
+		private static final String OBF = "\u00a7k";
+		private static final String RESET = "\u00a7r";
+		private static final String DARK_PURPLE = "\u00a75";
+
+		/**
+		 * 仿照 HBM 原版 {@code ItemCustomLore} 中 {@code ModItems.undefined}（形态未定义物质）的简介效果：
+		 * 1/10 概率（或异常时）显示暗红色 {@code UNDEFINED}；
+		 * 其余 9/10 概率每 0.5 秒从物品注册表随机抽取一个 ID，显示对应物品名或 {@code ERROR #ID}。
+		 */
+		@Override
+		@SuppressWarnings("rawtypes")
+		public void addInformation(ItemStack stack, net.minecraft.entity.player.EntityPlayer player, java.util.List list, boolean advanced) {
+			try {
+				if(player != null && player.worldObj != null && player.worldObj.rand.nextInt(10) == 0) {
+					list.add(net.minecraft.util.EnumChatFormatting.DARK_RED + "UNDEFINED");
+				} else {
+					java.util.Random rand = new java.util.Random(System.currentTimeMillis() / 500);
+					int setSize = Item.itemRegistry.getKeys().size();
+					if(setSize <= 0) {
+						list.add(net.minecraft.util.EnumChatFormatting.DARK_RED + "UNDEFINED");
+						return;
+					}
+					int r = rand.nextInt(setSize);
+					Item item = Item.getItemById(r);
+					if(item != null) {
+						list.add(new ItemStack(item).getDisplayName());
+					} else {
+						list.add(net.minecraft.util.EnumChatFormatting.RED + "ERROR #" + r);
+					}
+				}
+			} catch(Exception ex) {
+				list.add(net.minecraft.util.EnumChatFormatting.DARK_RED + "UNDEFINED");
+			}
+		}
 
 		@Override
-		public net.minecraft.util.IIcon getIconFromDamage(int damage) {
-			net.minecraft.util.IIcon icon = super.getIconFromDamage(damage);
-			if(!logged) {
-				logged = true;
-				System.out.println("[MNGA] ingot icon check: name="
-						+ (icon == null ? "null" : icon.getIconName())
-						+ " u=" + (icon == null ? -1 : icon.getMinU())
-						+ " v=" + (icon == null ? -1 : icon.getMinV()));
+		public String getItemStackDisplayName(ItemStack stack) {
+			String key = this.getUnlocalizedName() + ".name";
+			String base = net.minecraft.util.StatCollector.translateToLocal(key);
+			if(base == null || base.equals(key)) base = "Glitch Crystal";
+			base = base.replaceAll("\u00a7.", "").trim();
+			if(base.isEmpty()) base = "Glitch Crystal";
+
+			int n = base.length();
+			// 一轮约 1.5 秒；英文字符多、单步就短一些，保证中英观感一致
+			long step = Math.max(60L, 1500L / (n + 2));
+			int lit = (int) ((System.currentTimeMillis() / step) % (long) (n + 2));
+
+			StringBuilder sb = new StringBuilder(n * 3);
+			for(int i = 0; i < n; i++) {
+				if(i == lit) {
+					// 被扫到的那一个字露出来，其余整串保持乱码
+					sb.append(RESET).append(base.charAt(i));
+				} else {
+					sb.append(OBF).append(base.charAt(i));
+				}
 			}
-			return icon;
+			sb.append(RESET);
+			return sb.toString();
 		}
 	}
+
+	/**
+	 * 亚稳态X晶体：仿照原版 {@link com.hbm.items.special.ItemUnstable} 的衰变倒计时与引爆机制。
+	 * 携带在物品栏中时每 tick 累加衰变计时（200 tick / 10 秒），满 100% 时触发半径 700 核爆、
+	 * 造成 30000 点核爆伤害并销毁自身。
+	 */
+	private static class MetastableCrystalItem extends Item {
+
+		private static final int RADIUS = 700;
+		private static final int TIMER = 200;
+		private static final float DAMAGE = 30000.0F;
+
+		@Override
+		@SuppressWarnings("rawtypes")
+		public void addInformation(ItemStack stack, net.minecraft.entity.player.EntityPlayer player, java.util.List list, boolean advanced) {
+			list.add("Decay: " + (getTimer(stack) * 100 / TIMER) + "%");
+		}
+
+		@Override
+		public void onUpdate(ItemStack stack, net.minecraft.world.World world, net.minecraft.entity.Entity entity, int slot, boolean selected) {
+			int next = getTimer(stack) + 1;
+			setTimer(stack, next);
+
+			if(next >= TIMER && !world.isRemote) {
+				world.spawnEntityInWorld(com.hbm.entity.logic.EntityNukeExplosionMK5.statFac(world, RADIUS, entity.posX, entity.posY, entity.posZ));
+				world.playSoundAtEntity(entity, "hbm:entity.oldExplosion", 1.0F, 1.0F);
+				entity.attackEntityFrom(com.hbm.lib.ModDamageSource.nuclearBlast, DAMAGE);
+				stack.stackSize = 0;
+			}
+		}
+
+		private static int getTimer(ItemStack stack) {
+			if(!stack.hasTagCompound()) {
+				stack.stackTagCompound = new net.minecraft.nbt.NBTTagCompound();
+			}
+			return stack.stackTagCompound.getInteger("timer");
+		}
+
+		private static void setTimer(ItemStack stack, int time) {
+			if(!stack.hasTagCompound()) {
+				stack.stackTagCompound = new net.minecraft.nbt.NBTTagCompound();
+			}
+			stack.stackTagCompound.setInteger("timer", time);
+		}
+	}
+
+	/**
+	 * 不稳态X晶体：对末地石顶面右键可种下幼苗期X晶簇（{@code meta = 1}）。
+	 */
+	private static class UnstableXenCrystalItem extends Item {
+
+		@Override
+		public boolean onItemUse(ItemStack stack, net.minecraft.entity.player.EntityPlayer player,
+				net.minecraft.world.World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
+			if(side != 1) return false;
+			if(world.getBlock(x, y, z) != net.minecraft.init.Blocks.end_stone) return false;
+			if(!world.isAirBlock(x, y + 1, z)) return false;
+			if(!player.canPlayerEdit(x, y + 1, z, side, stack)) return false;
+
+			if(!world.isRemote) {
+				world.setBlock(x, y + 1, z, ModBlocks.xen_crystal_cluster,
+					com.makentmgreatagain.blocks.BlockXenCrystal.META_SEED, 2);
+				world.playSoundEffect(x + 0.5D, y + 1.5D, z + 0.5D,
+					net.minecraft.block.Block.soundTypeGlass.getStepResourcePath(), 1.0F, 1.0F);
+				if(!player.capabilities.isCreativeMode) {
+					stack.stackSize--;
+				}
+			}
+			return true;
+		}
+	}
+
 }

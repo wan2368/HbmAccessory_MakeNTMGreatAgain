@@ -7,7 +7,6 @@ import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.RecipesCommon.AStack;
 import com.hbm.inventory.recipes.loader.GenericRecipe;
 import com.hbm.inventory.recipes.loader.GenericRecipes.IOutput;
-import com.hbm.util.BobMathUtil;
 import com.hbm.util.i18n.I18nUtil;
 
 import net.minecraft.item.ItemStack;
@@ -56,14 +55,9 @@ public class MergedHeatRecipe extends HeatChemicalRecipe {
 	protected void header(List<String> list) {
 		list.add(EnumChatFormatting.YELLOW + getLocalizedName());
 
-		if(this.requiredHeat > 0) {
-			list.add(EnumChatFormatting.RED + I18nUtil.resolveKey("gui.recipe.heat") + ": "
-					+ BobMathUtil.getShortNumber(this.requiredHeat) + "TU");
-		}
-		if(this.requiredCatalyst > 0) {
-			list.add(EnumChatFormatting.RED + I18nUtil.resolveKey("gui.recipe.catalyst") + ": "
-					+ catalystName());
-		}
+		// 热量/催化剂不在这里画：父类 HeatChemicalRecipe.print() 已按合并后的
+		// 最高热量/最高催化剂等级插入一组，这里再画就重复成两组。
+		// 多个子配方需要热量/催化剂时，只显示等级最高的那一组。
 
 		// 列出参与合并的配方名，两列排布避免框太长挡视野
 		if(parts != null && !parts.isEmpty()) {
@@ -73,15 +67,6 @@ public class MergedHeatRecipe extends HeatChemicalRecipe {
 			}
 			twoColumns(list, names);
 		}
-	}
-
-	private String catalystName() {
-		ItemStack stack = this.requiredCatalyst >= 3
-				? new ItemStack(com.makentmgreatagain.init.ModItems.cmb_converter)
-				: this.requiredCatalyst == 2
-						? new ItemStack(com.makentmgreatagain.init.ModItems.platinum_converter)
-						: new ItemStack(com.hbm.items.ModItems.catalytic_converter);
-		return stack.getDisplayName();
 	}
 
 	/** 输入：均分两列并排 */

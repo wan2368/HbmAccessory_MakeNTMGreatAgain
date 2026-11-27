@@ -297,8 +297,17 @@ public class TileEntityElectricBlastFurnace extends TileEntityMachineBase implem
 	}
 
 	/**
-	 * 合金合成：每 10tick 一次，按内部熔融物比例，
-	 * 能凑一块（9锭）就按块批，否则按 1 锭批，再否则按 1 粒批；一次只处理一批。
+	 * 合金合成：每 {@link #alloyInterval()} tick 结算一次配方。
+	 *
+	 * <p><b>配方里的 amount 是绝对值，不能再乘 unit。</b>HBM 的坩埚配方以「1 粒」
+	 * （{@code NUGGET.q(1)} = 8）为书写基准，例如 {@code crucible.ferro}：
+	 * 钢 2 粒 + 铀-238 1 粒 → 铀铁合金 3 粒，就是 16 / 8 → 24。
+	 * 旧写法 {@code in.amount * unit} 把门槛又放大了一个 unit（粒 8 倍、锭 72 倍、块 648 倍），
+	 * 于是池子里原料明明已经凑成 2:1 也永远判定「不够」，表现就是比例对了却不融合。</p>
+	 *
+	 * <p>现在的批量倍数 = unit / {@code NUGGET.q(1)}（块 81 / 锭 9 / 粒 1），
+	 * 一次最多结算这么多份；若结算后总量会突破 75% 硬顶，就自动减少份数，
+	 * 而不是让 {@link #addToMolten} 把产物直接丢掉。</p>
 	 */
 	private void tryAlloy() {
 
@@ -308,26 +317,44 @@ public class TileEntityElectricBlastFurnace extends TileEntityMachineBase implem
 		if(++this.alloyTimer < this.alloyInterval()) return;
 		this.alloyTimer = 0;
 
+		int base = com.hbm.inventory.material.MaterialShapes.NUGGET.q(1);
 		int[] units = {
 				com.hbm.inventory.material.MaterialShapes.BLOCK.q(1),
 				com.hbm.inventory.material.MaterialShapes.INGOT.q(1),
-				com.hbm.inventory.material.MaterialShapes.NUGGET.q(1) };
+				base };
 
 		for(int unit : units) {
 
+			int mult = Math.max(1, unit / base);
+
 			boolean can = true;
 			for(com.hbm.inventory.material.Mats.MaterialStack in : rec.input) {
-				if(this.getMolten(in.material) < in.amount * unit) { can = false; break; }
+				if(this.getMolten(in.material) < in.amount * mult) { can = false; break; }
 			}
 			if(!can) continue;
 
-			for(com.hbm.inventory.material.Mats.MaterialStack in : rec.input) this.takeMolten(in.material, in.amount * unit);
-			for(com.hbm.inventory.material.Mats.MaterialStack out : rec.output) this.addToMolten(out.material, out.amount * unit);
+			mult = this.clampAlloyMult(rec, mult);
+			if(mult <= 0) continue;
+
+			for(com.hbm.inventory.material.Mats.MaterialStack in : rec.input) this.takeMolten(in.material, in.amount * mult);
+			for(com.hbm.inventory.material.Mats.MaterialStack out : rec.output) this.addToMolten(out.material, out.amount * mult);
 
 			this.molten.removeIf(s -> s.amount <= 0);
 			this.markChanged();
 			return;
 		}
+	}
+
+	/** 把批量份数收到「结算后总量不超 {@link #SMELT_CAP}」为止；返回 0 表示这一档放不下。 */
+	private int clampAlloyMult(com.hbm.inventory.recipes.CrucibleRecipe rec, int mult) {
+
+		int inTotal = 0, outTotal = 0;
+		for(com.hbm.inventory.material.Mats.MaterialStack in : rec.input) inTotal += in.amount;
+		for(com.hbm.inventory.material.Mats.MaterialStack out : rec.output) outTotal += out.amount;
+
+		long total = this.totalMolten();
+		while(mult > 0 && total - (long) inTotal * mult + (long) outTotal * mult > SMELT_CAP) mult--;
+		return mult;
 	}
 
 	/** 内置连续铸造机：模板 + 熔融金属 → 直接铸进输出槽。

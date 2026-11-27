@@ -8,6 +8,7 @@ import com.hbm.inventory.fluid.trait.FT_Combustible;
 import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.lib.Library;
 import com.hbm.tileentity.TileEntityMachineBase;
+import com.hbm.tileentity.TilePort;
 import com.hbm.tileentity.TilePort.PortDef;
 import com.makentmgreatagain.blocks.BlockIndustrialGasTurbine;
 import com.makentmgreatagain.init.ModFluids;
@@ -75,8 +76,9 @@ public class TileEntityIndustrialGasTurbine extends TileEntityMachineBase
 	public double lastConsumption;
 	public long lastProduction;
 
-	protected PortDef[] cachedPorts;
 	protected PortDef[] cachedPowerPorts;
+	private TilePort[] fluidInputPorts;
+	private FluidType[] configuredFluidTypes;
 
 	private double fuelAcc;
 	/** 润滑消耗累加器：单tick不足1mB的部分攒到下一tick（与fuelAcc同法，不存档，误差<1mB） */
@@ -93,22 +95,72 @@ public class TileEntityIndustrialGasTurbine extends TileEntityMachineBase
 
 	/* ========================== 端口（多方块，沿用原布局） ========================== */
 
-	/** 流体也走全部 12 个接口：早先只注册 8 个侧接口，前后接口没有流体网络节点，
-	 *  管道连上也无网可投递，表现为「前后流体无法导入」。 */
+	/** 流体输入和电力输出共用全部 12 个接口位置，但流体接收节点仍按接口独立注册。 */
 	public PortDef[] getPorts() {
-		if(cachedPorts == null) {
-			ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);
-			BlockIndustrialGasTurbine block = (BlockIndustrialGasTurbine) this.getBlockType();
-			int[][] side = block.getPortsAtCore(dir);
-			int[][] extra = block.getPowerPortsAtCore(dir);
-			cachedPorts = new PortDef[side.length + extra.length];
-			int n = 0;
-			for(int[] p : side)
-				cachedPorts[n++] = PortDef.make(xCoord + p[0], yCoord + p[1], zCoord + p[2], ForgeDirection.getOrientation(p[3]));
-			for(int[] p : extra)
-				cachedPorts[n++] = PortDef.make(xCoord + p[0], yCoord + p[1], zCoord + p[2], ForgeDirection.getOrientation(p[3]));
+		return getPowerPorts();
+	}
+
+	private void updateFluidInputPorts() {
+		boolean rebuild = fluidInputPorts == null || configuredFluidTypes == null;
+		if(!rebuild) {
+			for(int i = 0; i < tanks.length; i++) {
+				if(!sameFluid(configuredFluidTypes[i], tanks[i].getTankType())) {
+					rebuild = true;
+					break;
+				}
+			}
 		}
-		return cachedPorts;
+		if(rebuild) {
+			if(fluidInputPorts != null) {
+				for(TilePort port : fluidInputPorts) port.disableIfPresent(worldObj);
+			}
+			PortDef[] ports = getPorts();
+			java.util.List<FluidType> types = new java.util.ArrayList<FluidType>();
+			for(FluidTank tank : tanks) {
+				FluidType type = tank.getTankType();
+				if(type == null || sameFluid(type, Fluids.NONE)) continue;
+				boolean found = false;
+				for(FluidType existing : types) if(sameFluid(existing, type)) found = true;
+				if(!found) types.add(type);
+			}
+			fluidInputPorts = new TilePort[types.size() * ports.length];
+			for(int typeIndex = 0; typeIndex < types.size(); typeIndex++) {
+				for(int portIndex = 0; portIndex < ports.length; portIndex++) {
+					PortDef portDef = ports[portIndex];
+					TilePort port = new TilePort().setupOwner(this)
+							.setupPositions(portDef.portPositions)
+							.setupConnections(portDef.portConnections);
+					port.setupType(types.get(typeIndex).getNetworkProvider());
+					fluidInputPorts[typeIndex * ports.length + portIndex] = port;
+				}
+			}
+			configuredFluidTypes = new FluidType[tanks.length];
+			for(int i = 0; i < tanks.length; i++) configuredFluidTypes[i] = tanks[i].getTankType();
+		}
+
+		for(TilePort port : fluidInputPorts) port.update(worldObj);
+		for(TilePort port : fluidInputPorts) {
+			if(!port.needsRebuild) port.checkSubscribe(worldObj);
+		}
+	}
+
+	private void disableFluidInputPorts() {
+		if(fluidInputPorts != null) {
+			for(TilePort port : fluidInputPorts) port.disableIfPresent(worldObj);
+			fluidInputPorts = null;
+		}
+	}
+
+	@Override
+	public void onChunkUnload() {
+		disableFluidInputPorts();
+		super.onChunkUnload();
+	}
+
+	@Override
+	public void invalidate() {
+		disableFluidInputPorts();
+		super.invalidate();
 	}
 
 	/** 电力输出走全部 12 个接口（8 侧 + 4 前后），任意接口接电缆都能输电 */
@@ -162,8 +214,8 @@ public class TileEntityIndustrialGasTurbine extends TileEntityMachineBase
 
 	public double lubeEfficiency() {
 		if(tanks[0].getFill() <= 0) return 0.85D;
-		if(tanks[0].getTankType() == ModFluids.METHANOL.type) return 1.15D;
-		if(tanks[0].getTankType() == Fluids.LUBRICANT) return 1.0D;
+		if(sameFluid(tanks[0].getTankType(), ModFluids.METHANOL.type)) return 1.15D;
+		if(sameFluid(tanks[0].getTankType(), Fluids.LUBRICANT)) return 1.0D;
 		return 0.85D;
 	}
 
@@ -257,16 +309,24 @@ public class TileEntityIndustrialGasTurbine extends TileEntityMachineBase
 		}
 
 		this.setupPowerPorts(this.getPowerPorts());
-		this.setupFluidPorts(this.getPorts());
-		this.updatePortPOFIFO();
+		for(TilePort port : this.powerPorts) port.update(worldObj);
+		this.providePower();
 
-		// 识别码：罐0 只认润滑油/甲醇；罐1 任意
+		// 识别码：罐0 只认润滑油/甲醇；罐1 任意。
+		// 不用 FluidTank.setType：它用引用比较判断「是否换了流体」且换型就清空罐子，
+		// 宿主双实例下同一个甲醇每 tick 都会被判成「换了」而反复清空，永远灌不满。
 		if(slots[SLOT_ID_LUBE] != null && slots[SLOT_ID_LUBE].getItem() instanceof com.hbm.items.machine.IItemFluidIdentifier) {
 			FluidType f = ((com.hbm.items.machine.IItemFluidIdentifier) slots[SLOT_ID_LUBE].getItem())
 					.getType(worldObj, xCoord, yCoord, zCoord, slots[SLOT_ID_LUBE]);
-			if(f == Fluids.LUBRICANT || f == ModFluids.METHANOL.type) tanks[0].setTankType(f);
+			if(isLubeFluid(f)) ensureTankType(tanks[0], f);
 		}
-		tanks[1].setType(SLOT_ID_FUEL, SLOT_ID_FUEL, slots);
+		if(slots[SLOT_ID_FUEL] != null && slots[SLOT_ID_FUEL].getItem() instanceof com.hbm.items.machine.IItemFluidIdentifier) {
+			FluidType f = ((com.hbm.items.machine.IItemFluidIdentifier) slots[SLOT_ID_FUEL].getItem())
+					.getType(worldObj, xCoord, yCoord, zCoord, slots[SLOT_ID_FUEL]);
+			ensureTankType(tanks[1], f);
+		}
+
+		this.updateFluidInputPorts();
 
 		// 燃料桶入 / 满桶出
 		tanks[1].loadTank(SLOT_BUCKET_IN, SLOT_BUCKET_OUT, slots);
@@ -386,9 +446,12 @@ public class TileEntityIndustrialGasTurbine extends TileEntityMachineBase
 	@Override
 	public boolean canConnect(ForgeDirection dir) { return true; }
 
-	/** 流体管道连接判定：任意方向均可接（代理会转发到本方法） */
+	/** Only join a fluid network while a matching tank has room for this fluid. */
 	@Override
-	public boolean canConnect(FluidType type, ForgeDirection dir) { return true; }
+	public boolean canConnect(FluidType type, ForgeDirection dir) {
+		return getDemand(type, tanks[0].getPressure()) > 0 || getDemand(type, tanks[1].getPressure()) > 0
+				|| (isClaiming(type) && tanks[1].getFill() < tanks[1].getMaxFill());
+	}
 
 	@Override
 	public FluidTank[] getAllTanks() { return tanks; }
@@ -399,58 +462,105 @@ public class TileEntityIndustrialGasTurbine extends TileEntityMachineBase
 	@Override
 	public FluidTank[] getSendingTanks() { return new FluidTank[0]; }
 
-	/* 收液按罐角色路由（完全自定义，不走默认「遍历所有罐」实现）：
-	 * 早先的空罐放宽对任意流体放行，甲醇管网给润滑罐送液时空燃料罐也抢需求，
-	 * 把燃料罐型瞬间改成甲醇（串罐），且罐型反复被抢占导致端口节点每 tick 重建、
-	 * 其它流体网络永远订阅不上。现在：
-	 *   润滑油/甲醇 → 只进润滑罐（罐0），燃料罐绝不认领；
-	 *   其它流体   → 标准匹配燃料罐型；燃料罐空时放宽认领（只灌罐1）。 */
+	/* 收液按识别符设置的罐型进行：
+	 * 两罐显式指定为同一种流体时，会将需求和流量分配到两个罐；若只匹配一个罐，
+	 * 只写入该罐，罐满后不改投另一个不同流体的罐。空燃料罐仍可认领未配置的普通燃料。
+	 * 甲醇因此可同时进入润滑罐和燃料罐，并分别保留润滑效率加成与燃烧用途。
+	 * 所有类型比较都用 sameFluid()，兼容宿主中同种流体存在多个 FluidType 实例。 */
+
+	/**
+	 * 同一种流体：优先引用相等；引用不同时按本地化名兜底。
+	 * 只用于本机内部比较罐型与来液类型，不改变 FluidType 本身的注册关系。
+	 */
+	private static boolean sameFluid(FluidType a, FluidType b) {
+
+		if(a == b) return true;
+		if(a == null || b == null) return false;
+
+		String ua = a.getUnlocalizedName();
+		return ua != null && ua.equals(b.getUnlocalizedName());
+	}
 
 	private boolean isLubeFluid(FluidType type) {
-		return type == Fluids.LUBRICANT || type == ModFluids.METHANOL.type;
+		if(type == null) return false;
+		return sameFluid(type, Fluids.LUBRICANT) || sameFluid(type, ModFluids.METHANOL.type);
 	}
 
-	private boolean lubeMatch(FluidType type, int pressure) {
-		return isLubeFluid(type) && tanks[0].getTankType() == type && tanks[0].getPressure() == pressure;
+	/**
+	 * 只在「不是同一种流体」时改罐型。
+	 *
+	 * <p>{@link FluidTank#setTankType} 用引用比较判断是否换了流体，换了就 {@code setFill(0)}。
+	 * 宿主双实例下同一个甲醇每 tick 传进来都是「新实例」，直接调 setTankType 会把罐子反复清空，
+	 * 表现为管道一直在送、罐子永远是 0。</p>
+	 */
+	private static void ensureTankType(FluidTank tank, FluidType type) {
+
+		if(type == null || sameFluid(type, Fluids.NONE)) return;
+		if(!sameFluid(tank.getTankType(), type)) tank.setTankType(type);
 	}
 
-	private boolean fuelMatch(FluidType type, int pressure) {
-		return !isLubeFluid(type) && tanks[1].getTankType() == type && tanks[1].getPressure() == pressure;
-	}
-
-	private boolean fuelEmptyAccepts(FluidType type) {
-		return !isLubeFluid(type) && tanks[1].getFill() == 0 && tanks[1].getPressure() == 0 && type != null;
+	/** Empty fuel tanks may claim ordinary fuels; fluids with an explicit tank type keep their own routes. */
+	private boolean isClaiming(FluidType type) {
+		return type != null && !sameFluid(type, Fluids.NONE) && !isLubeFluid(type)
+				&& !sameFluid(tanks[0].getTankType(), type) && !sameFluid(tanks[1].getTankType(), type)
+				&& tanks[1].getFill() == 0 && tanks[1].getPressure() == 0;
 	}
 
 	@Override
 	public long getDemand(FluidType type, int pressure) {
-		if(lubeMatch(type, pressure)) return tanks[0].getMaxFill() - tanks[0].getFill();
-		if(fuelMatch(type, pressure)) return tanks[1].getMaxFill() - tanks[1].getFill();
-		if(fuelEmptyAccepts(type)) return tanks[1].getMaxFill();
+
+		if(type == null || sameFluid(type, Fluids.NONE)) return 0;
+		long demand = 0;
+		for(FluidTank tank : tanks) {
+			if(sameFluid(tank.getTankType(), type) && tank.getPressure() == pressure) {
+				demand += Math.max(0, tank.getMaxFill() - tank.getFill());
+			}
+		}
+		if(demand > 0) return demand;
+		if(isClaiming(type) && pressure >= 0 && pressure <= HIGHEST_VALID_PRESSURE) {
+			return Math.max(0, tanks[1].getMaxFill() - tanks[1].getFill());
+		}
 		return 0;
 	}
 
 	@Override
 	public long transferFluid(FluidType type, int pressure, long amount) {
-		if(lubeMatch(type, pressure)) {
-			int add = (int) Math.min(amount, tanks[0].getMaxFill() - tanks[0].getFill());
-			tanks[0].setFill(tanks[0].getFill() + add);
-			return amount - add;
+
+		if(amount <= 0 || type == null || sameFluid(type, Fluids.NONE)) return amount;
+		if(isClaiming(type) && pressure >= 0 && pressure <= HIGHEST_VALID_PRESSURE) {
+			ensureTankType(tanks[1], type);
+			tanks[1].withPressure(pressure);
 		}
-		if(fuelEmptyAccepts(type)) tanks[1].setTankType(type);
-		if(fuelMatch(type, pressure)) {
-			int add = (int) Math.min(amount, tanks[1].getMaxFill() - tanks[1].getFill());
-			tanks[1].setFill(tanks[1].getFill() + add);
-			return amount - add;
+
+		for(FluidTank tank : tanks) {
+			if(amount <= 0) break;
+			if(!sameFluid(tank.getTankType(), type) || tank.getPressure() != pressure) continue;
+			int add = (int) Math.min(amount, Math.max(0, tank.getMaxFill() - tank.getFill()));
+			if(add > 0) {
+				tank.setFill(tank.getFill() + add);
+				amount -= add;
+			}
 		}
 		return amount;
 	}
 
 	@Override
 	public int[] getReceivingPressureRange(FluidType type) {
-		if(isLubeFluid(type)) return new int[] {tanks[0].getPressure(), tanks[0].getPressure()};
-		if(fuelEmptyAccepts(type)) return new int[] {0, HIGHEST_VALID_PRESSURE};
-		return new int[] {tanks[1].getPressure(), tanks[1].getPressure()};
+
+		if(type == null || sameFluid(type, Fluids.NONE)) return new int[] {0, 0};
+		int lowest = HIGHEST_VALID_PRESSURE;
+		int highest = 0;
+		boolean found = false;
+		for(FluidTank tank : tanks) {
+			if(sameFluid(tank.getTankType(), type) && tank.getFill() < tank.getMaxFill()) {
+				lowest = Math.min(lowest, tank.getPressure());
+				highest = Math.max(highest, tank.getPressure());
+				found = true;
+			}
+		}
+		if(found) return new int[] {lowest, highest};
+		if(isClaiming(type)) return new int[] {0, HIGHEST_VALID_PRESSURE};
+		return new int[] {0, 0};
 	}
 
 	/* ========================== 物品 / 自动化 ========================== */

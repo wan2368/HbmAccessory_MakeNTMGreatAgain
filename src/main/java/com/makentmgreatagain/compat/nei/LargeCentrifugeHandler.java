@@ -63,14 +63,15 @@ public class LargeCentrifugeHandler extends TemplateRecipeHandler {
 	private static int[][] getOutputPositions(int count) {
 
 		int rows = Math.min(4, (count + 1) / 2);
-		int startY = 24 - (rows - 1) * 8;
+		int stepY = rows <= 3 ? 18 : 16;
+		int startY = rows <= 2 ? 15 : (rows == 3 ? 6 : 2);
 
 		int[][] slots = new int[count][2];
 		for(int i = 0; i < count; i++) {
 			int block = i / 8;
 			int local = i % 8;
 			slots[i][0] = 102 + (block * 2 + local % 2) * 18;
-			slots[i][1] = startY + (local / 2) * 16;
+			slots[i][1] = startY + (local / 2) * stepY;
 		}
 		return slots;
 	}
@@ -271,20 +272,5 @@ public class LargeCentrifugeHandler extends TemplateRecipeHandler {
 
 	@Override
 	public void drawExtras(int recipe) {
-
-		RecipeSet rec = (RecipeSet) this.arecipes.get(recipe);
-		CentrifugeRecipe r = rec.recipe;
-
-		Minecraft mc = Minecraft.getMinecraft();
-
-		if(r.duration > 0) {
-			String text = I18nUtil.resolveKey("gui.recipe.duration") + ": " + (r.duration / 20D) + "s";
-			mc.fontRenderer.drawString(text, 164 - mc.fontRenderer.getStringWidth(text), 45, 0x404040);
-		}
-
-		if(r.power > 0) {
-			String text = I18nUtil.resolveKey("makentmgreatagain.gui.recipe.power") + ": " + BobMathUtil.getShortNumber(r.power) + "HE/t";
-			mc.fontRenderer.drawString(text, 164 - mc.fontRenderer.getStringWidth(text), 57, 0x404040);
-		}
 	}
 }

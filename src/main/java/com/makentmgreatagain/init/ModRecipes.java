@@ -22,6 +22,7 @@ import static com.hbm.inventory.OreDictManager.CDALLOY;
 import static com.hbm.inventory.OreDictManager.KNO;
 import static com.hbm.inventory.OreDictManager.W;
 import static com.hbm.inventory.OreDictManager.ANY_COKE;
+import static com.hbm.inventory.OreDictManager.ANY_PLASTIC;
 import static com.hbm.inventory.OreDictManager.IRON;
 import static com.hbm.inventory.OreDictManager.GOLD;
 import static com.hbm.inventory.OreDictManager.NB;
@@ -38,6 +39,7 @@ import static com.hbm.inventory.OreDictManager.ANY_PLASTIC;
 import static com.hbm.inventory.OreDictManager.ANY_HARDPLASTIC;
 import static com.hbm.inventory.OreDictManager.ANY_BISMOIDBRONZE;
 import static com.hbm.inventory.OreDictManager.BSCCO;
+import static com.hbm.inventory.OreDictManager.MAGTUNG;
 import static com.hbm.inventory.OreDictManager.CMB;
 import static com.hbm.inventory.OreDictManager.TH232;
 
@@ -153,6 +155,15 @@ public class ModRecipes {
 		// 铁锭
 		GameRegistry.addSmelting(ModItems.powder_oxidate_iron,
 				new ItemStack(Items.iron_ingot, 1), 1.0F);
+		// 铒粉 → 铒锭
+		GameRegistry.addSmelting(ModItems.powder_erbium,
+				new ItemStack(ModItems.ingot_erbium, 1), 1.0F);
+		// 铂粉 → 铂锭
+		GameRegistry.addSmelting(ModItems.powder_platinum,
+				new ItemStack(ModItems.ingot_platinum, 1), 1.0F);
+		// 耐摔合金粉 → 耐摔合金锭
+		GameRegistry.addSmelting(ModItems.powder_helicopter,
+				new ItemStack(ModItems.ingot_helicopter, 1), 1.0F);
 		// 氧化锶
 		addStrontiumSmeltingRecipe();
 		// 电力悬浮作业背包
@@ -198,7 +209,7 @@ public class ModRecipes {
 		addElectricBoilerRecipe();
 
 		// 深海精矿与浆体处理产线（设计 3 · 分馏塔深档）
-		// 尾氯化气、灰尘、铁粉、盐酸、重砂精矿、四氯化钛、纯钽铁矿粉、铌粉、粗铂液、金粉、氯铂酸钾、稀土母液、钍精矿、混合稀土氢氧化物、盐水、小撮钕粉、小撮镧粉、铒粉、钴料液、铜废料、氢氧化钴、二氧化硫、二氧化碳
+		// 尾氯化气、灰尘、铁粉、盐酸、重砂精矿、四氯化钛、纯钽铁矿粉、铌粉、粗铂液、金粉、氯铂酸钾、钍精矿、混合稀土氢氧化物、盐水、小撮钕粉、小撮镧粉、铒粉、钴料液、铜废料、氢氧化钴、二氧化硫、二氧化碳
 		addDeepSeaChemicalRecipes();
 		// 水、氢气、重砂精矿、阳极泥
 		addDeepSeaFluidElectrolyserRecipes();
@@ -210,14 +221,20 @@ public class ModRecipes {
 		addDeepSeaCentrifugeRecipes();
 		// 钍晶体、钴晶体
 		addDeepSeaCrystallizerRecipes();
-		// 稀土母液、钍精矿
+		// 钍精矿、混合稀土氢氧化物
 		addDeepSeaPUREXRecipes();
 		// 四氯化钛、尾氯重馏分
 		addDeepSeaFractionRecipe();
 		// 铂熔体、金粉
 		addDeepSeaMetalElectrolyserRecipe();
+		// PEEK 特种工程塑料线：氢氟酸、氟苯、PEEK 锭与粉末
+		addPeekChemicalRecipes();
+		addPeekShredderRecipes();
 
-		// 大型离心机：灰尘、铁粉、铀粉、水、重砂精矿、铂族精矿、氯气、盐酸、四氯化钛、钛粉、锆粉、铍粉、小撮钕粉、小撮镧粉、铈粉、钍粉、铀粉、稀土母液、金粉、铋粉、铋粒、硫粉、粗铂液、镉粉、铜粉、硫酸锌溶液、铂粉、硫酸、氢氧化钴、石膏、盐水、混合稀土氢氧化物、白砷、硫酸钠
+		// 流体传送器 / 物品传送器（工作台有序合成）
+		addXenTransceiverRecipes();
+
+		// 大型离心机：灰尘、铁粉、铀粉、水、重砂精矿、铂族精矿、氯气、盐酸、四氯化钛、钛粉、锆粉、铍粉、小撮钕粉、小撮镧粉、铈粉、钍粉、铀粉、金粉、铋粉、铋粒、硫粉、粗铂液、镉粉、铜粉、硫酸锌溶液、铂粉、硫酸、氢氧化钴、石膏、盐水、白砷、硫酸钠
 		LargeCentrifugeRecipes.registerRecipes();
 
         MakeNTMGreatAgain.LOG.info("ModRecipes: vanilla recipes registered.");
@@ -728,6 +745,67 @@ public class ModRecipes {
 		MakeNTMGreatAgain.LOG.info("Added 528 annihilator milestone: 1024x platinum ingot -> core lava extractor blueprint");
 	}
 
+	/** 仿星器（装配机，528 模式下需先烧 1024 个反Sa326单元获取蓝图） */
+	public static void addStellaratorRecipe() {
+		if(hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.stellarator")) return;
+
+		GenericRecipe recipe = new GenericRecipe("makentmgreatagain.stellarator")
+			.setup(1200, 100_000)
+			.setPools528(GenericRecipes.POOL_PREFIX_528 + "stellarator")
+			.outputItems(new ItemStack(ModBlocks.stellarator))
+			.inputItems(
+				new ComparableStack(ModBlocks.block_threx, 64),
+				new ComparableStack(com.hbm.blocks.ModBlocks.fusion_component, 64),
+				new OreDictStack(com.hbm.inventory.OreDictManager.MAGTUNG.wireDense(), 64),
+				new ComparableStack(com.hbm.items.ModItems.circuit, 1, EnumCircuitType.CONTROLLER_QUANTUM.ordinal()))
+			.inputItemsEx(
+				new ComparableStack(ModBlocks.block_threx, 64),
+				new ComparableStack(com.hbm.blocks.ModBlocks.fusion_component, 64),
+				new OreDictStack(com.hbm.inventory.OreDictManager.MAGTUNG.wireDense(), 64),
+				new ComparableStack(com.hbm.items.ModItems.circuit, 16, EnumCircuitType.CONTROLLER_QUANTUM.ordinal()),
+				new ComparableStack(com.hbm.items.ModItems.item_expensive, 16, EnumExpensiveType.BRONZE_TUBES.ordinal()));
+
+		RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, recipe);
+	}
+
+	/** 等离子加热器（装配机，528 模式下与仿星器共用同一张蓝图） */
+	public static void addPlasmaHeaterRecipe() {
+		if(hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.plasmaHeater")) return;
+
+		GenericRecipe recipe = new GenericRecipe("makentmgreatagain.plasmaHeater")
+			.setup(800, 50_000)
+			.setPools528(GenericRecipes.POOL_PREFIX_528 + "stellarator")
+			.outputItems(new ItemStack(ModBlocks.plasma_heater))
+			.inputItems(
+				new ComparableStack(ModBlocks.block_threx, 16),
+				new ComparableStack(com.hbm.items.ModItems.pa_coil, 1, com.hbm.items.machine.ItemPACoil.EnumCoilType.BSCCO.ordinal()),
+				new ComparableStack(com.hbm.items.ModItems.magnetron, 64),
+				new ComparableStack(com.hbm.items.ModItems.coil_tungsten, 64))
+			.inputItemsEx(
+				new ComparableStack(ModBlocks.block_threx, 16),
+				new ComparableStack(com.hbm.items.ModItems.pa_coil, 1, com.hbm.items.machine.ItemPACoil.EnumCoilType.BSCCO.ordinal()),
+				new ComparableStack(com.hbm.items.ModItems.magnetron, 64),
+				new ComparableStack(com.hbm.items.ModItems.coil_tungsten, 64),
+				new ComparableStack(com.hbm.blocks.ModBlocks.machine_microwave, 64),
+				new ComparableStack(com.hbm.blocks.ModBlocks.pa_rfc, 16));
+
+		RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, recipe);
+	}
+
+	/**
+	 * 528 模式：仿星器 & 等离子加热器共用蓝图里程碑。
+	 *
+	 * <p>湮灭炉累计烧掉 1024 个反Sa326单元 → 发放 {@code 528stellarator} 蓝图。</p>
+	 */
+	public static void addStellarator528Annihilator() {
+		if(!GeneralConfig.enable528) return;
+		String pool = GenericRecipes.POOL_PREFIX_528 + "stellarator";
+		AnnihilatorRecipes.recipes.put(com.hbm.items.ModItems.cell_anti_schrabidium,
+			new AnnihilatorRecipes.AnnihilatorRecipe(
+				new Pair<java.math.BigInteger, ItemStack>(new java.math.BigInteger("1024"), ItemBlueprints.make(pool))));
+		MakeNTMGreatAgain.LOG.info("Added 528 annihilator milestone: 1024x anti-schrabidium cell -> stellarator blueprint");
+	}
+
 	/**
 	 * 粉碎的魔法（酸化机 / 矿物酸化器）。
 	 *
@@ -742,6 +820,41 @@ public class ModRecipes {
 			new FluidStack(Fluids.ENDERJUICE, 1_000));
 
 		MakeNTMGreatAgain.LOG.info("Added crystallizer recipe: ender juice + lapis powder -> magic powder");
+	}
+
+	/** 稳定X晶体 + 经验汁 → 人造X晶体（矿物酸化器）。registerRecipe 按(输入,酸类型)put，天然幂等 */
+	public static void addXenCrystalAcidRecipe() {
+		CrystallizerRecipes.CrystallizerRecipe recipe =
+			new CrystallizerRecipes.CrystallizerRecipe(new ItemStack(com.hbm.items.ModItems.crystal_xen, 1), 600);
+		CrystallizerRecipes.registerRecipe(new ComparableStack(ModItems.crystal_xen), recipe,
+			new FluidStack(Fluids.XPJUICE, 1_000));
+	}
+
+	/**
+	 * 稳定X晶体 + 可见光 → 概率分离（SILEX）。
+	 * 权重 10/4/1/10（总25）：不稳态40% / 亚稳态16% / 乱码4% / 灰尘40%。
+	 * 失败项出「灰尘」而不是回料稳定晶体 —— 否则分离机可以自循环，一份晶体反复喂进去直到出好东西。
+	 * SILEX 表为 private 且无公开 register，反射 put；乱码晶体的 NEI 隐藏由
+	 * {@code compat/nei/SILEXHiddenHandler} 负责，机器分离不受影响。
+	 */
+	@SuppressWarnings("unchecked")
+	public static void addXenCrystalSILEXRecipe() {
+		try {
+			java.lang.reflect.Field f = com.hbm.inventory.recipes.SILEXRecipes.class.getDeclaredField("recipes");
+			f.setAccessible(true);
+			java.util.HashMap<Object, com.hbm.inventory.recipes.SILEXRecipes.SILEXRecipe> map =
+				(java.util.HashMap<Object, com.hbm.inventory.recipes.SILEXRecipes.SILEXRecipe>) f.get(null);
+			ComparableStack key = new ComparableStack(ModItems.crystal_xen);
+			if(map.containsKey(key)) return;
+			map.put(key, new com.hbm.inventory.recipes.SILEXRecipes.SILEXRecipe(900, 100,
+					com.hbm.items.machine.ItemFELCrystal.EnumWavelengths.GAMMA)
+				.addOut(new ItemStack(ModItems.crystal_xen_unstable), 10)
+				.addOut(new ItemStack(ModItems.crystal_xen_metastable), 4)
+				.addOut(new ItemStack(ModItems.crystal_xen_glitch), 1)
+				.addOut(new ItemStack(com.hbm.items.ModItems.dust, 1), 10));
+		} catch(Exception e) {
+			MakeNTMGreatAgain.LOG.warn("[配方] SILEX 稳定X晶体配方反射失败", e);
+		}
 	}
 
 	/** 电叉 */
@@ -1055,6 +1168,17 @@ public class ModRecipes {
 			"S",
 			'S', W.plateCast(),
 			'X', new ItemStack(com.hbm.items.ModItems.tank_steel, 1)));
+
+		// 可调节钢/钨排液管：对应排液管 + 红石（升级加装限流阀）
+		GameRegistry.addShapelessRecipe(
+			new ItemStack(ModBlocks.machine_drain_adjustable_steel),
+			new ItemStack(ModBlocks.machine_drain),
+			new ItemStack(net.minecraft.init.Items.redstone));
+
+		GameRegistry.addShapelessRecipe(
+			new ItemStack(ModBlocks.machine_drain_adjustable_tungsten),
+			new ItemStack(ModBlocks.machine_drain_tungsten),
+			new ItemStack(net.minecraft.init.Items.redstone));
 	}
 
 	/** 锝钢/镉钢铸造板共用的矿辞：两种材料互为等位替代 */
@@ -1139,6 +1263,111 @@ public class ModRecipes {
 			.outputFluids(new FluidStack(Fluids.BALEFIRE, 10000)));
 		
 	}
+	/**
+	 * 工业合成乙醇两条路线（参照现实工艺，化工厂+搅拌机双注册）：
+	 * 简单·乙烯直接水合：600 不饱和烃+1400 水→2000 乙醇（体积守恒）；
+	 * 难·合成气两步法：① 500 甲醇+500 合成气→1000 乙酸，② 1000 乙酸+500 氢→1500 乙醇。
+	 *   上游甲醇复用 petro.methanol（合成气+氢），整链煤→合成气→甲醇→乙酸→乙醇。
+	 */
+	public static void addSyntheticEthanolRecipes() {
+		FluidType methanol = addonFluid(ModFluids.METHANOL);
+		FluidType acetic = addonFluid(ModFluids.ACETIC_ACID);
+
+		// 简单：乙烯水合（化工厂，无催化剂门槛）
+		if(!hasChemRecipe("makentmgreatagain.ethanol.hydration")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.ethanol.hydration")
+				.setNamed()
+				.setIcon(com.hbm.items.machine.ItemFluidIcon.make(Fluids.ETHANOL, 2000))
+				.setup(100, 1_000)
+				.inputFluids(new FluidStack(Fluids.UNSATURATEDS, 600), new FluidStack(Fluids.WATER, 1_400))
+				.outputFluids(new FluidStack(Fluids.ETHANOL, 2_000)));
+		}
+
+		if(methanol == Fluids.NONE || acetic == Fluids.NONE) return;
+
+		// 难①：甲醇羰基化制乙酸（合成气提供 CO）
+		if(!hasChemRecipe("makentmgreatagain.ethanol.carbonylation")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.ethanol.carbonylation")
+				.setNamed()
+				.setIcon(com.hbm.items.machine.ItemFluidIcon.make(acetic, 1000))
+				.setup(200, 2_000)
+				.inputFluids(new FluidStack(methanol, 500), new FluidStack(Fluids.SYNGAS, 500))
+				.outputFluids(new FluidStack(acetic, 1_000)));
+		}
+
+		// 难②：乙酸加氢制乙醇（1500 进 1500 出，不产水）
+		if(!hasChemRecipe("makentmgreatagain.ethanol.acetic_hydrogenation")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.ethanol.acetic_hydrogenation")
+				.setNamed()
+				.setIcon(com.hbm.items.machine.ItemFluidIcon.make(Fluids.ETHANOL, 1500))
+				.setup(200, 2_000)
+				.inputFluids(new FluidStack(acetic, 1_000), new FluidStack(Fluids.HYDROGEN, 500))
+				.outputFluids(new FluidStack(Fluids.ETHANOL, 1_500)));
+		}
+	}
+
+	/** 合成乙醇三条配方的搅拌机版本，与化工厂同配比；追加时保留原有条目（register 是整组覆盖） */
+	public static void addSyntheticEthanolMixerRecipes() {
+		FluidType methanol = addonFluid(ModFluids.METHANOL);
+		FluidType acetic = addonFluid(ModFluids.ACETIC_ACID);
+
+		// 乙烯水合：600 不饱和烃 + 1400 水 → 2000 乙醇
+		AddonMixerRecipe hydration = new AddonMixerRecipe(2_000, 100);
+		hydration.input1 = new FluidStack(Fluids.UNSATURATEDS, 600);
+		hydration.input2 = new FluidStack(Fluids.WATER, 1_400);
+		appendMixerRecipe(Fluids.ETHANOL, hydration);
+
+		if(methanol == Fluids.NONE || acetic == Fluids.NONE) return;
+
+		// 甲醇羰基化：500 甲醇 + 500 合成气 → 1000 乙酸
+		AddonMixerRecipe carbonylation = new AddonMixerRecipe(1_000, 200);
+		carbonylation.input1 = new FluidStack(methanol, 500);
+		carbonylation.input2 = new FluidStack(Fluids.SYNGAS, 500);
+		appendMixerRecipe(acetic, carbonylation);
+
+		// 乙酸加氢：1000 乙酸 + 500 氢 → 1500 乙醇
+		AddonMixerRecipe hydrogenation = new AddonMixerRecipe(1_500, 200);
+		hydrogenation.input1 = new FluidStack(acetic, 1_000);
+		hydrogenation.input2 = new FluidStack(Fluids.HYDROGEN, 500);
+		appendMixerRecipe(Fluids.ETHANOL, hydrogenation);
+	}
+
+	/** 搅拌机追加配方：register 会整组覆盖，先判重再合并原数组，重载监听重复调用不叠加 */
+	private static void appendMixerRecipe(FluidType out, MixerRecipes.MixerRecipe add) {
+		MixerRecipes.MixerRecipe[] existing = MixerRecipes.getOutput(out);
+		if(existing != null) {
+			for(MixerRecipes.MixerRecipe r : existing) {
+				if(r.output == add.output && sameMixerInput(r.input1, add.input1) && sameMixerInput(r.input2, add.input2)) return;
+			}
+			MixerRecipes.MixerRecipe[] merged = new MixerRecipes.MixerRecipe[existing.length + 1];
+			System.arraycopy(existing, 0, merged, 0, existing.length);
+			merged[existing.length] = add;
+			MixerRecipes.register(out, merged);
+		} else {
+			MixerRecipes.register(out, add);
+		}
+	}
+
+	private static boolean sameMixerInput(FluidStack a, FluidStack b) {
+		if(a == null || b == null) return a == b;
+		return a.type == b.type && a.fill == b.fill;
+	}
+
+	/** 正电子：氢胶囊×2 低动量对撞（简单配方），产物正电子胶囊 */
+	public static void addPositronAcceleratorRecipe() {
+		for(com.hbm.inventory.recipes.ParticleAcceleratorRecipes.ParticleAcceleratorRecipe r
+				: com.hbm.inventory.recipes.ParticleAcceleratorRecipes.recipes) {
+			if(r.output1 != null && r.output1.getItem() == ModItems.particle_positron) return;
+		}
+		com.hbm.inventory.recipes.ParticleAcceleratorRecipes.recipes.add(
+			new com.hbm.inventory.recipes.ParticleAcceleratorRecipes.ParticleAcceleratorRecipe(
+				new ComparableStack(com.hbm.items.ModItems.particle_hydrogen),
+				new ComparableStack(com.hbm.items.ModItems.particle_hydrogen),
+				100,
+				new ItemStack(ModItems.particle_positron),
+				null));
+	}
+
 	/** 乙酸 **/
 	public static void addAceticAcidRecipe() {
 		RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.AceticAcid")
@@ -1423,6 +1652,49 @@ public class ModRecipes {
 				new ComparableStack(com.hbm.items.ModItems.ingot_rubber, 32)));
 
 		MakeNTMGreatAgain.LOG.info("Added assembly recipe: industrial gas turbine (combustion engine x4 materials + 4x titanium turbine rotor)");
+	}
+
+	/** 超临界磁流体膨胀发电机：threx块+铸造铋/砷青铜板+量子处理单元+致密BSCCO线圈+致密磁化钨线；昂贵加塑料板/青铜结构件 */
+	public static void addSupercriticalMHDAssemblyRecipe() {
+		if(hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.supercriticalMHD")) return;
+		RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.supercriticalMHD")
+			.setup(1200, 20_000)
+			.outputItems(new ItemStack(ModBlocks.supercritical_mhd_generator))
+			.inputItems(
+				new ComparableStack(ModBlocks.block_threx, 16),
+				new OreDictStack(ANY_BISMOIDBRONZE.plateCast(), 32),
+				new ComparableStack(com.hbm.items.ModItems.circuit, 4, EnumCircuitType.QUANTUM),
+				new OreDictStack(BSCCO.wireDense(), 64),
+				new OreDictStack(MAGTUNG.wireDense(), 64))
+			.inputItemsEx( // 昂贵模式：threx/量子翻倍，另加塑料板+青铜结构件
+				new ComparableStack(ModBlocks.block_threx, 32),
+				new OreDictStack(ANY_BISMOIDBRONZE.plateCast(), 32),
+				new ComparableStack(com.hbm.items.ModItems.circuit, 16, EnumCircuitType.QUANTUM),
+				new OreDictStack(BSCCO.wireDense(), 64),
+				new OreDictStack(MAGTUNG.wireDense(), 64),
+				new ComparableStack(com.hbm.items.ModItems.item_expensive, 32, EnumExpensiveType.PLASTIC),
+				new ComparableStack(com.hbm.items.ModItems.item_expensive, 16, EnumExpensiveType.BRONZE_TUBES)));
+	}
+
+	/** 大型火力发电站：正常 16铸造钢板+8焊接钢板+16聚合物(或电木)+32耐火砖；昂贵翻倍另加4铆接固定钢板 */
+	public static void addThermalStationAssemblyRecipe() {
+		if(hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.thermalStation")) return;
+		RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.thermalStation")
+			.setup(1200, 20_000)
+			.outputItems(new ItemStack(ModBlocks.large_thermal_power_station))
+			.inputItems(
+				new OreDictStack(STEEL.plateCast(), 16),
+				new OreDictStack(STEEL.plateWelded(), 8),
+				new OreDictStack(ANY_PLASTIC.ingot(), 16),
+				new ComparableStack(com.hbm.items.ModItems.ingot_firebrick, 32))
+			.inputItemsEx( // 昂贵模式：板材/聚合物/耐火砖翻倍，另加 4 铆接固定钢板
+				new OreDictStack(STEEL.plateCast(), 32),
+				new OreDictStack(STEEL.plateWelded(), 16),
+				new OreDictStack(ANY_PLASTIC.ingot(), 32),
+				new ComparableStack(com.hbm.items.ModItems.ingot_firebrick, 64),
+				new ComparableStack(com.hbm.items.ModItems.item_expensive, 4, EnumExpensiveType.STEEL_PLATING)));
+
+		MakeNTMGreatAgain.LOG.info("Added assembly recipe: large thermal power station (normal / expensive)");
 	}
 
 	/** 化学工厂：石油/煤/褐煤焦炭 + 2000mb氢气 + 2000mb水 → 4000mb合成气（仅限这三种焦炭） */
@@ -3310,7 +3582,6 @@ public class ModRecipes {
 		FluidType chloride = addonFluid(ModFluids.TAILINGS_CHLORIDE);
 		FluidType fraction = addonFluid(ModFluids.TAILINGS_HEAVY_FRACTION);
 		FluidType crudePt = addonFluid(ModFluids.CRUDE_PLATINUM);
-		FluidType reLiquor = addonFluid(ModFluids.RE_MOTHER_LIQUOR);
 		FluidType coLiquor = addonFluid(ModFluids.COBALT_LIQUOR);
 		FluidType so2 = addonFluid(ModFluids.SULFUR_DIOXIDE);
 		FluidType brine = addonFluid(ModFluids.SALT_WATER);
@@ -3322,6 +3593,8 @@ public class ModRecipes {
 		// 尾氯化气、灰尘
 		if(tailings != Fluids.NONE && chloride != Fluids.NONE && !hasChemRecipe("makentmgreatagain.deepsea.a2")) {
 			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.deepsea.a2")
+				.setNamed()
+				.setIcon(com.hbm.items.machine.ItemFluidIcon.make(chloride, 1_200))
 				.setup(300, 5_000)
 				.inputItems(new ComparableStack(com.hbm.items.ModItems.powder_coal, 1))
 				.inputFluids(new FluidStack(tailings, 1_500), new FluidStack(Fluids.CHLORINE, 500))
@@ -3432,6 +3705,8 @@ public class ModRecipes {
 		// 钴料液、灰尘
 		if(coLiquor != Fluids.NONE && !hasChemRecipe("makentmgreatagain.deepsea.e3")) {
 			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.deepsea.e3")
+				.setNamed()
+				.setIcon(com.hbm.items.machine.ItemFluidIcon.make(coLiquor, 800))
 				.setup(300, 5_000)
 				.inputItems(new ComparableStack(ModItems.polymetallic_mix, 2))
 				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 600))
@@ -3442,6 +3717,8 @@ public class ModRecipes {
 		// 钴料液、铜废料、氢气
 		if(coLiquor != Fluids.NONE && !hasChemRecipe("makentmgreatagain.deepsea.e3b")) {
 			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.deepsea.e3b")
+				.setNamed()
+				.setIcon(com.hbm.items.machine.ItemFluidIcon.make(coLiquor, 1_200))
 				.setup(300, 5_000)
 				.inputItems(new ComparableStack(ModItems.cobalt_polymetallic_concentrate, 1))
 				.inputFluids(new FluidStack(Fluids.SOLVENT, 800), new FluidStack(Fluids.SULFURIC_ACID, 600))
@@ -3583,43 +3860,41 @@ public class ModRecipes {
 		MakeNTMGreatAgain.LOG.info("Added deep-sea crystallizer recipes: thorium / cobalt crystal");
 	}
 
-	/** 稀土母液、钍精矿、混合稀土氢氧化物、盐水、小撮钕粉、灰尘、铒粉、粗铂液、金粉、氢氧化钴 */
+	/** 钍精矿、混合稀土氢氧化物、盐水、小撮钕粉、灰尘、铒粉、粗铂液、金粉、氢氧化钴 */
 	public static void addDeepSeaPUREXRecipes() {
-		FluidType reLiquor = addonFluid(ModFluids.RE_MOTHER_LIQUOR);
 		FluidType tbpkero = addonFluid(ModFluids.TBP_KERO);
 		FluidType coLiquor = addonFluid(ModFluids.COBALT_LIQUOR);
 		FluidType crudePt = addonFluid(ModFluids.CRUDE_PLATINUM);
 		FluidType brine = addonFluid(ModFluids.SALT_WATER);
 		FluidType hcl = HBMCompat.hcl();
-		if(reLiquor == Fluids.NONE || tbpkero == Fluids.NONE) return;
+		if(tbpkero == Fluids.NONE) return;
 
-		// 稀土母液、钍精矿、灰尘
+		// 钍精矿、灰尘（稀土母液已删除，不再产出）
 		if(!hasGenericRecipe(PUREXRecipes.INSTANCE, "makentmgreatagain.deepsea.d5")) {
 			RecipeRegistrar.add(PUREXRecipes.INSTANCE, (PUREXRecipe) new PUREXRecipe("makentmgreatagain.deepsea.d5")
 				.setup(300, 6_000)
 				.inputItems(new ComparableStack(ModItems.rare_earth_mix, 4))
 				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1_000))
 				.outputItems(new ItemStack(ModItems.thorium_concentrate, 1),
-							 new ItemStack(com.hbm.items.ModItems.dust, 2))
-				.outputFluids(new FluidStack(reLiquor, 1_600)));
+							 new ItemStack(com.hbm.items.ModItems.dust, 2)));
 		}
 
-		// 稀土母液、钍精矿（TBP-煤油萃取）
+		// 钍精矿（TBP-煤油萃取，稀土母液已删除，不再产出）
 		if(!hasGenericRecipe(PUREXRecipes.INSTANCE, "makentmgreatagain.deepsea.d5b")) {
 			RecipeRegistrar.add(PUREXRecipes.INSTANCE, (PUREXRecipe) new PUREXRecipe("makentmgreatagain.deepsea.d5b")
 				.setup(300, 3_000)
 				.inputItems(new ComparableStack(ModItems.rare_earth_mix, 4))
 				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1_000),
 							 new FluidStack(tbpkero, 1_000))
-				.outputItems(new ItemStack(ModItems.thorium_concentrate, 2))
-				.outputFluids(new FluidStack(reLiquor, 1_600)));
+				.outputItems(new ItemStack(ModItems.thorium_concentrate, 2)));
 		}
 
-		// 混合稀土氢氧化物、盐水
+		// 混合稀土氢氧化物、盐水（稀土改直接沉淀：稀土混粉+碱液，不再经母液）
 		if(brine != Fluids.NONE && !hasGenericRecipe(PUREXRecipes.INSTANCE, "makentmgreatagain.deepsea.d7")) {
 			RecipeRegistrar.add(PUREXRecipes.INSTANCE, (PUREXRecipe) new PUREXRecipe("makentmgreatagain.deepsea.d7")
 				.setup(300, 6_000)
-				.inputFluids(new FluidStack(reLiquor, 1_600), new FluidStack(Fluids.LYE, 500))
+				.inputItems(new ComparableStack(ModItems.rare_earth_mix, 4))
+				.inputFluids(new FluidStack(Fluids.LYE, 500))
 				.outputItems(new ItemStack(ModItems.mixed_re_hydroxide, 2))
 				.outputFluids(new FluidStack(brine, 800)));
 		}
@@ -3793,9 +4068,14 @@ public class ModRecipes {
 		step("scheeliteChemical",    com.makentmgreatagain.recipes.ScheeliteRecipes::addChemicalPlantRecipes);
 		step("scheeliteShredder",    com.makentmgreatagain.recipes.ScheeliteRecipes::addShredderRecipes);
 		step("gasTurbineAssembly",   ModRecipes::addGasTurbineAssemblyRecipe);
+		step("thermalStationAssembly", ModRecipes::addThermalStationAssemblyRecipe);
+		step("supercriticalMHDAssembly", ModRecipes::addSupercriticalMHDAssemblyRecipe);
 		step("waterToSnowball",      ModRecipes::addWaterToSnowballRecipe);
 		step("sreaWaterToSalt",      ModRecipes::addSreaWaterToSaltRecipe);
 		step("coreLava528Annihilator", ModRecipes::addCoreLava528Annihilator);
+		step("stellarator528Annihilator", ModRecipes::addStellarator528Annihilator);
+		// 氢-氢聚变（等离子加热器 + 仿星器）：HBM 的聚变表同样会按 json 重建，走兜底
+		step("hydrogenFusion", com.makentmgreatagain.recipes.HydrogenFusion::addRecipe);
 		// 五级机器覆层：装配机配方，同样必须在 postInit 兜底注册
 		step("coatings", ModCoatings::addRecipes);
 		// 核心的危险数据要在 HBM 的 HazardRegistry/OreDictManager 跑完之后才能求和，
@@ -3807,11 +4087,18 @@ public class ModRecipes {
 		step("coreLineVanilla", ModRecipes::addCoreLineVanillaRecipes);
 		// 地核开采机本体（装配机）与粉碎的魔法（酸化机），同属原版表，走兜底
 		step("coreLavaExtractorAssembly", ModRecipes::addCoreLavaExtractorRecipe);
+		step("stellaratorAssembly",       ModRecipes::addStellaratorRecipe);
+		step("plasmaHeaterAssembly",      ModRecipes::addPlasmaHeaterRecipe);
 		step("electricBlastFurnaceAssembly", ModRecipes::addElectricBlastFurnaceRecipe);
 		step("magicPowder", ModRecipes::addMagicPowderRecipe);
+		step("xenCrystalAcid", ModRecipes::addXenCrystalAcidRecipe);
+		step("xenCrystalSILEX", ModRecipes::addXenCrystalSILEXRecipe);
 		// 乙酸 / 有机溶剂 / 环氧丙烷 / 野火（监听器 MakeNTMGreatAgain 里同名分支的兜底对）
 		step("baltFire",            ModRecipes::addBaltFireRecipe);
 		step("aceticAcid",          ModRecipes::addAceticAcidRecipe);
+		step("syntheticEthanol",    ModRecipes::addSyntheticEthanolRecipes);
+		step("syntheticEthanolMixer", ModRecipes::addSyntheticEthanolMixerRecipes);
+		step("positronAccelerator", ModRecipes::addPositronAcceleratorRecipe);
 		step("ethylAcetate",        ModRecipes::addEthylAcetateRecipe);
 		step("propyleneOxide",      ModRecipes::addPropyleneOxideRecipes);
 		// SO2 组合 / 锌电解（监听器分支的兜底对）
@@ -3879,6 +4166,9 @@ public class ModRecipes {
 		step("deepSeaPUREX",         ModRecipes::addDeepSeaPUREXRecipes);
 		step("deepSeaFraction",      ModRecipes::addDeepSeaFractionRecipe);
 		step("deepSeaMetalElectrolyser", ModRecipes::addDeepSeaMetalElectrolyserRecipe);
+		// PEEK 特种工程塑料线
+		step("peekChemical",         ModRecipes::addPeekChemicalRecipes);
+		step("peekShredder",         ModRecipes::addPeekShredderRecipes);
 		// 铂细线替代：金/铅细线 → 铂细线、产出翻倍（原配方保留）+ 电弧焊机马达
 		// 详情见 init/ModPlatinumRecipes。这里走「派生」而不是抄数值，所以 HBM 改配方它自动跟随。
 		step("platinumSwap",         ModPlatinumRecipes::inject);
@@ -3939,5 +4229,307 @@ public class ModRecipes {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * PEEK（聚醚醚酮）产线：
+	 * <ul>
+	 *   <li>化工厂：氟石粉 ×2 + 硫酸 1500 → 氢氟酸 1500 + 石膏 ×2</li>
+	 *   <li>化工厂：苯胺 250 + 氢氟酸 500 + 硝酸 750 → 氟苯 1500</li>
+	 *   <li>大型催化化工厂（独家）：氟苯 1000 + 光气 1000 + 苯胺 250 + 硝化煤油萃取剂 250
+	 *       + 钠 ×1 + 铝粉 ×1 → PEEK 锭 ×2 + 硝化煤油萃取剂 250</li>
+	 * </ul>
+	 */
+	public static void addPeekChemicalRecipes() {
+		FluidType hf = ModFluids.HYDROFLUORIC_ACID.type;
+		FluidType fb = ModFluids.FLUOROBENZENE.type;
+		FluidType aniline = ModFluids.ANILINE.type;
+		FluidType tbpKero = ModFluids.TBP_KERO.type;
+		FluidType wasteAcid = ModFluids.WASTE_ACID.type;
+		if(hf == null || hf == Fluids.NONE || fb == null || fb == Fluids.NONE
+				|| aniline == null || aniline == Fluids.NONE || tbpKero == null || tbpKero == Fluids.NONE) {
+			return;
+		}
+
+		// ---- 上游 1：萤石粉 + 硫酸 → 氢氟酸 + 石膏 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hydrofluoric_acid")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hydrofluoric_acid")
+				.setup(100, 200)
+				.inputItems(new ComparableStack(net.minecraft.init.Items.glowstone_dust, 2))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1_500))
+				.outputFluids(new FluidStack(hf, 1_500))
+				.outputItems(new ItemStack(ModItems.gypsum, 2)));
+		}
+
+		// ---- 上游 2A：萤石粉 + 废酸 → 氢氟酸 + 石膏 ----
+		if(wasteAcid != null && wasteAcid != Fluids.NONE
+				&& !hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_waste_acid")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_waste_acid")
+				.setup(120, 300)
+				.inputItems(new ComparableStack(net.minecraft.init.Items.glowstone_dust, 3))
+				.inputFluids(new FluidStack(wasteAcid, 2_000))
+				.outputFluids(new FluidStack(hf, 1_500))
+				.outputItems(new ItemStack(ModItems.gypsum, 2)));
+		}
+
+		// ---- 上游 2C：氟石粉 + 硫酸 → 氢氟酸（高产） + 石膏 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_fluorite")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_fluorite")
+				.setup(100, 200)
+				.inputItems(new ComparableStack(com.hbm.items.ModItems.fluorite, 1))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1_500))
+				.outputFluids(new FluidStack(hf, 2_500))
+				.outputItems(new ItemStack(ModItems.gypsum, 2)));
+		}
+
+		// ---- 上游 2B：冰晶石块 + 硫酸 → 氢氟酸 + 铝粉 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_cryolite")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_cryolite")
+				.setup(100, 300)
+				.inputItems(new ComparableStack(com.hbm.inventory.OreDictManager.DictFrame.fromOne(
+					com.hbm.items.ModItems.chunk_ore, com.hbm.items.ItemEnums.EnumChunkType.CRYOLITE)))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1_500))
+				.outputFluids(new FluidStack(hf, 2_000))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.powder_aluminium, 1)));
+		}
+
+		// ---- 中游：苯胺 + 氢氟酸 + 硝酸 → 氟苯 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.fluorobenzene")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.fluorobenzene")
+				.setup(120, 500)
+				.inputFluids(
+					new FluidStack(aniline, 250),
+					new FluidStack(hf, 500),
+					new FluidStack(Fluids.NITRIC_ACID, 750))
+				.outputFluids(new FluidStack(fb, 1_500)));
+		}
+
+		// ---- 主产品（大型催化化工厂独家）：氟苯 + 光气 + 苯胺 + 硝化煤油萃取剂 + 钠 + 铝粉 → PEEK 锭×2 + 萃取剂回收 ----
+		if(!LargeChemicalFactoryRecipes.hasExclusive("makentmgreatagain.large.peek")) {
+			LargeChemicalFactoryRecipes.registerExclusive(new HeatChemicalRecipe("makentmgreatagain.large.peek", 400_000)
+				.setup(200, 20_000)
+				.inputFluids(
+					new FluidStack(fb, 1_000),
+					new FluidStack(Fluids.PHOSGENE, 1_000),
+					new FluidStack(aniline, 250),
+					new FluidStack(tbpKero, 250))
+				.inputItems(
+					new ComparableStack(com.hbm.items.ModItems.powder_sodium, 1),
+					new ComparableStack(com.hbm.items.ModItems.powder_aluminium, 1))
+				.outputItems(new ItemStack(ModItems.ingot_peek, 2))
+				.outputFluids(new FluidStack(tbpKero, 250)));
+		}
+
+		// ---- HF 下游 1：黄饼 + 氢氟酸 → UF6（核燃料氟化增产） ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_uf6")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_uf6")
+				.setup(100, 500)
+				.inputItems(new ComparableStack(com.hbm.items.ModItems.powder_yellowcake, 1))
+				.inputFluids(new FluidStack(hf, 1_500))
+				.outputFluids(new FluidStack(Fluids.UF6, 2_000)));
+		}
+
+		// ---- HF 下游 1B：钚粉 + 氢氟酸 → PUF6（核燃料氟化增产） ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_puf6")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_puf6")
+				.setup(160, 500)
+				.inputItems(new OreDictStack(com.hbm.inventory.OreDictManager.PU.dust(), 1))
+				.inputFluids(new FluidStack(hf, 1_500))
+				.outputFluids(new FluidStack(Fluids.PUF6, 1_500)));
+		}
+
+		// ---- HF 下游（大型催化化工厂独家）：重砂混粉 + 氢氟酸 + 硝化煤油萃取剂 → 纯钽铁矿粉×3 + 铌粉×3 + 萃取剂回收 ----
+		if(!LargeChemicalFactoryRecipes.hasExclusive("makentmgreatagain.large.hf_coltan_niobium")) {
+			LargeChemicalFactoryRecipes.registerExclusive(new HeatChemicalRecipe("makentmgreatagain.large.hf_coltan_niobium", 200_000, 1)
+				.setup(180, 1_000)
+				.inputItems(new ComparableStack(ModItems.heavy_sand_mix, 2))
+				.inputFluids(new FluidStack(hf, 800), new FluidStack(tbpKero, 250))
+				.outputItems(
+					new ItemStack(com.hbm.items.ModItems.powder_coltan, 3),
+					new ItemStack(com.hbm.items.ModItems.powder_niobium, 3))
+				.outputFluids(new FluidStack(tbpKero, 250)));
+		}
+
+		// ---- HF 下游（大型催化化工厂独家）：铍精矿 + 氢氟酸 → 铍锭×2 ----
+		if(!LargeChemicalFactoryRecipes.hasExclusive("makentmgreatagain.large.hf_beryllium")) {
+			LargeChemicalFactoryRecipes.registerExclusive(new HeatChemicalRecipe("makentmgreatagain.large.hf_beryllium", 250_000, 1)
+				.setup(100, 400)
+				.inputItems(new ComparableStack(ModItems.beryllium_concentrate, 1))
+				.inputFluids(new FluidStack(hf, 1_000))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.ingot_beryllium, 2)));
+		}
+
+		// ---- HF 下游（大型催化化工厂独家）：锆精矿 + 氢氟酸 → 锆锭×2 ----
+		if(!LargeChemicalFactoryRecipes.hasExclusive("makentmgreatagain.large.hf_zirconium")) {
+			LargeChemicalFactoryRecipes.registerExclusive(new HeatChemicalRecipe("makentmgreatagain.large.hf_zirconium", 300_000, 1)
+				.setup(100, 400)
+				.inputItems(new ComparableStack(ModItems.zirconium_concentrate, 1))
+				.inputFluids(new FluidStack(hf, 1_000))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.ingot_zirconium, 2)));
+		}
+
+		// ---- HF 下游（大型催化化工厂独家）：稀土熟料 + 氢氟酸 → 钕粉×1 ----
+		if(!LargeChemicalFactoryRecipes.hasExclusive("makentmgreatagain.large.hf_neodymium")) {
+			LargeChemicalFactoryRecipes.registerExclusive(new HeatChemicalRecipe("makentmgreatagain.large.hf_neodymium", 400_000, 2)
+				.setup(160, 800)
+				.inputItems(new ComparableStack(ModItems.rare_earth_calcine, 1))
+				.inputFluids(new FluidStack(hf, 1_000))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.powder_neodymium, 1)));
+		}
+
+		// ---- HF 下游（大型催化化工厂独家）：石英粉 + 氢氟酸 + 硝酸 → 高纯硅锭×2 ----
+		if(!LargeChemicalFactoryRecipes.hasExclusive("makentmgreatagain.large.hf_silicon")) {
+			LargeChemicalFactoryRecipes.registerExclusive(new HeatChemicalRecipe("makentmgreatagain.large.hf_silicon", 150_000)
+				.setup(120, 400)
+				.inputItems(new ComparableStack(com.hbm.items.ModItems.powder_quartz, 2))
+				.inputFluids(new FluidStack(hf, 500), new FluidStack(Fluids.NITRIC_ACID, 500))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.ingot_silicon, 2)));
+		}
+
+		// ---- 上游新增：方钠石 + 硫酸 → 氢氟酸 + 钠粉 + 铝粉 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_sodalite")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_sodalite")
+				.setup(120, 300)
+				.inputItems(new ComparableStack(com.hbm.items.ModItems.gem_sodalite, 2))
+				.inputFluids(new FluidStack(Fluids.SULFURIC_ACID, 1_500))
+				.outputFluids(new FluidStack(hf, 1_500))
+				.outputItems(
+					new ItemStack(com.hbm.items.ModItems.powder_sodium, 1),
+					new ItemStack(com.hbm.items.ModItems.powder_aluminium, 1)));
+		}
+
+		// ---- 上游新增：铝土矿残渣（红泥） + 硫酸 → 氢氟酸 + 铁粉×2 + 钛粉 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_redmud")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_redmud")
+				.setup(140, 400)
+				.inputFluids(
+					new FluidStack(Fluids.REDMUD, 1_000),
+					new FluidStack(Fluids.SULFURIC_ACID, 1_000))
+				.outputFluids(new FluidStack(hf, 1_000))
+				.outputItems(
+					new ItemStack(com.hbm.items.ModItems.powder_iron, 2),
+					new ItemStack(com.hbm.items.ModItems.powder_titanium, 1)));
+		}
+
+		// ---- 下游新增：四氯化钛 + 氢氟酸 + 氢气 → 钛锭×6 + 氯气回收 ----
+		if(com.makentmgreatagain.compat.HBMVersionCompat.hasTitaniumTetrachloride()
+				&& !hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_titanium")) {
+			FluidType ticl4 = com.makentmgreatagain.compat.HBMVersionCompat.titaniumTetrachloride();
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_titanium")
+				.setup(100, 600)
+				.inputFluids(
+					new FluidStack(ticl4, 1_000),
+					new FluidStack(hf, 1_000),
+					new FluidStack(Fluids.HYDROGEN, 500))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.ingot_titanium, 6))
+				.outputFluids(new FluidStack(Fluids.CHLORINE, 250)));
+		}
+
+		// ---- 下游新增（兼作 ALUMINA 氟石并行替代）：铝酸钠 + 氢氟酸 → 氧化铝 + 钠粉 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_alumina")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_alumina")
+				.setup(80, 300)
+				.inputFluids(
+					new FluidStack(Fluids.SODIUM_ALUMINATE, 300),
+					new FluidStack(hf, 500))
+				.outputFluids(new FluidStack(Fluids.ALUMINA, 500))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.powder_sodium, 1)));
+		}
+
+		// ---- 并行替代：煤粉 + 石油 + 氢氟酸 → 聚合物锭×6 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_polymer")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_polymer")
+				.setup(100, 150)
+				.inputItems(new OreDictStack(com.hbm.inventory.OreDictManager.COAL.dust(), 2))
+				.inputFluids(
+					new FluidStack(Fluids.PETROLEUM, 1_000, com.hbm.config.GeneralConfig.enable528PressurizedRecipes ? 1 : 0),
+					new FluidStack(hf, 500))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.ingot_polymer, 6)));
+		}
+
+		// ---- 并行替代：钽铁矿粉 + 氢氟酸 + 天然气 + 氧气 → 混酸(PAIN) ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_coltanpain")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_coltanpain")
+				.setup(100, 150)
+				.inputItems(new ComparableStack(com.hbm.items.ModItems.powder_coltan))
+				.inputFluids(
+					new FluidStack(hf, 500),
+					new FluidStack(Fluids.GAS, 500),
+					new FluidStack(Fluids.OXYGEN, 500))
+				.outputFluids(new FluidStack(Fluids.PAIN, 1_500)));
+		}
+
+		// ---- 并行替代：古生矿粉 + 铋粒×4 + 氢氟酸 + 过氧化氢 → 死酸(DEATH) ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_osmiridiumdeath")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_osmiridiumdeath")
+				.setup(200, 1_000)
+				.inputItems(
+					new ComparableStack(com.hbm.items.ModItems.powder_paleogenite),
+					new ComparableStack(com.hbm.items.ModItems.nugget_bismuth, 4))
+				.inputFluids(
+					new FluidStack(hf, 2_000),
+					new FluidStack(Fluids.PEROXIDE, 1_000, 5))
+				.outputFluids(new FluidStack(Fluids.DEATH, 1_500, 0)));
+		}
+
+		// ---- 并行替代：石油 + 不饱和烃 + 氢氟酸 → 四氟甲烷 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_perfluoromethyl")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_perfluoromethyl")
+				.setup(20, 150)
+				.inputFluids(
+					new FluidStack(Fluids.PETROLEUM, 1_000),
+					new FluidStack(Fluids.UNSATURATEDS, 500),
+					new FluidStack(hf, 500))
+				.outputFluids(new FluidStack(Fluids.PERFLUOROMETHYL, 1_500)));
+		}
+
+		// ---- 并行替代：氯化方解石溶液 + 硫酸 + 氢氟酸 → 氯化方解石混合液 ----
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.hf_chlorocalcite_mix")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.hf_chlorocalcite_mix")
+				.setup(60, 100)
+				.inputFluids(
+					new FluidStack(Fluids.CHLOROCALCITE_SOLUTION, 500),
+					new FluidStack(Fluids.SULFURIC_ACID, 500),
+					new FluidStack(hf, 250))
+				.outputFluids(new FluidStack(Fluids.CHLOROCALCITE_MIX, 1_250)));
+		}
+	}
+
+	/** 粉碎机：PEEK 锭 → PEEK 粉 */
+	public static void addPeekShredderRecipes() {
+		ShredderRecipes.setRecipe(new ComparableStack(ModItems.ingot_peek), new ItemStack(ModItems.powder_peek, 1));
+		ShredderRecipes.neiShredderRecipes = null;
+	}
+
+	private static final String PLATE_WELDED_TC_OR_CD = "plateWeldedTechnetiumOrCadmium";
+	private static boolean tcOrCdWeldedPlateRegistered;
+
+	/** 流体传送器 / 物品传送器（工作台有序合成，四角焊接锝-钢板/焊接镉钢板通用） */
+	public static void addXenTransceiverRecipes() {
+		if(!tcOrCdWeldedPlateRegistered) {
+			OreDictionary.registerOre(PLATE_WELDED_TC_OR_CD, new ItemStack(com.hbm.items.ModItems.plate_welded, 1, Mats.MAT_TCALLOY.id));
+			OreDictionary.registerOre(PLATE_WELDED_TC_OR_CD, new ItemStack(com.hbm.items.ModItems.plate_welded, 1, Mats.MAT_CDALLOY.id));
+			tcOrCdWeldedPlateRegistered = true;
+		}
+
+		// 流体传送器：中间不稳定X晶体，四周锝-钢合金桶，四角焊接锝-钢板（或焊接镉钢板）
+		GameRegistry.addRecipe(new ShapedOreRecipe(
+			new ItemStack(ModBlocks.xen_fluid_transceiver, 1),
+			"PBP",
+			"BXB",
+			"PBP",
+			'P', PLATE_WELDED_TC_OR_CD,
+			'B', com.hbm.blocks.ModBlocks.barrel_tcalloy,
+			'X', ModItems.crystal_xen_unstable));
+
+		// 物品传送器：中间不稳定X晶体，四周DESH板条箱，四角焊接锝-钢板（或焊接镉钢板）
+		GameRegistry.addRecipe(new ShapedOreRecipe(
+			new ItemStack(ModBlocks.xen_item_transceiver, 1),
+			"PCP",
+			"CXC",
+			"PCP",
+			'P', PLATE_WELDED_TC_OR_CD,
+			'C', com.hbm.blocks.ModBlocks.crate_desh,
+			'X', ModItems.crystal_xen_unstable));
 	}
 }

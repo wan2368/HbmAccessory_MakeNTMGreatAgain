@@ -1,6 +1,7 @@
 package com.makentmgreatagain.packet;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import com.makentmgreatagain.tileentity.TileEntityNuclearExplosionGenerator;
 
@@ -26,23 +27,30 @@ import net.minecraft.world.World;
  */
 public class NukeRunPacket {
 
-	private static final ConcurrentLinkedQueue<Runnable> MAIN_THREAD_TASKS =
-			new ConcurrentLinkedQueue<Runnable>();
+	private static final int MAX_PENDING_TASKS = 256;
+	private static final int MAX_TASKS_PER_TICK = 32;
+	private static final BlockingQueue<Runnable> MAIN_THREAD_TASKS =
+			new ArrayBlockingQueue<Runnable>(MAX_PENDING_TASKS);
 
 	/** 服务端 tick 泵：由 CommonProxy 注册到 FML 总线 */
 	public static class ServerTaskPump {
 		@SubscribeEvent
 		public void onServerTick(TickEvent.ServerTickEvent event) {
+			if(event.phase != TickEvent.Phase.END) return;
 			Runnable task;
-			while((task = MAIN_THREAD_TASKS.poll()) != null) {
-				task.run();
+			for(int i = 0; i < MAX_TASKS_PER_TICK && (task = MAIN_THREAD_TASKS.poll()) != null; i++) {
+				try {
+					task.run();
+				} catch(Throwable t) {
+					com.makentmgreatagain.MakeNTMGreatAgain.LOG.error("Queued nuclear packet task failed", t);
+				}
 			}
 		}
 	}
 
 	/** 把任务排到服务端主线程，其它包也可以复用这个泵 */
 	public static void schedule(Runnable task) {
-		MAIN_THREAD_TASKS.add(task);
+		if(task != null) MAIN_THREAD_TASKS.offer(task);
 	}
 
 	/** C → S：运行键。普通点击 = 启动 / 取消，Shift 点击 = 开关自动模式 */
@@ -89,7 +97,7 @@ public class NukeRunPacket {
 			final EntityPlayer player = ctx.getServerHandler().playerEntity;
 			if(player == null) return null;
 
-			MAIN_THREAD_TASKS.add(new Runnable() {
+			NukeRunPacket.schedule(new Runnable() {
 				@Override
 				public void run() {
 					World world = player.worldObj;

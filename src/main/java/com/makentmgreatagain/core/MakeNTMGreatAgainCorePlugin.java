@@ -19,7 +19,8 @@ public class MakeNTMGreatAgainCorePlugin implements IFMLLoadingPlugin {
 				"com.makentmgreatagain.core.CoreFluidTankTransformer",
 				"com.makentmgreatagain.core.PipeAnchorCtorTransformer",
 				"com.makentmgreatagain.core.PrismThrexResistanceTransformer",
-				"com.makentmgreatagain.core.NeutrinoNightVisionTransformer"
+				"com.makentmgreatagain.core.NeutrinoNightVisionTransformer",
+				"com.makentmgreatagain.core.ParallelUpgradeTransformer"
 		};
 	}
 

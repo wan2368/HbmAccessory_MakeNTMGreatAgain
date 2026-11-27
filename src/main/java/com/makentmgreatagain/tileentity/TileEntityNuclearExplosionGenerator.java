@@ -37,7 +37,7 @@ import net.minecraft.world.World;
 /**
  * 可控核爆炸发生器核心。
  *
- * <p>运行一次 = 20 秒充能（光效从内向外展开）→ 核爆结算 → 20 秒消散。核爆那一 tick 里
+ * <p>运行一次 = 10 秒充能（光效从内向外展开）→ 核爆结算 → 10 秒消散。核爆那一 tick 里
  * 扣电力、把液态钠换成等量高温液态钠、把中子通量灌进增殖进度（见 {@link #onCycleFinished()}）。
  * 电力、液态钠不够或高温钠罐装不下则整次跳过。</p>
  *
@@ -65,10 +65,10 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 	/** 没有覆层时的默认罐容量；插上覆层后按覆层的容量走 */
 	public static final int TANK_CAPACITY = 64_000;
 
-	/** 一个周期 20 秒 = 400 tick：前半充能，爆轰后同样的 20 秒是光效消散 */
-	public static final int CYCLE = 400;
-	/** 自动模式在冷却结束（或刚开启）后再等 10 秒 = 200 tick 才启动下一轮 */
-	public static final int AUTO_DELAY = 200;
+	/** 一个周期 10 秒 = 200 tick：前半充能，爆轰后同样的 10 秒是光效消散 */
+	public static final int CYCLE = 200;
+	/** 自动模式没有任何人工延迟：冷却一结束、条件合格就在当 tick 引爆 */
+	public static final int AUTO_DELAY = 0;
 
 	public static final int SLOT_BATTERY = 0;
 	public static final int SLOT_COATING = 1;
@@ -80,14 +80,14 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 	/** 0..CYCLE */
 	public int progress;
 	public boolean running;
-	/** 爆轰结束后的光效消散阶段，同样 20 秒，期间运行键不能点 */
+	/** 爆轰结束后的光效消散阶段，同样 10 秒，期间运行键不能点 */
 	public boolean cooling;
 	/** 0..CYCLE */
 	public int cool;
 
-	/** 自动模式：Shift + 运行键开关，条件合格就按「冷却 20s + 等待 10s」循环引爆 */
+	/** 自动模式：Shift + 运行键开关，冷却一结束且条件合格就立刻引爆（无人工延迟） */
 	public boolean auto;
-	/** 自动模式距离启动还剩多少 tick */
+	/** 自动模式距离启动还剩多少 tick（AUTO_DELAY = 0，实际上恒为 0，保留字段兼容旧存档） */
 	public int autoDelay;
 
 	/** 0 液态钠 / 1 高温液态钠 */
@@ -195,7 +195,7 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 			if(this.progress >= CYCLE) {
 				this.progress = 0;
 				this.running = false;
-				// 光效从内到外消散，再过 20 秒才完全结束
+				// 光效从内到外消散，再过 10 秒才完全结束
 				this.cooling = true;
 				this.cool = 0;
 				if(!worldObj.isRemote) this.onCycleFinished();
@@ -207,7 +207,7 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 			if(this.cool >= CYCLE) {
 				this.cool = 0;
 				this.cooling = false;
-				// 冷却结束再等 10 秒，自动模式才会开下一轮
+				// 冷却一结束就是可启动状态，自动模式当 tick 即可开下一轮（无人工延迟）
 				this.autoDelay = AUTO_DELAY;
 				if(!worldObj.isRemote) this.networkPackNT(64);
 			}
@@ -237,15 +237,12 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 		// 覆层决定罐容量，必须赶在收流体之前处理
 		this.updateTankCapacity();
 
-		// 自动模式：冷却结束（或刚开启）等 10 秒后自己开下一轮；条件不满足就直接关掉自动
+		// 自动模式：没有任何人工延迟，冷却一结束、条件合格就在这一 tick 立刻引爆。
+		// 启动失败时故意不关自动：一次爆轰刚结束，输入罐的钠常常还没被管道补回来、高温钠也没排空，
+		// 一失败就关自动会让「连续运转」形同废弃；这里保持开启，哪个 tick 条件恢复就哪个 tick 引爆。
 		if(this.auto && !this.running && !this.cooling) {
-			if(this.autoDelay > 0) {
-				this.autoDelay--;
-			} else if(!this.tryStart()) {
-				this.auto = false;
-				this.markDirty();
-				this.networkPackNT(64);
-			}
+			if(this.autoDelay > 0) this.autoDelay--;
+			else this.tryStart();
 		}
 
 		// 接口：电力收、流体收 / 送。代理方块只负责外形，管网认的是这里建的节点
@@ -260,7 +257,7 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 	}
 
 	/**
-	 * 一个 20 秒周期跑完的时刻，也就是核爆的那一 tick：
+	 * 一个 10 秒周期跑完的时刻，也就是核爆的那一 tick：
 	 * 把液态钠换成等量高温液态钠、把中子通量灌进增殖进度、烧掉核心。
 	 * 电在按下按钮时就扣过了；液态钠不够或高温钠罐装不下就整次跳过。
 	 */
@@ -536,7 +533,7 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 		NukeGeneratorData.CoreStat stat = NukeGeneratorData.getCore(this.slots[SLOT_CORE]);
 		if(stat == null) return false;
 
-		// 启动当场就把这一发的电扣掉，之后 20 秒里断电也不影响已经点着的反应
+		// 启动当场就把这一发的电扣掉，之后 10 秒里断电也不影响已经点着的反应
 		this.power -= NukeGeneratorData.powerCost(stat);
 
 		this.running = true;
@@ -575,13 +572,13 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 		this.running = false;
 		this.progress = 0;
 		RUNNING.remove(this);
-		// 自动模式的话，取消之后同样隔 10 秒再开下一轮
+		// 自动模式的话，取消之后冷却一结束就会重开（无人工延迟）
 		this.autoDelay = AUTO_DELAY;
 		this.markDirty();
 		this.networkPackNT(64);
 	}
 
-	/** Shift + 运行键：开关自动模式，刚打开时也先等 10 秒再启动 */
+	/** Shift + 运行键：开关自动模式，打开后条件合格即立刻启动（无人工延迟） */
 	public void toggleAuto() {
 
 		if(this.worldObj == null || this.worldObj.isRemote) return;

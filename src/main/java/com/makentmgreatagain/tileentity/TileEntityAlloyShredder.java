@@ -176,47 +176,84 @@ public class TileEntityAlloyShredder extends TileEntityMachineBase implements IE
 
 	public void processItem() {
 		for(int inp = SLOT_INPUT_START; inp <= SLOT_INPUT_END; inp++) {
-			if(slots[inp] == null || !hasSpace(slots[inp])) continue;
+			ItemStack input = slots[inp];
+			if(input == null || input.stackSize <= 0) continue;
 
-			ItemStack out = ShredderRecipes.getShredderResult(slots[inp]);
+			ItemStack out = ShredderRecipes.getShredderResult(input);
 			if(out == null) continue;
 
-			boolean merged = false;
-			for(int o = SLOT_OUTPUT_START; o <= SLOT_OUTPUT_END; o++) {
-				if(slots[o] != null && slots[o].getItem() == out.getItem() && slots[o].getItemDamage() == out.getItemDamage()
-						&& ItemStack.areItemStackTagsEqual(slots[o], out)
-						&& slots[o].stackSize + out.stackSize <= out.getMaxStackSize()) {
-					slots[o].stackSize += out.stackSize;
-					merged = true;
-					break;
-				}
-			}
-			if(!merged) {
-				for(int o = SLOT_OUTPUT_START; o <= SLOT_OUTPUT_END; o++) {
-					if(slots[o] == null) {
-						slots[o] = out.copy();
-						break;
-					}
-				}
-			}
-			slots[inp].stackSize -= 1;
-			if(slots[inp].stackSize <= 0) slots[inp] = null;
+			// 先确认整份产物真的落得进输出区，塞不下就整格跳过。
+			// 旧写法是「先无条件扣输入、再尝试插入」，一旦判定与实际落位不一致就会
+			// 出现「原料少了一个、产物没出现」——这里改成插入成功才扣料。
+			if(!insertIntoOutputs(out)) continue;
+
+			input.stackSize -= 1;
+			if(input.stackSize <= 0) slots[inp] = null;
 		}
+	}
+
+	/** 同一物品、同 meta、同 NBT，且叠上去不超过上限 */
+	private static boolean canMerge(ItemStack slot, ItemStack out, int max) {
+		if(slot == null || out == null) return false;
+		if(slot.getItem() != out.getItem() || slot.getItemDamage() != out.getItemDamage()) return false;
+		if(!ItemStack.areItemStackTagsEqual(slot, out)) return false;
+		return slot.stackSize + out.stackSize <= max;
+	}
+
+	/**
+	 * 输出区能否整份装下这份产物：只累加「可叠的余量 + 空格容量」，不动真实槽位。
+	 * {@link #hasSpace} 与 {@link #insertIntoOutputs} 共用这一份规则，
+	 * 避免「判定说放得下、实际放不下」两套规则漂移。
+	 */
+	private boolean fitsOutput(ItemStack out) {
+
+		if(out == null || out.stackSize <= 0) return true;
+
+		int max = Math.min(out.getMaxStackSize(), this.getInventoryStackLimit());
+		int remaining = out.stackSize;
+
+		for(int i = SLOT_OUTPUT_START; i <= SLOT_OUTPUT_END && remaining > 0; i++) {
+			if(!canMerge(slots[i], out, max)) continue;
+			remaining -= Math.min(remaining, max - slots[i].stackSize);
+		}
+
+		for(int i = SLOT_OUTPUT_START; i <= SLOT_OUTPUT_END && remaining > 0; i++) {
+			if(slots[i] == null) remaining -= max;
+		}
+
+		return remaining <= 0;
+	}
+
+	/** 把一份产物真正塞进输出区：先叠同类，再按堆叠上限切块占空格。返回是否整份塞下 */
+	private boolean insertIntoOutputs(ItemStack out) {
+
+		if(out == null || out.stackSize <= 0) return true;
+		if(!fitsOutput(out)) return false;
+
+		int max = Math.min(out.getMaxStackSize(), this.getInventoryStackLimit());
+		int remaining = out.stackSize;
+
+		for(int i = SLOT_OUTPUT_START; i <= SLOT_OUTPUT_END && remaining > 0; i++) {
+			if(!canMerge(slots[i], out, max)) continue;
+			int add = Math.min(remaining, max - slots[i].stackSize);
+			slots[i].stackSize += add;
+			remaining -= add;
+		}
+
+		for(int i = SLOT_OUTPUT_START; i <= SLOT_OUTPUT_END && remaining > 0; i++) {
+			if(slots[i] != null) continue;
+			ItemStack placed = out.copy();
+			placed.stackSize = Math.min(remaining, max);
+			slots[i] = placed;
+			remaining -= placed.stackSize;
+		}
+
+		return remaining <= 0;
 	}
 
 	public boolean hasSpace(ItemStack stack) {
 		ItemStack result = ShredderRecipes.getShredderResult(stack);
-		if(result == null) return false;
-
-		for(int i = SLOT_OUTPUT_START; i <= SLOT_OUTPUT_END; i++) {
-			if(slots[i] == null) return true;
-			// 与 processItem 的合并判定同源：必须比 NBT，否则同物品异 NBT 时
-			// hasSpace 放行、实际合并失败又无空格，输入照扣产物丢失
-			if(slots[i].getItem() == result.getItem() && slots[i].getItemDamage() == result.getItemDamage()
-					&& ItemStack.areItemStackTagsEqual(slots[i], result)
-					&& slots[i].stackSize + result.stackSize <= result.getMaxStackSize()) return true;
-		}
-		return false;
+		return result != null && fitsOutput(result);
 	}
 
 	/* ================= 均分（15 输入格重写版） ================= */

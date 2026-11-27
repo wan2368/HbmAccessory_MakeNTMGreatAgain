@@ -60,6 +60,12 @@ public class ModNetwork {
 				com.makentmgreatagain.packet.TurbineControlPacket.class,
 				7,
 				Side.SERVER);
+		// 大型火力发电站：GUI 开关控制（C→S）
+		NETWORK.registerMessage(
+				com.makentmgreatagain.packet.LargeThermalPowerStationControlPacket.Handler.class,
+				com.makentmgreatagain.packet.LargeThermalPowerStationControlPacket.class,
+				8,
+				Side.SERVER);
 		// 成就走 Minecraft 原生的 S37PacketStatistics，不再需要自定义包
 	}
 }

@@ -1,5 +1,6 @@
 package com.hbm.entity.projectile;
 
+import com.hbm.blocks.IMeteorProof;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.WorldConfig;
 import com.hbm.explosion.ExplosionLarge;
@@ -65,7 +66,7 @@ public class EntityMeteor extends Entity implements IRadarDetectableNT {
 
 		// Get current block info
 		Block block = world.getBlock(blockX, blockY, blockZ);
-		if(block == null) return;
+		if(block == null || block instanceof IMeteorProof) return;
 		float hardness = block.getBlockHardness(world, blockX, blockY, blockZ);
 
 		// Check if the block is weak and can be destroyed
@@ -95,6 +96,25 @@ public class EntityMeteor extends Entity implements IRadarDetectableNT {
 		}
 	}
 
+	private boolean isTouchingMeteorProof() {
+		int minX = (int) Math.floor(this.boundingBox.minX - 0.25D);
+		int maxX = (int) Math.floor(this.boundingBox.maxX + 0.25D);
+		int minY = (int) Math.floor(this.boundingBox.minY - 0.5D);
+		int maxY = (int) Math.floor(this.boundingBox.maxY + 0.25D);
+		int minZ = (int) Math.floor(this.boundingBox.minZ - 0.25D);
+		int maxZ = (int) Math.floor(this.boundingBox.maxZ + 0.25D);
+		for(int x = minX; x <= maxX; x++) {
+			for(int y = minY; y <= maxY; y++) {
+				for(int z = minZ; z <= maxZ; z++) {
+					if(this.worldObj.getBlock(x, y, z) instanceof IMeteorProof) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	public void clearMeteorPath(World world, int x, int y, int z) {
 		for(BlockPos blockPos : getBlocksInRadius(world, x, y, z, 5)) {
 			damageOrDestroyBlock(worldObj, blockPos.getX(), blockPos.getY(), blockPos.getZ());
@@ -120,7 +140,8 @@ public class EntityMeteor extends Entity implements IRadarDetectableNT {
 		if(!this.worldObj.isRemote && this.posY < 260) {
 			clearMeteorPath(worldObj, (int) this.posX, (int) this.posY, (int) this.posZ);
 			if(this.onGround) {
-				worldObj.createExplosion(this, this.posX, this.posY, this.posZ, 5 + rand.nextFloat(), !safe);
+				boolean hitProof = this.isTouchingMeteorProof();
+				worldObj.createExplosion(this, this.posX, this.posY, this.posZ, 5 + rand.nextFloat(), !safe && !hitProof);
 
 				if(WorldConfig.enableMeteorTails) {
 					ExplosionLarge.spawnRubble(worldObj, this.posX, this.posY, this.posZ, 15);
@@ -132,12 +153,12 @@ public class EntityMeteor extends Entity implements IRadarDetectableNT {
 					ExplosionLarge.spawnParticles(worldObj, posX, posY, posZ - 5, 75);
 				}
 
-				// Bury the meteor into the ground
-				int spawnPosX = (int) (Math.round(this.posX - 0.5D) + (safe ? 0 : (this.motionZ * 4)));
-				int spawnPosY = (int) Math.round(this.posY - (safe ? 0 : 4));
-				int spawnPosZ = (int) (Math.round(this.posZ - 0.5D) + (safe ? 0 : (this.motionZ * 4)));
+				// Bury the meteor into the ground (unless stopped on meteor-proof machine collision box)
+				int spawnPosX = (int) (Math.round(this.posX - 0.5D) + ((safe || hitProof) ? 0 : (this.motionZ * 4)));
+				int spawnPosY = (int) Math.round(this.posY + (hitProof ? 2 : (safe ? 0 : -4)));
+				int spawnPosZ = (int) (Math.round(this.posZ - 0.5D) + ((safe || hitProof) ? 0 : (this.motionZ * 4)));
 
-				(new Meteorite()).generate(worldObj, rand, spawnPosX, spawnPosY, spawnPosZ, safe, true, true);
+				(new Meteorite()).generate(worldObj, rand, spawnPosX, spawnPosY, spawnPosZ, safe || hitProof, true, true);
 				clearMeteorPath(worldObj, spawnPosX, spawnPosY, spawnPosZ);
 
 				this.worldObj.playSoundEffect(this.posX, this.posY, this.posZ, "hbm:entity.oldExplosion", 10000.0F, 0.5F + this.rand.nextFloat() * 0.1F);

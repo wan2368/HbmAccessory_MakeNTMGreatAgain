@@ -39,8 +39,20 @@ public final class ModConfig {
 
     private static final Logger LOG = LogManager.getLogger("MNGA-Worldgen");
 
-    private static final String CAT = "worldgen";
-    private static final String CAT_META = "meta";
+    private static final String CAT_META = "00_meta";
+    private static final String CAT_SALT = "01_salt";
+    private static final String CAT_LEADZINC = "02_ore_leadzinc";
+    private static final String CAT_REFRACTORY_GOLD = "03_ore_refractory_gold";
+    private static final String CAT_SCHEELITE = "04_ore_scheelite";
+    private static final String CAT_DUNA = "05_ore_duna";
+    private static final String CAT_DEEP_SEA_NODULE = "06_ore_deep_sea_nodule";
+    private static final String CAT_STRUCT_LAB = "07_structure_geocentric_lab";
+    private static final String CAT_STRUCT_HIVE = "08_structure_alien_hive";
+    private static final String CAT_STRUCT_SUNSET_SIX = "09_structure_sunset_six";
+
+    /** structure_loot.cfg 分类 */
+    private static final String CAT_DECAY = "decay";
+    private static final String CAT_LOOT = "loot";
 
     /** 配置文件里记录版本号用的键名（Forge 会写成 {@code I:configVersion}）。 */
     private static final String VERSION_KEY = "configVersion";
@@ -49,7 +61,7 @@ public final class ModConfig {
      * 配置版本号。<b>改过任何一个 {@code DEF_*} 之后必须 +1</b>，
      * 否则老存档目录里的 worldgen.cfg 还会拿旧值，代码里改了也看不出效果。
      */
-    public static final int CONFIG_VERSION = 10;
+    public static final int CONFIG_VERSION = 11;
 
     // =====================================================================================
     //  默认值（唯一真源）
@@ -530,8 +542,8 @@ public final class ModConfig {
                 // 版本号必须显式写回：Forge 的 Configuration 只要键已存在就返回文件旧值，
                 // 上面的 cfgInt(VERSION_KEY, ...) 写不进去，不手动 set 的话
                 // 文件里的 I:configVersion 永远停在旧版，每次启动都会重跑一遍增量判定
-                if(config.hasCategory(CAT) && config.getCategory(CAT).containsKey(VERSION_KEY)) {
-                    config.getCategory(CAT).get(VERSION_KEY).set(String.valueOf(CONFIG_VERSION));
+                if(config.hasCategory(CAT_META) && config.getCategory(CAT_META).containsKey(VERSION_KEY)) {
+                    config.getCategory(CAT_META).get(VERSION_KEY).set(String.valueOf(CONFIG_VERSION));
                     config.save();
                 }
             } else {
@@ -546,6 +558,13 @@ public final class ModConfig {
             }
         }
 
+        // 加载独立的遗迹战利品与劣化配置（不属于世界生成）
+        loadStructureLoot(dir);
+
+        // 同步已迁移到 global.cfg 的调试项
+        structureSunsetSixTestMode = GlobalConfig.structureSunsetSixTestMode;
+        structureSunsetSixTestBaseY = GlobalConfig.structureSunsetSixTestBaseY;
+
         // 快照永远按「本次的默认值」刷新：下次升版时，它就是对比里的「旧版默认」一侧。
         writeDefaultsSnapshot();
 
@@ -553,456 +572,256 @@ public final class ModConfig {
                 + " -> " + worldgenFile.getAbsolutePath());
     }
 
+    /** 加载 config/MNGA/structure_loot.cfg（遗迹战利品随机化与方块劣化，独立于 worldgen.cfg）。 */
+    private static void loadStructureLoot(File dir) {
+        File lootFile = new File(dir, "structure_loot.cfg");
+        Configuration lootCfg = new Configuration(lootFile);
+        lootCfg.load();
+
+        structureDecayEnabled = lootCfg.getBoolean("structureDecayEnabled", CAT_DECAY, DEF_STRUCTURE_DECAY,
+                "遗迹方块劣化总开关（关闭则完全按 NBT 原样生成）。");
+        structureDecayScalePercent = lootCfg.getInt("structureDecayScalePercent", CAT_DECAY, DEF_STRUCTURE_DECAY_SCALE, 0, 400,
+                "遗迹方块劣化强度倍率（%，100=默认，0=不劣化）。");
+
+        structureLootRandomize = lootCfg.getBoolean("structureLootRandomize", CAT_LOOT, DEF_STRUCTURE_LOOT_RANDOMIZE,
+                "箱子战利品随机化总开关（关闭则所有遗迹箱子保持 NBT 原样）。");
+        structureAlienHiveLootRandomize = lootCfg.getBoolean("structureAlienHiveLootRandomize", CAT_LOOT, DEF_ALIEN_HIVE_LOOT,
+                "大型异虫巢箱子随机化（需同时开启 structureLootRandomize）。");
+        structureSunsetSixLootRandomize = lootCfg.getBoolean("structureSunsetSixLootRandomize", CAT_LOOT, DEF_SUNSET_SIX_LOOT,
+                "日落六号箱子随机化（需同时开启 structureLootRandomize）。");
+        structureLootScatter = lootCfg.getBoolean("structureLootScatter", CAT_LOOT, DEF_LOOT_SCATTER,
+                "是否将留下的战利品随机打散到箱子空格（关闭则按原槽位顺序摆放）。");
+        structureLootCountMinPercent = lootCfg.getInt("structureLootCountMinPercent", CAT_LOOT, DEF_LOOT_COUNT_MIN_PERCENT, 0, 100,
+                "保留物品的数量下限（占模板数量百分比，至少保留 1 个）。");
+        lootKeepCommonPercent = lootCfg.getInt("structureLootKeepCommon", CAT_LOOT, DEF_LOOT_KEEP_COMMON, 0, 100,
+                "常见物品保留率（%）：工业耗材、建材、普通食物、核废料。");
+        lootKeepUncommonPercent = lootCfg.getInt("structureLootKeepUncommon", CAT_LOOT, DEF_LOOT_KEEP_UNCOMMON, 0, 100,
+                "较稀有物品保留率（%）：加工品、防护服、医疗、弹药。");
+        lootKeepRarePercent = lootCfg.getInt("structureLootKeepRare", CAT_LOOT, DEF_LOOT_KEEP_RARE, 0, 100,
+                "稀有物品保留率（%）：核材料、机器方块、军械、升级件。");
+        lootKeepEpicPercent = lootCfg.getInt("structureLootKeepEpic", CAT_LOOT, DEF_LOOT_KEEP_EPIC, 0, 100,
+                "极稀有物品保留率（%）：动力装甲、蒸汽服。");
+        lootKeepLegendaryPercent = lootCfg.getInt("structureLootKeepLegendary", CAT_LOOT, DEF_LOOT_KEEP_LEGENDARY, 0, 100,
+                "传说物品保留率（%）：附魔金苹果等。");
+
+        lootCfg.save();
+    }
+
     /** worldgen.cfg 的完整加载过程。重建时会被调第二遍（文件已删，全部取默认值）。 */
     private static void loadWorldgen() {
 
+        DEFAULTS.clear();
         oldFileVersion = readVersion(worldgenFile);
         versionMismatch = worldgenFile.exists() && oldFileVersion != CONFIG_VERSION;
 
         config = new Configuration(worldgenFile);
         config.load();
 
-        // ---------------- 盐 ----------------
-        saltWorldgenEnabled = cfgBool("enableSaltWorldgen", DEF_SALT_ENABLED,
-                "总开关：关闭后三种含盐方块（盐斑/地表散点/地下矿脉）都不会自然生成。");
-        patchChancePercent = cfgInt("patchChancePercent", DEF_PATCH_CHANCE, 0, 100,
-                "每 3x3 区块格子触发含盐小片的概率（%）。0 = 不生成小片。");
-        patchRadiusMin = cfgInt("patchRadiusMin", DEF_PATCH_RADIUS_MIN, 2, 32,
-                "含盐小片半径下限（格）。");
-        patchRadiusMax = cfgInt("patchRadiusMax", DEF_PATCH_RADIUS_MAX, 2, 32,
-                "含盐小片半径上限（格）。");
-        patchReplacePercent = cfgInt("patchReplacePercent", DEF_PATCH_REPLACE, 0, 100,
-                "小片内每个地表列被替换成含盐方块的概率（%）。");
-        hillsScatterPercent = cfgInt("hillsScatterPercent", DEF_HILLS_SCATTER, 0, 100,
-                "丘陵散点区内的替换强度（%）。注意它现在只作用于「区域内」：\n"
-                + "每 4x4 区块选一块半径 10~20 的圆，圆外的山体一块盐都不放。\n"
-                + "圆内砾石按本值的 4 倍概率替换，石/土按本值（比例与旧版一致）。\n"
-                + "草方块永不替换。0 = 关闭丘陵地表散点。");
-        caveGravelPercent = cfgInt("caveGravelPercent", DEF_CAVE_GRAVEL, 0, 100,
-                "丘陵/峡谷里裸露砾石变成盐砾石的概率（%）。\n"
-                + "同样只作用于「区域内」：每 4x4 区块选一块半径 6~14 的圆，圆外不撒。\n"
-                + "该列若检出 HBM 原油（地下 ore_oil / 基岩油 / 油沙）会整列跳过。");
+        // ---------------- 00. 元信息 ----------------
+        cfgInt(CAT_META, VERSION_KEY, CONFIG_VERSION, 0, Integer.MAX_VALUE,
+                "配置版本号（由代码自动维护，请勿手改）。");
 
-        saltGravelVeinEnabled = cfgBool("enableSaltGravelVein", DEF_SALT_VEIN_ENABLED,
-                "是否生成地下盐砾石矿脉。这是「地下那层含盐沙砾」的唯一来源，关掉后只能靠地表散点。");
-        saltVeinRegionSize = cfgInt("saltVeinRegionSize", DEF_SALT_VEIN_REGION, 3, 32,
-                "矿脉区域边长（区块）。世界被切成 NxN 区块一个格子，每格独立掷一次「有没有矿脉」。\n"
-                + "【调密度首选这个】数字越小越密，密度与 N 的平方成反比：\n"
-                + "  11 → 121 区块一格（旧版，很稀：平均每 192 区块才 1 处）\n"
-                + "   7 → 49 区块一格（默认，平均每 42 区块 1 处）\n"
-                + "   5 → 25 区块一格（很密，适合当主矿）");
-        saltVeinChancePercent = cfgInt("saltVeinChancePercent", DEF_SALT_VEIN_CHANCE, 0, 100,
-                "每个格子里出现矿脉的概率（%）。\n"
-                + "出现时再掷 1~3 处（15% 三处、35% 两处、50% 一处）。\n"
-                + "换算：默认 7x7 + 70% ≈ 每 42 个区块有 1 处；改成 100 约每 30 区块 1 处。");
-        saltVeinThicknessMin = cfgInt("saltVeinThicknessMin", DEF_SALT_VEIN_THICK_MIN, 1, 32,
-                "单处矿脉最薄几层。椭圆中心最厚、边缘收成 1 层。");
-        saltVeinThicknessMax = cfgInt("saltVeinThicknessMax", DEF_SALT_VEIN_THICK_MAX, 1, 32,
-                "单处矿脉最厚几层。小于下限时自动等于下限。");
-        saltVeinMinY = cfgInt("saltVeinMinY", DEF_SALT_VEIN_MIN_Y, 1, 250,
-                "矿脉中心高度下限（含）。");
-        saltVeinMaxY = cfgInt("saltVeinMaxY", DEF_SALT_VEIN_MAX_Y, 1, 250,
-                "矿脉中心高度上限（含）。矿体始终被夹在地表以下 3 格，不会露出地面。");
-        saltVeinFillPercent = cfgInt("saltVeinFillPercent", DEF_SALT_VEIN_FILL, 10, 100,
-                "椭圆范围内的填充率（%）。100 = 实心，80 以下会碎成散点。");
+        // ---------------- 01. 盐 ----------------
+        saltWorldgenEnabled = cfgBool(CAT_SALT, "enableSaltWorldgen", DEF_SALT_ENABLED,
+                "盐矿世界生成总开关（盐斑/地表散点/地下矿脉）。");
+        patchChancePercent = cfgInt(CAT_SALT, "patchChancePercent", DEF_PATCH_CHANCE, 0, 100,
+                "每 3x3 区块生成地表盐斑的概率（%）。");
+        patchRadiusMin = cfgInt(CAT_SALT, "patchRadiusMin", DEF_PATCH_RADIUS_MIN, 2, 32,
+                "地表盐斑半径下限（格）。");
+        patchRadiusMax = cfgInt(CAT_SALT, "patchRadiusMax", DEF_PATCH_RADIUS_MAX, 2, 32,
+                "地表盐斑半径上限（格）。");
+        patchReplacePercent = cfgInt(CAT_SALT, "patchReplacePercent", DEF_PATCH_REPLACE, 0, 100,
+                "盐斑内地表列替换为含盐方块的概率（%）。");
+        hillsScatterPercent = cfgInt(CAT_SALT, "hillsScatterPercent", DEF_HILLS_SCATTER, 0, 100,
+                "丘陵散点区内石/土替换概率（%，砾石为 4 倍，0=关闭）。");
+        caveGravelPercent = cfgInt(CAT_SALT, "caveGravelPercent", DEF_CAVE_GRAVEL, 0, 100,
+                "丘陵/峡谷裸露砾石替换为盐砾石的概率（%，避开原油列）。");
+        saltGravelVeinEnabled = cfgBool(CAT_SALT, "enableSaltGravelVein", DEF_SALT_VEIN_ENABLED,
+                "是否生成地下盐砾石矿脉。");
+        saltVeinRegionSize = cfgInt(CAT_SALT, "saltVeinRegionSize", DEF_SALT_VEIN_REGION, 3, 32,
+                "地下盐矿脉网格边长（区块，越小越密）。");
+        saltVeinChancePercent = cfgInt(CAT_SALT, "saltVeinChancePercent", DEF_SALT_VEIN_CHANCE, 0, 100,
+                "每个网格生成地下盐矿脉的概率（%，触发时生成 1~3 处）。");
+        saltVeinThicknessMin = cfgInt(CAT_SALT, "saltVeinThicknessMin", DEF_SALT_VEIN_THICK_MIN, 1, 32,
+                "单处地下盐矿脉最薄层数。");
+        saltVeinThicknessMax = cfgInt(CAT_SALT, "saltVeinThicknessMax", DEF_SALT_VEIN_THICK_MAX, 1, 32,
+                "单处地下盐矿脉最厚层数。");
+        saltVeinMinY = cfgInt(CAT_SALT, "saltVeinMinY", DEF_SALT_VEIN_MIN_Y, 1, 250,
+                "地下盐矿脉中心高度下限。");
+        saltVeinMaxY = cfgInt(CAT_SALT, "saltVeinMaxY", DEF_SALT_VEIN_MAX_Y, 1, 250,
+                "地下盐矿脉中心高度上限（始终低于地表 3 格）。");
+        saltVeinFillPercent = cfgInt(CAT_SALT, "saltVeinFillPercent", DEF_SALT_VEIN_FILL, 10, 100,
+                "地下盐矿脉椭圆内填充率（%）。");
 
-        // ---------------- 铅锌矿 ----------------
-        leadzincWorldgenEnabled = cfgBool("enableLeadZincWorldgen", DEF_LEADZINC_ENABLED,
-                "是否自然生成铅锌矿（ISP 法提镉的矿石来源）。");
-        leadzincChunkChancePercent = cfgInt("leadzincChunkChancePercent", DEF_LEADZINC_CHANCE, 0, 100,
-                "每区块生成铅锌矿囊的概率（%）。默认 70。\n"
-                + "【调密度优先改这里】只改出现频率，不改矿囊大小，最不容易调坏。\n"
-                + "  100 = 每区块都有，35 = 砍半，0 = 不生成。");
-        leadzincVeinsPerChunkMin = cfgInt("leadzincVeinsPerChunkMin", DEF_LEADZINC_VEINS_MIN, 1, 8,
-                "触发时一个区块里生成几处矿囊，下限。默认 1。\n"
-                + "【第二好用的旋钮】调成 2~3 相当于把密度成倍放大，但矿囊还是原来那么小。");
-        leadzincVeinsPerChunkMax = cfgInt("leadzincVeinsPerChunkMax", DEF_LEADZINC_VEINS_MAX, 1, 8,
-                "触发时一个区块里生成几处矿囊，上限。默认 2（即 1~2 处，平均 1.5）。\n"
-                + "小于下限时自动等于下限。");
-        leadzincVeinRadius = cfgInt("leadzincVeinRadius", DEF_LEADZINC_RADIUS, 1, 6,
-                "单处矿囊的半径（格）。矿囊是一个球，半径 2 = 跨 5x5x5 的一坨（57 个可用格）。\n"
-                + "半径 1 = 跨 3x3x3 的小疙瘩，3 = 跨 7x7x7 的大矿囊。\n"
-                + "注意半径是按体积三次方涨的，3 以上很容易挖出一整片，慎调。");
-        leadzincClusterMin = cfgInt("leadzincClusterMin", DEF_LEADZINC_ATTEMPTS_MIN, 1, 128,
-                "单处矿囊撒点次数下限。球里每个点随机落一次方块（重复落同一格只算一次）。\n"
-                + "半径 2 的球共 57 格，撒 16~26 次大约落下 14~19 格。\n"
-                + "超过球内格数纯属浪费，想更大请先加 leadzincVeinRadius。");
-        leadzincClusterMax = cfgInt("leadzincClusterMax", DEF_LEADZINC_ATTEMPTS_MAX, 1, 128,
-                "单处矿囊撒点次数上限。默认 26。小于下限时自动等于下限。");
-        leadzincMinY = cfgInt("leadzincMinY", DEF_LEADZINC_MIN_Y, 1, 250,
-                "铅锌矿生成高度下限（含）。默认 20，正好在地表以下的铁矿层附近。");
-        leadzincMaxY = cfgInt("leadzincMaxY", DEF_LEADZINC_MAX_Y, 1, 250,
-                "铅锌矿生成高度上限（含）。默认 45。矿囊整体被夹在 [MinY, MaxY] 内，不会溢出。");
+        // ---------------- 02. 铅锌矿 ----------------
+        leadzincWorldgenEnabled = cfgBool(CAT_LEADZINC, "enableLeadZincWorldgen", DEF_LEADZINC_ENABLED,
+                "是否自然生成铅锌矿。");
+        leadzincChunkChancePercent = cfgInt(CAT_LEADZINC, "leadzincChunkChancePercent", DEF_LEADZINC_CHANCE, 0, 100,
+                "每区块生成铅锌矿囊的概率（%）。");
+        leadzincVeinsPerChunkMin = cfgInt(CAT_LEADZINC, "leadzincVeinsPerChunkMin", DEF_LEADZINC_VEINS_MIN, 1, 8,
+                "触发时每区块矿囊数下限。");
+        leadzincVeinsPerChunkMax = cfgInt(CAT_LEADZINC, "leadzincVeinsPerChunkMax", DEF_LEADZINC_VEINS_MAX, 1, 8,
+                "触发时每区块矿囊数上限。");
+        leadzincVeinRadius = cfgInt(CAT_LEADZINC, "leadzincVeinRadius", DEF_LEADZINC_RADIUS, 1, 6,
+                "单处矿囊球体半径（格）。");
+        leadzincClusterMin = cfgInt(CAT_LEADZINC, "leadzincClusterMin", DEF_LEADZINC_ATTEMPTS_MIN, 1, 128,
+                "单处矿囊撒点次数下限。");
+        leadzincClusterMax = cfgInt(CAT_LEADZINC, "leadzincClusterMax", DEF_LEADZINC_ATTEMPTS_MAX, 1, 128,
+                "单处矿囊撒点次数上限。");
+        leadzincMinY = cfgInt(CAT_LEADZINC, "leadzincMinY", DEF_LEADZINC_MIN_Y, 1, 250,
+                "生成高度下限。");
+        leadzincMaxY = cfgInt(CAT_LEADZINC, "leadzincMaxY", DEF_LEADZINC_MAX_Y, 1, 250,
+                "生成高度上限。");
 
-        // ---------------- 含砷金矿 ----------------
-        refractoryGoldWorldgenEnabled = cfgBool("enableRefractoryGoldWorldgen", DEF_AGOLD_ENABLED,
-                "是否自然生成含砷金矿（硫代硫酸盐浸金的矿石来源）。");
-        refractoryGoldChunkChancePercent = cfgInt("refractoryGoldChunkChancePercent", DEF_AGOLD_CHANCE, 0, 100,
-                "每区块生成含砷金矿囊的概率（%）。默认 60。\n"
-                + "【调密度优先改这里】只改出现频率，不改矿囊大小。");
-        refractoryGoldVeinsPerChunkMin = cfgInt("refractoryGoldVeinsPerChunkMin", DEF_AGOLD_VEINS_MIN, 1, 8,
-                "触发时一个区块里生成几处矿囊，下限。默认 1。");
-        refractoryGoldVeinsPerChunkMax = cfgInt("refractoryGoldVeinsPerChunkMax", DEF_AGOLD_VEINS_MAX, 1, 8,
-                "触发时一个区块里生成几处矿囊，上限。默认 2。小于下限时自动等于下限。");
-        refractoryGoldVeinRadius = cfgInt("refractoryGoldVeinRadius", DEF_AGOLD_RADIUS, 1, 6,
-                "单处矿囊的半径（格）。默认 2（跨 5x5x5）。");
-        refractoryGoldClusterMin = cfgInt("refractoryGoldClusterMin", DEF_AGOLD_ATTEMPTS_MIN, 1, 128,
-                "单处矿囊撒点次数下限。默认 10（半径 2 的球里大约落下 9 格）。");
-        refractoryGoldClusterMax = cfgInt("refractoryGoldClusterMax", DEF_AGOLD_ATTEMPTS_MAX, 1, 128,
-                "单处矿囊撒点次数上限。默认 18。小于下限时自动等于下限。");
-        refractoryGoldMinY = cfgInt("refractoryGoldMinY", DEF_AGOLD_MIN_Y, 1, 250,
-                "含砷金矿生成高度下限（含）。默认 15，比铅锌矿浅，方便前期就撞见。");
-        refractoryGoldMaxY = cfgInt("refractoryGoldMaxY", DEF_AGOLD_MAX_Y, 1, 250,
-                "含砷金矿生成高度上限（含）。默认 40。");
+        // ---------------- 03. 含砷金矿 ----------------
+        refractoryGoldWorldgenEnabled = cfgBool(CAT_REFRACTORY_GOLD, "enableRefractoryGoldWorldgen", DEF_AGOLD_ENABLED,
+                "是否自然生成含砷金矿。");
+        refractoryGoldChunkChancePercent = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldChunkChancePercent", DEF_AGOLD_CHANCE, 0, 100,
+                "每区块生成含砷金矿囊的概率（%）。");
+        refractoryGoldVeinsPerChunkMin = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldVeinsPerChunkMin", DEF_AGOLD_VEINS_MIN, 1, 8,
+                "触发时每区块矿囊数下限。");
+        refractoryGoldVeinsPerChunkMax = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldVeinsPerChunkMax", DEF_AGOLD_VEINS_MAX, 1, 8,
+                "触发时每区块矿囊数上限。");
+        refractoryGoldVeinRadius = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldVeinRadius", DEF_AGOLD_RADIUS, 1, 6,
+                "单处矿囊球体半径（格）。");
+        refractoryGoldClusterMin = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldClusterMin", DEF_AGOLD_ATTEMPTS_MIN, 1, 128,
+                "单处矿囊撒点次数下限。");
+        refractoryGoldClusterMax = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldClusterMax", DEF_AGOLD_ATTEMPTS_MAX, 1, 128,
+                "单处矿囊撒点次数上限。");
+        refractoryGoldMinY = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldMinY", DEF_AGOLD_MIN_Y, 1, 250,
+                "生成高度下限。");
+        refractoryGoldMaxY = cfgInt(CAT_REFRACTORY_GOLD, "refractoryGoldMaxY", DEF_AGOLD_MAX_Y, 1, 250,
+                "生成高度上限。");
 
-        // ---------------- 白钨矿 ----------------
-        scheeliteWorldgenEnabled = cfgBool("enableScheeliteWorldgen", DEF_SCHEELITE_ENABLED,
-                "是否自然生成白钨矿（湿法炼钨的矿石来源）。\n"
-                + "注意：关掉之后白钨矿只能靠创造模式获取，整条湿法链也就没法正常起头。");
-        scheeliteChunkChancePercent = cfgInt("scheeliteChunkChancePercent", DEF_SCHEELITE_CHANCE, 0, 100,
-                "每区块生成白钨矿囊的概率（%）。默认 8。\n"
-                + "【调密度优先改这里】平均间隔 ≈ 100 ÷ 本值 个区块：\n"
-                + "    8 → 平均 12~13 区块 1 条（默认，实际间隔多落在 8~16 区块之间）\n"
-                + "    6 → 平均 17 区块 1 条（更稀）\n"
-                + "   12 → 平均 8 区块 1 条（更密）\n"
-                + "    0 → 不生成。\n"
-                + "它是几何分布，所以偶尔会连着两三个区块都出、也会十几个区块一个都没有，这是正常的。");
-        scheeliteVeinsPerChunkMin = cfgInt("scheeliteVeinsPerChunkMin", DEF_SCHEELITE_VEINS_MIN, 1, 4,
-                "触发时一个区块里生成几处矿囊，下限。默认 1。\n"
-                + "白钨矿单条本来就很大，调成 2 以上会让一个区块里叠出上千格矿石，几乎肯定要削概率。");
-        scheeliteVeinsPerChunkMax = cfgInt("scheeliteVeinsPerChunkMax", DEF_SCHEELITE_VEINS_MAX, 1, 4,
-                "触发时一个区块里生成几处矿囊，上限。默认 1。小于下限时自动等于下限。");
-        scheeliteVeinRadius = cfgInt("scheeliteVeinRadius", DEF_SCHEELITE_RADIUS, 1, 10,
-                "单处矿囊的半径（格）。默认 6，跨 13×13×13 的实心矿体。\n"
-                + "【注意】白钨矿是「填满」而不是撒点：球内每一个石头格子都会变成矿石，\n"
-                + "所以格数就是球内格数，改半径等于直接改产量，按半径三次方涨：\n"
-                + "   4 → 257 格\n"
-                + "   6 → 925 格（默认，大约 1480 锭钨，一整片连着挖）\n"
-                + "   8 → 2109 格（已经是巨型矿洞，慎用）\n"
-                + "改大之前先确认 scheeliteMaxY - scheeliteMinY 至少是半径的两倍，\n"
-                + "否则球体会被高度区间裁掉，实际产量对不上预期。");
-        scheeliteMinY = cfgInt("scheeliteMinY", DEF_SCHEELITE_MIN_Y, 1, 250,
-                "白钨矿生成高度下限（含）。默认 10，比铅锌矿深，和矽卡岩型矿床的产出层位一致。");
-        scheeliteMaxY = cfgInt("scheeliteMaxY", DEF_SCHEELITE_MAX_Y, 1, 250,
-                "白钨矿生成高度上限（含）。默认 48，还在地表以下，不会露出地面。\n"
-                + "矿囊中心会被自动收进 [下限+半径, 上限-半径]，保证球体完整不被裁掉。");
+        // ---------------- 04. 白钨矿 ----------------
+        scheeliteWorldgenEnabled = cfgBool(CAT_SCHEELITE, "enableScheeliteWorldgen", DEF_SCHEELITE_ENABLED,
+                "是否自然生成白钨矿（湿法炼钨起点）。");
+        scheeliteChunkChancePercent = cfgInt(CAT_SCHEELITE, "scheeliteChunkChancePercent", DEF_SCHEELITE_CHANCE, 0, 100,
+                "每区块生成白钨矿囊的概率（%，平均间隔约 100/本值 区块）。");
+        scheeliteVeinsPerChunkMin = cfgInt(CAT_SCHEELITE, "scheeliteVeinsPerChunkMin", DEF_SCHEELITE_VEINS_MIN, 1, 4,
+                "触发时每区块矿囊数下限。");
+        scheeliteVeinsPerChunkMax = cfgInt(CAT_SCHEELITE, "scheeliteVeinsPerChunkMax", DEF_SCHEELITE_VEINS_MAX, 1, 4,
+                "触发时每区块矿囊数上限。");
+        scheeliteVeinRadius = cfgInt(CAT_SCHEELITE, "scheeliteVeinRadius", DEF_SCHEELITE_RADIUS, 1, 10,
+                "单处实心矿球半径（格，默认 6 约 925 格）。");
+        scheeliteMinY = cfgInt(CAT_SCHEELITE, "scheeliteMinY", DEF_SCHEELITE_MIN_Y, 1, 250,
+                "生成高度下限。");
+        scheeliteMaxY = cfgInt(CAT_SCHEELITE, "scheeliteMaxY", DEF_SCHEELITE_MAX_Y, 1, 250,
+                "生成高度上限。");
 
-        // ---------------- Duna 变体 ----------------
-        dunaDimensionId = cfgInt("dunaDimensionId", DEF_DUNA_DIM_ID, -2147483648, 2147483647,
-                "Duna 维度 ID。默认 413016（航天版 SpaceConfig 的出厂值）。\n"
-                + "如果整合包/存档里改过航天配置的 17.02_dunaDimension，必须同步改这里，\n"
-                + "否则 Duna 矿石不会生成（判定靠维度 ID 对上）。");
-        dunaLeadzincEnabled = cfgBool("enableDunaLeadZinc", DEF_DUNA_LEADZINC_ENABLED,
-                "是否在 Duna 生成铅锌矿（变体方块，掉粉与主世界一致）。\n"
-                + "没装航天版或找不到 hbm:duna_rock 时该项自动无效。");
-        dunaLeadzincChunkChancePercent = cfgInt("dunaLeadzincChunkChancePercent", DEF_DUNA_LEADZINC_CHANCE, 0, 100,
-                "Duna 每区块生成铅锌矿囊的概率（%）。默认 45，比主世界 70 稀。\n"
-                + "矿囊大小（几处/半径/撒点次数）沿用主世界的 leadzinc* 参数。");
-        dunaLeadzincMinY = cfgInt("dunaLeadzincMinY", DEF_DUNA_LEADZINC_MIN_Y, 1, 250,
-                "Duna 铅锌矿生成高度下限（含）。默认 20。");
-        dunaLeadzincMaxY = cfgInt("dunaLeadzincMaxY", DEF_DUNA_LEADZINC_MAX_Y, 1, 250,
-                "Duna 铅锌矿生成高度上限（含）。默认 45。");
-        dunaRefractoryGoldEnabled = cfgBool("enableDunaRefractoryGold", DEF_DUNA_AGOLD_ENABLED,
-                "是否在 Duna 生成含砷金矿（变体方块）。");
-        dunaRefractoryGoldChunkChancePercent = cfgInt("dunaRefractoryGoldChunkChancePercent", DEF_DUNA_AGOLD_CHANCE, 0, 100,
-                "Duna 每区块生成含砷金矿囊的概率（%）。默认 40，比主世界 60 稀。");
-        dunaRefractoryGoldMinY = cfgInt("dunaRefractoryGoldMinY", DEF_DUNA_AGOLD_MIN_Y, 1, 250,
-                "Duna 含砷金矿生成高度下限（含）。默认 15。");
-        dunaRefractoryGoldMaxY = cfgInt("dunaRefractoryGoldMaxY", DEF_DUNA_AGOLD_MAX_Y, 1, 250,
-                "Duna 含砷金矿生成高度上限（含）。默认 40。");
-        dunaScheeliteEnabled = cfgBool("enableDunaScheelite", DEF_DUNA_SCHEELITE_ENABLED,
-                "是否在 Duna 生成白钨矿（变体方块，实心大矿囊）。");
-        dunaScheeliteChunkChancePercent = cfgInt("dunaScheeliteChunkChancePercent", DEF_DUNA_SCHEELITE_CHANCE, 0, 100,
-                "Duna 每区块生成白钨矿囊的概率（%）。默认 6（约 17 区块一条），比主世界 8 略稀。\n"
-                + "矿囊半径沿用主世界的 scheeliteVeinRadius。");
-        dunaScheeliteMinY = cfgInt("dunaScheeliteMinY", DEF_DUNA_SCHEELITE_MIN_Y, 1, 250,
-                "Duna 白钨矿生成高度下限（含）。默认 14，避开 y12 以下的玄武岩层。");
-        dunaScheeliteMaxY = cfgInt("dunaScheeliteMaxY", DEF_DUNA_SCHEELITE_MAX_Y, 1, 250,
-                "Duna 白钨矿生成高度上限（含）。默认 50。\n"
-                + "中心高度会自动收进 [下限+半径, 上限-半径]，保证球体完整。");
+        // ---------------- 05. Duna 矿物变体 ----------------
+        dunaDimensionId = cfgInt(CAT_DUNA, "dunaDimensionId", DEF_DUNA_DIM_ID, -2147483648, 2147483647,
+                "Duna 维度 ID（需与航天版 SpaceConfig 保持一致）。");
+        dunaLeadzincEnabled = cfgBool(CAT_DUNA, "enableDunaLeadZinc", DEF_DUNA_LEADZINC_ENABLED,
+                "是否在 Duna 生成铅锌矿（矿囊尺寸沿用主世界参数）。");
+        dunaLeadzincChunkChancePercent = cfgInt(CAT_DUNA, "dunaLeadzincChunkChancePercent", DEF_DUNA_LEADZINC_CHANCE, 0, 100,
+                "Duna 铅锌矿每区块生成概率（%）。");
+        dunaLeadzincMinY = cfgInt(CAT_DUNA, "dunaLeadzincMinY", DEF_DUNA_LEADZINC_MIN_Y, 1, 250,
+                "Duna 铅锌矿高度下限。");
+        dunaLeadzincMaxY = cfgInt(CAT_DUNA, "dunaLeadzincMaxY", DEF_DUNA_LEADZINC_MAX_Y, 1, 250,
+                "Duna 铅锌矿高度上限。");
+        dunaRefractoryGoldEnabled = cfgBool(CAT_DUNA, "enableDunaRefractoryGold", DEF_DUNA_AGOLD_ENABLED,
+                "是否在 Duna 生成含砷金矿。");
+        dunaRefractoryGoldChunkChancePercent = cfgInt(CAT_DUNA, "dunaRefractoryGoldChunkChancePercent", DEF_DUNA_AGOLD_CHANCE, 0, 100,
+                "Duna 含砷金矿每区块生成概率（%）。");
+        dunaRefractoryGoldMinY = cfgInt(CAT_DUNA, "dunaRefractoryGoldMinY", DEF_DUNA_AGOLD_MIN_Y, 1, 250,
+                "Duna 含砷金矿高度下限。");
+        dunaRefractoryGoldMaxY = cfgInt(CAT_DUNA, "dunaRefractoryGoldMaxY", DEF_DUNA_AGOLD_MAX_Y, 1, 250,
+                "Duna 含砷金矿高度上限。");
+        dunaScheeliteEnabled = cfgBool(CAT_DUNA, "enableDunaScheelite", DEF_DUNA_SCHEELITE_ENABLED,
+                "是否在 Duna 生成白钨矿（矿囊半径沿用主世界参数）。");
+        dunaScheeliteChunkChancePercent = cfgInt(CAT_DUNA, "dunaScheeliteChunkChancePercent", DEF_DUNA_SCHEELITE_CHANCE, 0, 100,
+                "Duna 白钨矿每区块生成概率（%）。");
+        dunaScheeliteMinY = cfgInt(CAT_DUNA, "dunaScheeliteMinY", DEF_DUNA_SCHEELITE_MIN_Y, 1, 250,
+                "Duna 白钨矿高度下限。");
+        dunaScheeliteMaxY = cfgInt(CAT_DUNA, "dunaScheeliteMaxY", DEF_DUNA_SCHEELITE_MAX_Y, 1, 250,
+                "Duna 白钨矿高度上限。");
 
-        // ---------------- 深海结核混合物 ----------------
-        deepSeaNoduleWorldgenEnabled = cfgBool("enableDeepSeaNoduleWorldgen", DEF_NODULE_ENABLED,
-                "是否自然生成深海结核混合物（海床表层矿，后续由海底采集机处理）。");
-        deepSeaNoduleChancePercent = cfgInt("deepSeaNoduleChancePercent", DEF_NODULE_CHANCE, 0, 100,
-                "每个海洋区块触发一次的概率（%）。默认 2，约 1/50 的海洋区块；\n"
-                + "【调密度首选这里】只改出现频率，不改矿区大小。\n"
-                + "  1 = 约 1/100 区块，非常稀\n"
-                + "  2 = 默认（约 1/50）\n"
-                + "  5 = 约 1/20 区块，比较常见\n"
-                + "  0 = 不生成。");
-        deepSeaNodulePatchesMin = cfgInt("deepSeaNodulePatchesMin", DEF_NODULE_PATCHES_MIN, 1, 4,
-                "触发时一个区块里生成几片，下限。默认 1。");
-        deepSeaNodulePatchesMax = cfgInt("deepSeaNodulePatchesMax", DEF_NODULE_PATCHES_MAX, 1, 4,
-                "触发时一个区块里生成几片，上限。默认 1。小于下限时自动等于下限。");
-        deepSeaNoduleRadiusMin = cfgInt("deepSeaNoduleRadiusMin", DEF_NODULE_RADIUS_MIN, 1, 7,
-                "单处小片半径下限（格）。默认 6，最大跨度 13×13。\n"
-                + "半径只是矿区能长到的最远范围；每片结核从圆心附近连通生长，实际是一整块圆润的矿区。\n"
-                + "半径越大，单个矿区越大；上限 7（跨 15×15），保证整个圆能落在一个 16×16 区块内。\n"
-                + "半径 6~7 + 33% 密度 ≈ 每片 30~48 格结核。");
-        deepSeaNoduleRadiusMax = cfgInt("deepSeaNoduleRadiusMax", DEF_NODULE_RADIUS_MAX, 1, 7,
-                "单处小片半径上限（格）。默认 7，最大跨度 15×15。小于下限时自动等于下限。");
-        deepSeaNoduleFillPercent = cfgInt("deepSeaNoduleFillPercent", DEF_NODULE_FILL, 0, 100,
-                "每片结核的格数占所在圆面积的比例（%）。默认 33。\n"
-                + "整片始终连通（从中心向四邻生长），填得越高矿区越密、越圆；填得低则更瘦更不规则。\n"
-                + "半径 6~7 + 33% ≈ 每片 30~48 格结核；\n"
-                + "100 = 整片圆内全是结核；25 = 更稀疏但依然连通的矿区。");
-        deepSeaNoduleMinWaterDepth = cfgInt("deepSeaNoduleMinWaterDepth", DEF_NODULE_MIN_DEPTH, 1, 60,
-                "最小水深（格）。默认 20，保证只在深海生成；浅海/河流会被跳过。");
+        // ---------------- 06. 深海结核混合物 ----------------
+        deepSeaNoduleWorldgenEnabled = cfgBool(CAT_DEEP_SEA_NODULE, "enableDeepSeaNoduleWorldgen", DEF_NODULE_ENABLED,
+                "是否自然生成深海结核混合物（海床表层矿）。");
+        deepSeaNoduleChancePercent = cfgInt(CAT_DEEP_SEA_NODULE, "deepSeaNoduleChancePercent", DEF_NODULE_CHANCE, 0, 100,
+                "每个海洋区块生成结核的概率（%）。");
+        deepSeaNodulePatchesMin = cfgInt(CAT_DEEP_SEA_NODULE, "deepSeaNodulePatchesMin", DEF_NODULE_PATCHES_MIN, 1, 4,
+                "触发时每区块生成片数下限。");
+        deepSeaNodulePatchesMax = cfgInt(CAT_DEEP_SEA_NODULE, "deepSeaNodulePatchesMax", DEF_NODULE_PATCHES_MAX, 1, 4,
+                "触发时每区块生成片数上限。");
+        deepSeaNoduleRadiusMin = cfgInt(CAT_DEEP_SEA_NODULE, "deepSeaNoduleRadiusMin", DEF_NODULE_RADIUS_MIN, 1, 7,
+                "单处结核片半径下限（格）。");
+        deepSeaNoduleRadiusMax = cfgInt(CAT_DEEP_SEA_NODULE, "deepSeaNoduleRadiusMax", DEF_NODULE_RADIUS_MAX, 1, 7,
+                "单处结核片半径上限（格）。");
+        deepSeaNoduleFillPercent = cfgInt(CAT_DEEP_SEA_NODULE, "deepSeaNoduleFillPercent", DEF_NODULE_FILL, 0, 100,
+                "圆面积内连通结核填充率（%）。");
+        deepSeaNoduleMinWaterDepth = cfgInt(CAT_DEEP_SEA_NODULE, "deepSeaNoduleMinWaterDepth", DEF_NODULE_MIN_DEPTH, 1, 60,
+                "生成所需最小水深（格）。");
 
-        // ---------------- 自然遗迹 ----------------
-        structureWorldgenEnabled = cfgBool("enableStructureWorldgen", DEF_STRUCTURE_ENABLED,
-                "是否生成自然遗迹（NBT 结构）。结构文件不存在时该项自动无效，不会报错。");
-        structureSpawnWeight = cfgInt("structureSpawnWeight", DEF_STRUCTURE_WEIGHT, 1, 100,
-                "结构生成权重。注意它不控制「多久见一个」，而是和同一个群系里的其它结构\n"
-                + "抢同一个生成槽位（HBM 每 4~12 区块才有一个槽位）。\n"
-                + "参照：HBM 的 ruinA~J 都是 10，desert_shack 5~7，lighthouse/oil_rig 用独立开关。\n"
-                + "想要比遗迹更稀就设 2~4，想常见设 10 以上。\n"
-                + "⚠️ 本模组的遗迹走自定义坐标通道（见下一项），这个权重实际不参与抽签。");
-        structureGridChunks = cfgInt("structureGridChunks", DEF_STRUCTURE_GRID, 4, 64,
-                "自定义生成间距（区块）。世界被切成 N×N 区块的格子，每格只生成一处，\n"
-                + "所以平均密度是每 N² 区块一个：11 → 121 区块一个（默认），\n"
-                + "12 → 144，10 → 100，16 → 256（很稀）。\n"
-                + "这条通道独立于 HBM 的全局结构网格，改它不会影响主世界的废墟密度。");
-        structureDimensionId = cfgInt("structureDimensionId", DEF_STRUCTURE_DIM, -2147483648, 2147483647,
-                "在哪个维度生成。0 = 主世界；-1 = 下界；1 = 末地；其它数字是模组维度。\n"
-                + "地心实验室默认 -1（下界）。");
-        structureMinHeight = cfgInt("structureMinHeight", DEF_STRUCTURE_MIN_Y, 0, 250,
-                "结构底座高度的下限。地表遗迹填 1；下界填 0 与填 1 结果相同——\n"
-                + "NBTStructure.build 里有 `if(ry < 1) continue`，y<1 的方块直接跳过，基岩不会被替换。\n"
-                + "把本项与「高度上限」设成同一个数字（如 30/30）就是固定层位。");
-        structureMaxHeight = cfgInt("structureMaxHeight", DEF_STRUCTURE_MAX_Y, 0, 250,
-                "结构底座高度的上限。与下限相等时固定在那一层，否则按地形平均高度 clamp。");
-        structureHeightOffset = cfgInt("structureHeightOffset", DEF_STRUCTURE_HEIGHT_OFFSET, -32, 32,
-                "高度偏移。-1 = 结构最底层沉进地里一格，地板与地面齐平（HBM 多数地表遗迹用 -1）。\n"
-                + "算法是「平均地表高度 + 本项」再 clamp 到上下限，所以固定层位时它仍会把结果往上/下推，\n"
-                + "只是推出去的会被上下限挡住。");
-        structureLootRandomize = cfgBool("structureLootRandomize", DEF_STRUCTURE_LOOT_RANDOMIZE,
-                "箱子内容是否随机化。\n"
-                + "开（默认）：结构 NBT 里摆好的物品只当模板——每格按物品稀有度和原有数量掷骰，\n"
-                + "决定留不留，留下的数量在「数量下限 ~ 原数量」之间重掷，最后打散到随机格子。\n"
-                + "关：每个遗迹的箱子内容与导出时完全一致（同一坐标永远同一件东西）。\n"
-                + "分档保留率见下面的 structureLootKeep* 五项。");
+        // ---------------- 07. 遗迹：地心实验室 ----------------
+        structureWorldgenEnabled = cfgBool(CAT_STRUCT_LAB, "enableStructureWorldgen", DEF_STRUCTURE_ENABLED,
+                "是否生成地心实验室遗迹。");
+        structureNbtFile = cfgStr(CAT_STRUCT_LAB, "structureNbtFile", DEF_STRUCTURE_NBT,
+                "结构 NBT 路径（相对 assets/makentmgreatagain/）。");
+        structureDimensionId = cfgInt(CAT_STRUCT_LAB, "structureDimensionId", DEF_STRUCTURE_DIM, -2147483648, 2147483647,
+                "生成维度 ID（0=主世界，-1=下界）。");
+        structureGridChunks = cfgInt(CAT_STRUCT_LAB, "structureGridChunks", DEF_STRUCTURE_GRID, 4, 64,
+                "自定义网格间距（区块，每 N×N 区块生成一处）。");
+        structureGridInset = cfgInt(CAT_STRUCT_LAB, "structureGridInset", DEF_STRUCTURE_GRID_INSET, 0, 16,
+                "网格内落点四边留边（区块，防相邻结构重叠）。");
+        structureMinHeight = cfgInt(CAT_STRUCT_LAB, "structureMinHeight", DEF_STRUCTURE_MIN_Y, 0, 250,
+                "底座高度下限（与上限相等即固定层位）。");
+        structureMaxHeight = cfgInt(CAT_STRUCT_LAB, "structureMaxHeight", DEF_STRUCTURE_MAX_Y, 0, 250,
+                "底座高度上限。");
+        structureHeightOffset = cfgInt(CAT_STRUCT_LAB, "structureHeightOffset", DEF_STRUCTURE_HEIGHT_OFFSET, -32, 32,
+                "相对地表高度偏移（-1=地板与地面齐平）。");
+        structureMaxHeightVariation = cfgFloat(CAT_STRUCT_LAB, "structureMaxHeightVariation", DEF_STRUCTURE_MAX_VARIATION, 0.0F, 2.0F,
+                "允许的地形起伏上限（BiomeGenBase.heightVariation）。");
+        structureAllowOcean = cfgBool(CAT_STRUCT_LAB, "structureAllowOcean", DEF_STRUCTURE_ALLOW_OCEAN,
+                "是否允许在海洋/水域群系生成。");
+        structureSpawnWeight = cfgInt(CAT_STRUCT_LAB, "structureSpawnWeight", DEF_STRUCTURE_WEIGHT, 1, 100,
+                "结构权重（自定义网格模式下仅作预留）。");
 
-        // ---- 自然遗迹：选址 ----
-        structureMaxHeightVariation = cfgFloat("structureMaxHeightVariation", DEF_STRUCTURE_MAX_VARIATION, 0.0F, 2.0F,
-                "允许生成的地形起伏上限（原版 BiomeGenBase.heightVariation）。默认 0.35。\n"
-                + "这个值不看海拔，只看「这一带有多不平」，越大越容易落进山地。\n"
-                + "参照：平原 0.05、森林 0.2、丘陵 0.3、山地 0.5~0.7、峭壁 1.0+。\n"
-                + "0.35 → 平原/森林/丘陵能落，山地及更陡的一律跳过（默认）；\n"
-                + "1.0  → 几乎任何陆地群系都行，但结构会卡在陡坡上，一半埋一半悬空；\n"
-                + "0.1  → 只在真正平的地方出现。");
-        structureAllowOcean = cfgBool("structureAllowOcean", DEF_STRUCTURE_ALLOW_OCEAN,
-                "是否允许在海洋/深海群系里生成。默认关。\n"
-                + "关：WATER、OCEAN 两类群系一律跳过（河滩、沙滩不在其中，仍会生成）。\n"
-                + "开：海底也会刷，但结构底座会被平均地表高度拉到水面以下，\n"
-                + "绝大多数情况下整个建筑泡在水里，只能靠水下呼吸去探索。");
-        structureGridInset = cfgInt("structureGridInset", DEF_STRUCTURE_GRID_INSET, 0, 16,
-                "格内落点的留边（区块）。默认 2。\n"
-                + "世界被切成 N×N 区块的格子，落点只能在「去掉四边各留边」之后的中间区域里挑。\n"
-                + "结构本体约 3×3 区块，留边 2 能保证相邻两格的落点至少隔 5 区块（80 格），不会互相切进去。\n"
-                + "0 = 允许贴格子边缘（结构可能跨过格子线，和隔壁那格的落点挤在一起）；\n"
-                + "4 = 更居中但选择更少（间距 11 时中间只剩 3 格可挑）。\n"
-                + "留边超过 (间距-1)/2 会被自动压回去，不会把可选位置压成 0。");
-
-        // ---- 自然遗迹：方块劣化 ----
-        structureDecayEnabled = cfgBool("structureDecayEnabled", DEF_STRUCTURE_DECAY,
-                "方块劣化（概率替换方块）总开关。默认开。\n"
-                + "开：按 world/AddonStructures.java 的 DECAY_TABLE 掷骰，\n"
-                + "把强化萤石敲成空气、混凝土砖裂成破碎砖、黑曜石砖掉成碎黑曜石之类，\n"
-                + "让同一座遗迹每次生成都破得不一样。\n"
-                + "关：结构完全按 NBT 原样落地，一处破口都没有。");
-        structureDecayScalePercent = cfgInt("structureDecayScalePercent", DEF_STRUCTURE_DECAY_SCALE, 0, 400,
-                "劣化强度倍率（%）。默认 100 = 完全按 DECAY_TABLE 里写死的概率。\n"
-                + "乘在每条规则的概率上，所以是整体缩放，不用逐条改源码：\n"
-                + "    0   → 等同于关掉劣化（保留开关，方便临时对比）\n"
-                + "    50  → 破败程度减半，多数墙壁完好\n"
-                + "    100 → 默认，约三成混凝土砖开裂/破碎、三成萤石熄灭\n"
-                + "    200 → 加倍，基本只剩框架，地板大面积塌成空气\n"
-                + "    400 → 上限，几乎每条规则必定命中（超过 100% 一律按 100% 算）\n"
-                + "注意倍率作用于「顺序判定」的每一条，所以空气类结果也会一起放大，\n"
-                + "调高时留意别把承重墙也砸没了。");
-
-        // ---- 自然遗迹：战利品 ----
-        lootKeepCommonPercent = cfgInt("structureLootKeepCommon", DEF_LOOT_KEEP_COMMON, 0, 100,
-                "常见物品的保留率（%）。默认 90。\n"
-                + "这一类是工业耗材、建材、普通食物、核废料（完整清单见 AddonStructures 的 rate(COMMON, ...)）。\n"
-                + "同一个箱子里每格独立掷骰，所以 90% 意味着「原来 10 格大概留 9 格」。");
-        lootKeepUncommonPercent = cfgInt("structureLootKeepUncommon", DEF_LOOT_KEEP_UNCOMMON, 0, 100,
-                "较稀有物品的保留率（%）。默认 78。\n"
-                + "这一类是加工品、防护服、医疗、弹药。");
-        lootKeepRarePercent = cfgInt("structureLootKeepRare", DEF_LOOT_KEEP_RARE, 0, 100,
-                "稀有物品的保留率（%）。默认 62。\n"
-                + "这一类是核材料、机器方块、军械、机器升级。");
-        lootKeepEpicPercent = cfgInt("structureLootKeepEpic", DEF_LOOT_KEEP_EPIC, 0, 100,
-                "极稀有物品的保留率（%）。默认 45。\n"
-                + "这一类是动力装甲、蒸汽服。想要「十次九空」就压到 15~25。");
-        lootKeepLegendaryPercent = cfgInt("structureLootKeepLegendary", DEF_LOOT_KEEP_LEGENDARY, 0, 100,
-                "传说物品的保留率（%）。默认 30。\n"
-                + "目前只有附魔金苹果（Items.golden_apple, meta 1）走这一档。\n"
-                + "它不享受「堆得越多越容易留下」的加成，1 个就是 1 次掷骰。");
-        structureLootCountMinPercent = cfgInt("structureLootCountMinPercent", DEF_LOOT_COUNT_MIN_PERCENT, 0, 100,
-                "留下的物品数量下限（占模板数量的百分比）。默认 40。\n"
-                + "例：模板里一格有 8 个钢锭，实际数量在 3（8×40%）~ 8 之间均匀重掷。\n"
-                + "100 = 数量原样不动，只决定留不留；0 = 可能只剩 1 个（下限仍是 1，不会出现 0）。\n"
-                + "单格的堆叠上限、以及模板本来就只放 1 个的（枪、护甲），不受本项影响。");
-        structureLootScatter = cfgBool("structureLootScatter", DEF_LOOT_SCATTER,
-                "是否把留下的战利品打散到随机格子。默认开。\n"
-                + "开：整箱清空后随机挑空格，物品位置每次都不一样。\n"
-                + "关：从第 0 格开始按原顺序摆放——保留模板的排列（比如「第一格永远是医疗包」），\n"
-                + "只让存活与数量随机。想做「固定位置的剧情箱」就关掉它。\n"
-                + "本项只在 structureLootRandomize 开着时有意义。");
-
-        // ---- 自然遗迹：日志 ----
-        structureDebugLog = cfgBool("structureDebugLog", DEF_STRUCTURE_DEBUG_LOG,
-                "是否打印遗迹的详细日志。默认「关」，正常游玩时服务器日志里不会出现 [structure] 行。\n"
-                + "关：注册、生成、劣化、箱子随机化全部静默（文件缺失之类的 WARN 仍然会打）。\n"
-                + "开：会输出这几类 INFO——\n"
-                + "  [structure] 结构工具方块 ID（创世神填充用，每次启动一次）\n"
-                + "  [structure] 遗迹已注册: dim/nbt/size/y/grid/留边/劣化/战利品（每次启动一次）\n"
-                + "  [structure] 地心实验室已生成: 底座 y=…（每座一次）\n"
-                + "  [structure] 生成后处理 @ 区块(x,z) … → 方块劣化 N 个，战利品箱随机化 M 个（每个区块一次）\n"
-                + "本项只管地心实验室；大型异虫巢有自己的 structureAlienHiveDebugLog（前缀 [structure-hive]）。\n"
-                + "排查「遗迹到底生成了没有 / 劣化和箱子随机化有没有生效」时临时打开，"
-                + "看完再关掉即可，不影响任何生成结果。");
-        structureNbtFile = cfgStr("structureNbtFile", DEF_STRUCTURE_NBT,
-                "要生成的建筑文件，写相对 assets/makentmgreatagain/ 的路径。\n"
-                + "默认 structures/mnga_structure_geocentric_laboratory.nbt（自带的地心实验室）。\n"
-                + "换成自己导出的结构时：把 .nbt 丢进 assets/makentmgreatagain/structures/，\n"
-                + "这里写 structures/你的文件名.nbt 即可，不用改代码、不用重新编译。\n"
-                + "注意三点：\n"
-                + "  1) 必须是 HBM 的 hbm:tile.wand_structure 导出的格式（普通 WorldEdit .schematic 不认）；\n"
-                + "  2) 找不到文件时只打一条 WARN 并跳过注册，不会崩，但也不会生成任何遗迹；\n"
-                + "  3) 换文件后新建筑的尺寸会变，structureMaxY 之类的层位设置要自己跟着调，\n"
-                + "     否则可能出现「整座建筑被压进基岩」或「悬在半空」。");
-
-        // ---------------- 大型异虫巢 ----------------
-        structureAlienHiveEnabled = cfgBool("enableStructureAlienHive", DEF_ALIEN_HIVE_ENABLED,
-                "是否生成大型异虫巢（第二个 NBT 结构）。默认开。\n"
-                + "结构文件不存在时只打一条 WARN 并跳过，不会崩。\n"
-                + "它的生成条件是按 HBM 的「小虫巢」（GlyphidHive，主世界地表附近的异虫巢）复刻的：\n"
-                + "主世界、跟随 HBM 的地牢/虫巢开关、贴地生成、平均每 5120 区块一座（小虫巢的 1/20）。");
-        structureAlienHiveNbtFile = cfgStr("structureAlienHiveNbtFile", DEF_ALIEN_HIVE_NBT,
-                "大型异虫巢的结构文件，写相对 assets/makentmgreatagain/ 的路径。\n"
-                + "默认 structures/mnga_structure_large_alien_insec.nbt（自带的 31×13×31 虫巢）。\n"
-                + "换建筑时把 .nbt 丢进 assets/makentmgreatagain/structures/ 再改这里即可，不用重编译。\n"
-                + "⚠️ 换文件后尺寸会变，structureAlienHiveHeightOffset 需要自己跟着调，\n"
-                + "否则可能出现「整座虫巢悬在半空」或「整个埋进地下」。");
-        structureAlienHiveDimensionId = cfgInt("structureAlienHiveDimensionId", DEF_ALIEN_HIVE_DIM,
+        // ---------------- 08. 遗迹：大型异虫巢 ----------------
+        structureAlienHiveEnabled = cfgBool(CAT_STRUCT_HIVE, "enableStructureAlienHive", DEF_ALIEN_HIVE_ENABLED,
+                "是否生成大型异虫巢。");
+        structureAlienHiveNbtFile = cfgStr(CAT_STRUCT_HIVE, "structureAlienHiveNbtFile", DEF_ALIEN_HIVE_NBT,
+                "结构 NBT 路径（相对 assets/makentmgreatagain/）。");
+        structureAlienHiveDimensionId = cfgInt(CAT_STRUCT_HIVE, "structureAlienHiveDimensionId", DEF_ALIEN_HIVE_DIM,
                 -2147483648, 2147483647,
-                "在哪个维度生成。默认 0 = 主世界。\n"
-                + "HBM 的小虫巢只生成在主世界，改到别的维度就不再是 1/20 的关系了。");
-        structureAlienHiveRarityMultiplier = cfgInt("structureAlienHiveRarityMultiplier", DEF_ALIEN_HIVE_RARITY_MULT,
+                "生成维度 ID（默认 0=主世界）。");
+        structureAlienHiveRarityMultiplier = cfgInt(CAT_STRUCT_HIVE, "structureAlienHiveRarityMultiplier", DEF_ALIEN_HIVE_RARITY_MULT,
                 1, 1000,
-                "比 HBM 小虫巢稀有多少倍。默认 20。\n"
-                + "小虫巢的概率是「每 hiveSpawn 区块一个」（HBM 配置 MobConfig，默认 256），\n"
-                + "所以本项 = 20 时，大虫巢平均 256×20 = 5120 区块一座，正好是小虫巢的 1/20。\n"
-                + "  10  → 1/10，比较常见\n"
-                + "  20  → 默认（1/20）\n"
-                + "  50  → 1/50，非常难遇到\n"
-                + "⚠️ 只在本文件下面的 structureAlienHiveDenominator = -1 时生效；\n"
-                + "填了正数就直接用那个数字，倍数被忽略。");
-        structureAlienHiveDenominator = cfgInt("structureAlienHiveDenominator", DEF_ALIEN_HIVE_DENOMINATOR,
+                "相对 HBM 小虫巢的稀有倍数（仅 Denominator=-1 时生效）。");
+        structureAlienHiveDenominator = cfgInt(CAT_STRUCT_HIVE, "structureAlienHiveDenominator", DEF_ALIEN_HIVE_DENOMINATOR,
                 -1, 1000000,
-                "直接指定「平均每 N 区块一座」。默认 -1 = 不指定，跟随 HBM 配置。\n"
-                + "-1：分母 = HBM 的 hiveSpawn × structureAlienHiveRarityMultiplier。\n"
-                + "    好处是玩家改了 HBM 的虫巢密度，大虫巢会自动保持 1/20 的关系。\n"
-                + ">0 ：写死分母。例如 4096 → 平均每 4096 区块一座，与原版虫巢配置无关。\n"
-                + "    适合整合包里 HBM 配置被锁死、只想单独调这一个结构的情况。");
-        structureAlienHiveHeightOffset = cfgInt("structureAlienHiveHeightOffset", DEF_ALIEN_HIVE_HEIGHT_OFFSET,
+                "直接指定每 N 区块生成一座（-1=跟随 HBM hiveSpawn×倍数）。");
+        structureAlienHiveHeightOffset = cfgInt(CAT_STRUCT_HIVE, "structureAlienHiveHeightOffset", DEF_ALIEN_HIVE_HEIGHT_OFFSET,
                 -32, 32,
-                "高度偏移（格）。默认 0 = 结构几何中心落在地表（HBM 小虫巢的口径）。\n"
-                + "算法：先取结构中心那一列的地表高度，把「结构几何中心」对齐到地表，再加本项。\n"
-                + "自带虫巢高 13 格，所以 0 时是「地上露 6 格、地下埋 6 格」的一个大土包：\n"
-                + "  0   → 默认，和小虫巢一样的半露状态\n"
-                + "  -3  → 再往下压 3 格，只露顶盖\n"
-                + "  -6  → 顶面与地面齐平，整座全埋（需要挖开才能进）\n"
-                + "  +4  → 整体抬高，会明显鼓出地面\n"
-                + "换过 structureAlienHiveNbtFile 之后一定要重算：新结构多高，就以 0 为中心自己试。");
-        structureAlienHiveMinHeight = cfgInt("structureAlienHiveMinHeight", DEF_ALIEN_HIVE_MIN_Y, 0, 250,
-                "结构底座高度的下限（clamp 用）。默认 1。\n"
-                + "算出来的高度低于本项时会被抬到这里，防止整座虫巢掉进虚空或基岩层。\n"
-                + "NBTStructure 对 y<1 的方块直接跳过，所以填 0 与填 1 结果相同。");
-        structureAlienHiveMaxHeight = cfgInt("structureAlienHiveMaxHeight", DEF_ALIEN_HIVE_MAX_Y, 0, 250,
-                "结构底座高度的上限（clamp 用）。默认 250。\n"
-                + "正常地表（y≈60~120）远低于本项，一般不会触发；\n"
-                + "只有在放大化/自定义地形里地表超高时才会把虫巢压下来。");
-        structureAlienHiveMaxHeightVariation = cfgFloat("structureAlienHiveMaxHeightVariation",
+                "结构几何中心相对地表的高度偏移（格）。");
+        structureAlienHiveMinHeight = cfgInt(CAT_STRUCT_HIVE, "structureAlienHiveMinHeight", DEF_ALIEN_HIVE_MIN_Y, 0, 250,
+                "底座高度下限。");
+        structureAlienHiveMaxHeight = cfgInt(CAT_STRUCT_HIVE, "structureAlienHiveMaxHeight", DEF_ALIEN_HIVE_MAX_Y, 0, 250,
+                "底座高度上限。");
+        structureAlienHiveMaxHeightVariation = cfgFloat(CAT_STRUCT_HIVE, "structureAlienHiveMaxHeightVariation",
                 DEF_ALIEN_HIVE_MAX_VARIATION, 0.0F, 2.0F,
-                "允许生成的地形起伏上限（原版 BiomeGenBase.heightVariation）。默认 2.0 = 不限。\n"
-                + "HBM 的小虫巢本身不看地形平坦度，所以这里默认放开，保持「生成逻辑一模一样」。\n"
-                + "想只让它在平缓地带出现就压到 0.35（平原/森林/丘陵），山地会被跳过。\n"
-                + "参照：平原 0.05、森林 0.2、丘陵 0.3、山地 0.5~0.7、峭壁 1.0+。");
-        structureAlienHiveAllowOcean = cfgBool("structureAlienHiveAllowOcean", DEF_ALIEN_HIVE_ALLOW_OCEAN,
-                "是否允许在海洋/深海群系生成。默认开（和小虫巢一致：它不筛群系，海底也会刷）。\n"
-                + "关：WATER、OCEAN 两类群系跳过。水下虫巢的箱子要水下呼吸才能开，\n"
-                + "觉得烦就关掉这一项。");
-        structureAlienHiveFollowHbm = cfgBool("structureAlienHiveFollowHbm", DEF_ALIEN_HIVE_FOLLOW_HBM,
-                "是否跟随 HBM 的地牢/虫巢开关。默认开。\n"
-                + "开：只有 HBM 那边允许生成地牢（enableDungeons / 地图特性）且启用虫巢（enableHives）时，\n"
-                + "    大虫巢才会生成——这样「1/20」的比例在任何配置下都成立。\n"
-                + "关：只看本模组自己的开关，即使 HBM 关了虫巢，大虫巢照样按分母刷。\n"
-                + "⚠️ 关掉之后「1/20」就不再准确，因为小虫巢可能一个都不生成。");
-        structureAlienHiveCarveInterior = cfgBool("structureAlienHiveCarveInterior", DEF_ALIEN_HIVE_CARVE,
-                "内部空腔挖空。默认开。\n"
-                + "虫巢 NBT 只记录实体方块，不记录空气。HBM 落方块时跳过没记录的格子，\n"
-                + "于是内部巢室的空腔会被天然地形（石头/泥土）原样填死。\n"
-                + "开：生成后把「封闭内腔」里的地形挖空成空气——判定方式是从包围盒边界\n"
-                + "    泛洪填充，只挖与外界完全隔离的空腔（自带虫巢是个封闭穹顶，挖 3614 格）。\n"
-                + "关：内腔保持地形填充（等于没有这个功能）。\n"
-                + "壳体之外的格子永远不动：穹顶和地形之间的缝隙维持原样，不会悬空。");
-        structureAlienHiveLootRandomize = cfgBool("structureAlienHiveLootRandomize", DEF_ALIEN_HIVE_LOOT,
-                "箱子战利品随机化。默认开。\n"
-                + "和地心实验室同一套机制：把 NBT 里预置的物品当模板，按稀有度掷保留率、\n"
-                + "重掷数量、随机散布——保留率/散布等参数共用 structureLoot* 那几项配置。\n"
-                + "关：箱子保持结构 NBT 里的原样（腺体、Spawn 蛋、U235/Pu239 板、燃料棒、弹药等）。\n"
-                + "⚠️ 本项同时要求上面的 structureLootRandomize 为开，两项都开才生效。");
-        structureAlienHiveDebugLog = cfgBool("structureAlienHiveDebugLog", DEF_ALIEN_HIVE_DEBUG_LOG,
-                "是否打印大型异虫巢的详细日志（前缀 [structure-hive]）。默认关。\n"
-                + "开：注册时打印分母/维度/层位，每次生成打印「虫巢已生成: 底座 y=…」，\n"
-                + "    以及「空腔挖空 N 格，箱子随机化 M 个」。\n"
-                + "排查「到底刷没刷 / 内腔有没有挖开」时临时打开。");
+                "允许的地形起伏上限（2.0=不限）。");
+        structureAlienHiveAllowOcean = cfgBool(CAT_STRUCT_HIVE, "structureAlienHiveAllowOcean", DEF_ALIEN_HIVE_ALLOW_OCEAN,
+                "是否允许在海洋群系生成。");
+        structureAlienHiveFollowHbm = cfgBool(CAT_STRUCT_HIVE, "structureAlienHiveFollowHbm", DEF_ALIEN_HIVE_FOLLOW_HBM,
+                "是否跟随 HBM 的地牢与虫巢总开关。");
+        structureAlienHiveCarveInterior = cfgBool(CAT_STRUCT_HIVE, "structureAlienHiveCarveInterior", DEF_ALIEN_HIVE_CARVE,
+                "生成后是否挖空封闭内腔里的自然地形。");
 
-        // ---------------- 日落六号 ----------------
-        structureSunsetSixEnabled = cfgBool("enableStructureSunsetSix", DEF_SUNSET_SIX_ENABLED,
-                "是否生成日落六号（第三个 NBT 结构）。默认开。\n"
-                + "结构文件不存在时只打一条 WARN 并跳过，不会崩。\n"
-                + "生成条件：下界、每世界仅一个、以 (0,0) 为中心 x/z ±10000 内、\n"
-                + "整座结构埋在岩浆里且上方不暴露。结构原样落地（不替换方块、不劣化、不挖空）。");
-        structureSunsetSixNbtFile = cfgStr("structureSunsetSixNbtFile", DEF_SUNSET_SIX_NBT,
-                "日落六号的结构文件，写相对 assets/makentmgreatagain/ 的路径。\n"
-                + "默认 structures/mnga_structure_sunset_six.nbt（自带的 9×30×10 高塔）。\n"
-                + "换建筑时把 .nbt 丢进 assets/makentmgreatagain/structures/ 再改这里即可，不用重编译。\n"
-                + "⚠️ 换文件后高度会变，选址的岩浆浸没校验按 SunsetSixSite.STRUCT_HEIGHT 计算，\n"
-                + "换更高的结构需要同步改那个常量。");
-        structureSunsetSixDimensionId = cfgInt("structureSunsetSixDimensionId", DEF_SUNSET_SIX_DIM,
+        // ---------------- 09. 遗迹：日落六号 ----------------
+        structureSunsetSixEnabled = cfgBool(CAT_STRUCT_SUNSET_SIX, "enableStructureSunsetSix", DEF_SUNSET_SIX_ENABLED,
+                "是否生成日落六号（每世界仅一个，埋于下界岩浆中）。");
+        structureSunsetSixNbtFile = cfgStr(CAT_STRUCT_SUNSET_SIX, "structureSunsetSixNbtFile", DEF_SUNSET_SIX_NBT,
+                "结构 NBT 路径（相对 assets/makentmgreatagain/）。");
+        structureSunsetSixDimensionId = cfgInt(CAT_STRUCT_SUNSET_SIX, "structureSunsetSixDimensionId", DEF_SUNSET_SIX_DIM,
                 -2147483648, 2147483647,
-                "在哪个维度生成。默认 -1 = 下界。\n"
-                + "「每世界仅一个」按维度独立计数：改到别的维度，那个维度也会各刷一座。");
-        structureSunsetSixMinHeight = cfgInt("structureSunsetSixMinHeight", DEF_SUNSET_SIX_MIN_Y, 0, 250,
-                "结构底座高度的下限（clamp 用）。默认 1。\n"
-                + "选址时从这一层往上找「能埋进岩浆且上方不暴露」的位置。");
-        structureSunsetSixMaxHeight = cfgInt("structureSunsetSixMaxHeight", DEF_SUNSET_SIX_MAX_Y, 0, 250,
-                "结构底座高度的上限（clamp 用）。默认 120。\n"
-                + "结构高 30 + 顶部至少 8 格覆盖，底座最高约 218；下界岩浆海主要在 y≈31 以下，\n"
-                + "默认 120 已留足余量。");
-        structureSunsetSixLootRandomize = cfgBool("structureSunsetSixLootRandomize", DEF_SUNSET_SIX_LOOT,
-                "箱子战利品随机化。默认开。\n"
-                + "和前两个遗迹同一套机制：把 NBT 里预置的物品当模板，按稀有度掷保留率、\n"
-                + "重掷数量、随机散布——保留率/散布等参数共用 structureLoot* 那几项配置。\n"
-                + "关：箱子保持结构 NBT 里的原样。\n"
-                + "⚠️ 本项同时要求上面的 structureLootRandomize 为开，两项都开才生效。");
-        structureSunsetSixDebugLog = cfgBool("structureSunsetSixDebugLog", DEF_SUNSET_SIX_DEBUG_LOG,
-                "是否打印日落六号的详细日志（前缀 [structure-sunset]）。默认关。\n"
-                + "开：注册时打印维度/尺寸等摘要。生成坐标日志已按用户要求移除，不再打印。");
-        structureSunsetSixTestMode = cfgBool("structureSunsetSixTestMode", DEF_SUNSET_SIX_TEST_MODE,
-                "测试模式。默认关。\n"
-                + "开：固定刷在 (0,0) 区块、跳过岩浆深度校验，进下界即可直接验证。\n"
-                + "关（正式逻辑）：由种子算唯一锚点（±5000 内）、要求底座起至少 40 格连续岩浆。\n"
-                + "⚠️ 测试模式仍受「每世界仅一个」限制：同一个世界刷过一次后，要换新世界或删存档标记才会再刷。");
-        structureSunsetSixTestBaseY = cfgInt("structureSunsetSixTestBaseY", DEF_SUNSET_SIX_TEST_BASE_Y, 1, 200,
-                "测试模式的底座高度。默认 2（最初指定的高度）。\n"
-                + "只在 structureSunsetSixTestMode 开着时生效；正式逻辑用岩浆扫描自动定层。");
+                "生成维度 ID（默认 -1=下界）。");
+        structureSunsetSixMinHeight = cfgInt(CAT_STRUCT_SUNSET_SIX, "structureSunsetSixMinHeight", DEF_SUNSET_SIX_MIN_Y, 0, 250,
+                "底座高度下限。");
+        structureSunsetSixMaxHeight = cfgInt(CAT_STRUCT_SUNSET_SIX, "structureSunsetSixMaxHeight", DEF_SUNSET_SIX_MAX_Y, 0, 250,
+                "底座高度上限。");
 
         // ---------------- 区间自愈 ----------------
         if(patchRadiusMax < patchRadiusMin) patchRadiusMax = patchRadiusMin;
@@ -1036,131 +855,32 @@ public final class ModConfig {
                     + " 太大，已压到 " + structureGridInset + "（格内至少保留 1 个落点）");
         }
 
-        // 版本号最后写，写的是源码里的版本 —— 于是本次启动之后手改的值会一直保留到下次升版
-        cfgInt(VERSION_KEY, CONFIG_VERSION, 0, Integer.MAX_VALUE,
-                "配置版本号（由代码写入，请勿手改）。\n"
-                + "只有作者主动改过默认值并升版本时，本文件才会被整份重建、所有项回到默认值；\n"
-                + "重建前旧文件会备份成同目录下的 worldgen.cfg.v<旧版本>.bak。\n"
-                + "例外：global.cfg 的 preserveConfigOnUpdate=true 时，若新配置相对旧配置\n"
-                + "只有新增键（见 worldgen.defaults.txt 快照对比），手调值会保留、不重建。");
-
         config.save();   // 首次启动时确保文件落盘
-
-        LOG.info("  salt: enabled=" + saltWorldgenEnabled
-                + ", patch=" + patchChancePercent + "% r" + patchRadiusMin + "~" + patchRadiusMax
-                + ", hills=" + hillsScatterPercent + "%, cave=" + caveGravelPercent + "%"
-                + ", vein=" + saltGravelVeinEnabled + " region=" + saltVeinRegionSize
-                + " chance=" + saltVeinChancePercent + "%");
-        LOG.info("  leadzinc: enabled=" + leadzincWorldgenEnabled
-                + ", chance=" + leadzincChunkChancePercent + "%"
-                + ", veins=" + leadzincVeinsPerChunkMin + "~" + leadzincVeinsPerChunkMax
-                + ", r=" + leadzincVeinRadius
-                + ", attempts=" + leadzincClusterMin + "~" + leadzincClusterMax
-                + ", y=" + leadzincMinY + "~" + leadzincMaxY);
-        LOG.info("  refractoryGold: enabled=" + refractoryGoldWorldgenEnabled
-                + ", chance=" + refractoryGoldChunkChancePercent + "%"
-                + ", veins=" + refractoryGoldVeinsPerChunkMin + "~" + refractoryGoldVeinsPerChunkMax
-                + ", r=" + refractoryGoldVeinRadius
-                + ", attempts=" + refractoryGoldClusterMin + "~" + refractoryGoldClusterMax
-                + ", y=" + refractoryGoldMinY + "~" + refractoryGoldMaxY);
-        LOG.info("  scheelite: enabled=" + scheeliteWorldgenEnabled
-                + ", chance=" + scheeliteChunkChancePercent + "% (avg " + avgVeinSpacing() + " chunks)"
-                + ", veins=" + scheeliteVeinsPerChunkMin + "~" + scheeliteVeinsPerChunkMax
-                + ", r=" + scheeliteVeinRadius + " (filled, " + scheeliteVeinBlocks() + " blocks/vein)"
-                + ", y=" + scheeliteMinY + "~" + scheeliteMaxY);
-        LOG.info("  duna: dim=" + dunaDimensionId
-                + ", leadzinc=" + dunaLeadzincEnabled + " " + dunaLeadzincChunkChancePercent + "% y" + dunaLeadzincMinY + "~" + dunaLeadzincMaxY
-                + ", refractoryGold=" + dunaRefractoryGoldEnabled + " " + dunaRefractoryGoldChunkChancePercent + "% y" + dunaRefractoryGoldMinY + "~" + dunaRefractoryGoldMaxY
-                + ", scheelite=" + dunaScheeliteEnabled + " " + dunaScheeliteChunkChancePercent + "% y" + dunaScheeliteMinY + "~" + dunaScheeliteMaxY);
-        LOG.info("  deepSeaNodule: enabled=" + deepSeaNoduleWorldgenEnabled
-                + ", chance=" + deepSeaNoduleChancePercent + "%"
-                + ", patches=" + deepSeaNodulePatchesMin + "~" + deepSeaNodulePatchesMax
-                + ", r=" + deepSeaNoduleRadiusMin + "~" + deepSeaNoduleRadiusMax
-                + ", fill=" + deepSeaNoduleFillPercent + "%, minDepth=" + deepSeaNoduleMinWaterDepth);
-        LOG.info("  structure: enabled=" + structureWorldgenEnabled
-                + ", dim=" + structureDimensionId
-                + ", grid=" + structureGridChunks + " (1 per " + (structureGridChunks * structureGridChunks) + " chunks)"
-                + ", inset=" + structureGridInset
-                + ", y=" + structureMinHeight + "~" + structureMaxHeight
-                + " offset=" + structureHeightOffset
-                + ", variation<=" + structureMaxHeightVariation
-                + (structureAllowOcean ? ", ocean=allowed" : ", ocean=skipped"));
-        LOG.info("  structure hive: enabled=" + structureAlienHiveEnabled
-                + ", dim=" + structureAlienHiveDimensionId
-                + ", rarity=" + (structureAlienHiveDenominator > 0
-                        ? ("1/" + structureAlienHiveDenominator + " (fixed)")
-                        : ("HBM hiveSpawn x" + structureAlienHiveRarityMultiplier))
-                + ", y=" + structureAlienHiveMinHeight + "~" + structureAlienHiveMaxHeight
-                + " offset=" + structureAlienHiveHeightOffset
-                + ", variation<=" + structureAlienHiveMaxHeightVariation
-                + (structureAlienHiveAllowOcean ? ", ocean=allowed" : ", ocean=skipped")
-                + (structureAlienHiveFollowHbm ? ", followHBM" : ", standalone"));
-        LOG.info("  structure sunset six: enabled=" + structureSunsetSixEnabled
-                + ", dim=" + structureSunsetSixDimensionId
-                + ", 每世界仅一个, radius=" + com.makentmgreatagain.world.SunsetSixSite.RANGE
-                + ", y=" + structureSunsetSixMinHeight + "~" + structureSunsetSixMaxHeight
-                + ", loot=" + structureSunsetSixLootRandomize
-                + ", debugLog=" + structureSunsetSixDebugLog
-                + (structureSunsetSixTestMode
-                        ? ", TEST MODE @ (0,0) baseY=" + structureSunsetSixTestBaseY
-                        : ", normal spawn"));
-        LOG.info("  structure decay: enabled=" + structureDecayEnabled
-                + ", scale=" + structureDecayScalePercent + "%"
-                + (structureDecayEnabled && structureDecayScalePercent == 0 ? " (= disabled)" : "")
-                + ", debugLog=" + structureDebugLog);
-        if(structureLootRandomize) {
-            // 顺序固定为 常见/较稀有/稀有/极稀有/传说，方便和 structureLootKeep* 五项对照
-            LOG.info("  structure loot: keep=" + lootKeepCommonPercent + "/" + lootKeepUncommonPercent
-                    + "/" + lootKeepRarePercent + "/" + lootKeepEpicPercent + "/" + lootKeepLegendaryPercent + "%"
-                    + " (common/uncommon/rare/epic/legendary)"
-                    + ", count>=" + structureLootCountMinPercent + "%"
-                    + ", scatter=" + structureLootScatter);
-        } else {
-            LOG.info("  structure loot: randomize=false（箱子完全按结构 NBT 原样生成）");
-        }
-    }
-
-    /** 把「每区块概率」换算成「平均多少个区块一条」，只用于启动日志，方便对配置。 */
-    private static String avgVeinSpacing() {
-        if(scheeliteChunkChancePercent <= 0) return "never";
-        return String.format("%.1f", 100.0 / scheeliteChunkChancePercent);
-    }
-
-    /** 实心矿囊的格数（球内整数点个数），只用于启动日志。 */
-    private static int scheeliteVeinBlocks() {
-        int r = Math.max(scheeliteVeinRadius, 1);
-        int r2 = r * r;
-        int n = 0;
-        for(int x = -r; x <= r; x++)
-            for(int y = -r; y <= r; y++)
-                for(int z = -r; z <= r; z++)
-                    if(x * x + y * y + z * z <= r2) n++;
-        return n;
     }
 
     // =====================================================================================
     //  小工具
     // =====================================================================================
 
-    private static int cfgInt(String key, int def, int min, int max, String comment) {
+    private static int cfgInt(String cat, String key, int def, int min, int max, String comment) {
         DEFAULTS.put(key, String.valueOf(def));
-        return config.getInt(key, CAT, def, min, max, comment);
+        return config.getInt(key, cat, def, min, max, comment);
     }
 
-    private static float cfgFloat(String key, float def, float min, float max, String comment) {
+    private static float cfgFloat(String cat, String key, float def, float min, float max, String comment) {
         DEFAULTS.put(key, String.valueOf(def));
-        return config.getFloat(key, CAT, def, min, max, comment);
+        return config.getFloat(key, cat, def, min, max, comment);
     }
 
-    private static boolean cfgBool(String key, boolean def, String comment) {
+    private static boolean cfgBool(String cat, String key, boolean def, String comment) {
         DEFAULTS.put(key, String.valueOf(def));
-        return config.getBoolean(key, CAT, def, comment);
+        return config.getBoolean(key, cat, def, comment);
     }
 
     /** 字符串项。空串/全空白一律退回默认值，免得有人在 cfg 里留一行空的把结构关掉。 */
-    private static String cfgStr(String key, String def, String comment) {
+    private static String cfgStr(String cat, String key, String def, String comment) {
         DEFAULTS.put(key, def == null ? "" : def);
-        String value = config.getString(key, CAT, def, comment);
+        String value = config.getString(key, cat, def, comment);
         if(value == null || value.trim().isEmpty()) return def;
         return value.trim();
     }

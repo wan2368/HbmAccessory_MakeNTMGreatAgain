@@ -105,7 +105,8 @@ public class BlockFluidCooler extends BlockDummyable {
 					.getType(world, pos[0], pos[1], pos[2], player.getHeldItem());
 
 			// 只有配对表里的流体才生效：不认识的流体直接忽略，罐型保持原样，也不给任何提示。
-			if(type != null && TileEntityFluidCooler.isCoolant(type)) {
+			// 与另一侧同型时同样静默忽略——两侧输入口共用坐标，靠类型区分网络。
+			if(type != null && TileEntityFluidCooler.isCoolant(type) && cooler.canSetCoolant(type)) {
 				cooler.tanks[0].setTankType(type);
 				cooler.markChanged();
 

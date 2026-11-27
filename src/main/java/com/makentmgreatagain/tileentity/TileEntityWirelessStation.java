@@ -36,8 +36,16 @@ import net.minecraftforge.common.util.ForgeDirection;
  */
 public class TileEntityWirelessStation extends TileEntityLoadedBase implements IEnergyReceiverMK2 {
 
-	/** 站内缓冲上限；实际网络输入受待充电需求和 INPUT_LIMIT 双重限制。 */
-	public static final long BUFFER = 5_000_000L;
+	/**
+	 * 站内缓冲上限。
+	 *
+	 * <p>定位是「平滑供电波动的一小段缓冲」，不是储能电池：100,000 HE 相当于单人
+	 * 持续输出 10 tick（0.5 秒）的量，同时是 {@link #INPUT_LIMIT} 的 10 倍，
+	 * 足以吸收电网的瞬时抖动。相对 HBM 电池的百万级容量只有几个百分点，
+	 * 不会变成免费储能。</p>
+	 */
+	public static final long BUFFER = 100_000L;
+	/** 每 tick 从电网拉取的上限。 */
 	public static final long INPUT_LIMIT = 10_000L;
 	/** 每位玩家每 tick 的供给上限，背包与护甲共用这一份。 */
 	public static final long PLAYER_LIMIT = 10_000L;
@@ -61,7 +69,6 @@ public class TileEntityWirelessStation extends TileEntityLoadedBase implements I
 	/** 客户端收到的灯态，-1 表示还没同步过。 */
 	private int clientLamp = -1;
 	private long demandTickStamp = -1L;
-	private final IdentityHashMap<EntityPlayer, Boolean> chargingPlayers = new IdentityHashMap<EntityPlayer, Boolean>();
 	private final IdentityHashMap<EntityPlayer, Boolean> playerMoved = new IdentityHashMap<EntityPlayer, Boolean>();
 
 	protected PortDef[] cachedPorts;
@@ -73,15 +80,26 @@ public class TileEntityWirelessStation extends TileEntityLoadedBase implements I
 		return uid;
 	}
 
+	/**
+	 * 六个面都能接电网。
+	 *
+	 * <p><b>必须写成一个 PortDef 带六个方向</b>，不能拆成六个单方向 PortDef。
+	 * UNINOS 的节点建在 {@code positions} 上（这里就是方块自身坐标），
+	 * 而 {@code connections} 才是它向外连的边。拆成六个 PortDef 时，六个 port 的
+	 * {@code positions} 完全相同，第一个建好节点后，其余五个在
+	 * {@code TilePort.enableIfMissing} 里 {@code getNode} 会拿到同一个节点，于是
+	 * 只有第一个 PortDef 的连接方向被写入节点，其余五个方向静默丢失——表现就是
+	 * 「只有一面能接电」。</p>
+	 *
+	 * <p>语义上等价于 {@code GenNode.setStandardConnections}。</p>
+	 */
 	public PortDef[] getPorts() {
 		if(cachedPorts == null) {
 			cachedPorts = new PortDef[] {
-				PortDef.make(xCoord, yCoord, zCoord, ForgeDirection.DOWN),
-				PortDef.make(xCoord, yCoord, zCoord, ForgeDirection.UP),
-				PortDef.make(xCoord, yCoord, zCoord, ForgeDirection.NORTH),
-				PortDef.make(xCoord, yCoord, zCoord, ForgeDirection.SOUTH),
-				PortDef.make(xCoord, yCoord, zCoord, ForgeDirection.WEST),
-				PortDef.make(xCoord, yCoord, zCoord, ForgeDirection.EAST)
+				PortDef.make(xCoord, yCoord, zCoord,
+					ForgeDirection.DOWN, ForgeDirection.UP,
+					ForgeDirection.NORTH, ForgeDirection.SOUTH,
+					ForgeDirection.WEST, ForgeDirection.EAST)
 			};
 		}
 		return cachedPorts;
@@ -119,14 +137,12 @@ public class TileEntityWirelessStation extends TileEntityLoadedBase implements I
 		if(now != this.demandTickStamp) {
 			this.demandTickStamp = now;
 			this.playerMoved.clear();
-			this.chargingPlayers.clear();
 		}
 
 		if(this.playerMoved.containsKey(player)) return 0L;
 		this.playerMoved.put(player, Boolean.TRUE);
 		long demand = getChargingDemand(player);
 		if(demand <= 0L) return 0L;
-		this.chargingPlayers.put(player, Boolean.TRUE);
 
 		long budget = Math.min(PLAYER_LIMIT, this.power);
 		long moved = 0L;
@@ -203,15 +219,24 @@ public class TileEntityWirelessStation extends TileEntityLoadedBase implements I
 	@Override public long getPower() { return power; }
 	@Override public void setPower(long power) { this.power = Math.min(BUFFER, Math.max(0L, power)); }
 	@Override public long getMaxPower() { return BUFFER; }
-	@Override public long getReceiverSpeed() {
-		if(worldObj == null || worldObj.isRemote || worldObj.getTotalWorldTime() != this.demandTickStamp) return 0L;
-		long demand = 0L;
-		for(EntityPlayer player : this.chargingPlayers.keySet()) {
-			demand += getChargingDemand(player);
-			if(demand >= INPUT_LIMIT + this.power) break;
-		}
-		long unmet = Math.max(0L, demand - this.power);
-		return Math.min(Math.min(INPUT_LIMIT, unmet), Math.max(0L, BUFFER - this.power));
+
+	/**
+	 * 电网每 tick 按这个值向站内送电：只要缓冲没满就按 {@link #INPUT_LIMIT} 拉。
+	 *
+	 * <p>不设水位线，缓冲会一直充到 {@link #BUFFER} 为止。站内缓冲本身就是「一小段」，
+	 * 所以充满不等于变成储能电池：空转时它只占 10 万 HE，断电后单人还能撑 10 tick。</p>
+	 *
+	 * <p>这里刻意不依赖 {@code chargePlayer} 的实时需求。{@code chargePlayer} 由玩家实体
+	 * tick 触发、这里由电网 tick 触发，两者先后顺序不保证，按需求算额度会落到「有需求也返回 0」。</p>
+	 */
+	@Override
+	public long getReceiverSpeed() {
+		if(worldObj == null || worldObj.isRemote) return 0L;
+
+		long room = BUFFER - this.power;
+		if(room <= 0L) return 0L;
+
+		return Math.min(INPUT_LIMIT, room);
 	}
 
 	@Override

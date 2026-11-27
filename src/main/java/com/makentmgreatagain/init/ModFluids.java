@@ -37,6 +37,7 @@ import com.hbm.render.util.EnumSymbol;
 import com.hbm.util.CompatFluidRegistry;
 import com.makentmgreatagain.MakeNTMGreatAgain;
 import com.makentmgreatagain.fluid.FT_CoreTank;
+import com.makentmgreatagain.fluid.FT_MagneticTank;
 
 import api.hbm.fluidmk2.IFluidRegisterListener;
 import net.minecraft.item.ItemStack;
@@ -665,21 +666,7 @@ public final class ModFluids {
             .canister(0xE0A840)
             .tankTexture("tank_CRUDE_PLATINUM");
 
-    /**
-     * 稀土母液：混合稀土氢氧化物沉淀之后剩下的母液，浅琥珀，还溶着可回收的重稀土。
-     *
-     * <p>碱性盐溶液，本身不烈：腐蚀 15（弱碱）、健康标识 1。但母液里带着钍和重稀土，
-     * 泄漏算重金属污染 —— 这也是现实里稀土厂最头疼的那一项。</p>
-     */
-    public static final FluidDef RE_MOTHER_LIQUOR = def("RE_MOTHER_LIQUOR", 2056, 0xDCAE80, "re_mother_liquor")
-            .liquid()
-            .temp(30)
-            .hazard(1, 0, 0, EnumSymbol.NONE)
-            .corrosive(15)
-            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
-                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.04F))
-            .canister(0xDCAE80)
-            .tankTexture("tank_RE_MOTHER_LIQUOR");
+    // 稀土母液（ID 2056）已删除：稀土改直接沉淀路线，ID 留空不复用
 
     /**
      * 钴料液：多金属混粉浸出、除杂之后的含钴溶液，玫瑰红；碱沉淀即得氢氧化钴。
@@ -835,6 +822,186 @@ public final class ModFluids {
             .tankTexture("tank_RAW_SYNTH_OIL");
 
     /**
+     * 氢等离子体：氢-氢聚变的燃料，由等离子加热器把液氢直接电离出来。
+     *
+     * <p>颜色取氢放电的粉紫（0xF2B4F6）。HBM 的六个等离子体温度在 2500~8500 之间，
+     * 这里取 3000——比 H-D（2500）略高，仍低于氘-氚（3250），和“更难点着的纯氢”设定一致。
+     * 没有铁罐、也没有流体识别码——它只走管道与储罐，和宿主的等离子体完全一致。</p>
+     *
+     * <p>不单独配储罐贴图：{@code RenderModFluidTank} 对没有专属图的自定义流体走
+     * 「通用 tank_NONE + 按流体色染色」那一支，所以储罐里看到的就是这个粉紫色。</p>
+     */
+    public static final FluidDef PLASMA_H = def("PLASMA_H", 2067, 0xF2B4F6, "plasma_h")
+            .temp(3000)
+            .hazard(0, 4, 0, EnumSymbol.RADIATION)
+            .trait(Fluids.PLASMA)
+            .noContainer()
+            .noID();
+
+    /**
+     * 氢-硼等离子体：p-B11 路线的燃料，加热器把液氢和液态硼一起电离出来。
+     *
+     * <p>温度取 4500（比氢等离子体高，p-B11 要更高的约束温度），颜色取青绿 0x8CF0A8；
+     * 和氢等离子体一样给 PLASMA 性状、辐射危险、无铁罐无识别码。这条路线几乎不出中子，
+     * 所以配方中子通量只有 1 /t，代价是 35M 约束力量和 600 tick 启动。</p>
+     */
+    public static final FluidDef PLASMA_HB = def("PLASMA_HB", 2070, 0x8CF0A8, "plasma_hb")
+            .temp(4500)
+            .hazard(0, 4, 0, EnumSymbol.RADIATION)
+            .trait(Fluids.PLASMA)
+            .noContainer()
+            .noID();
+
+    /**
+     * 反物质等离子体：反物质高能聚变的等离子体形态，颜色呈深邃虚空紫/深靛蓝（0x651C9C）。
+     *
+     * <p>极端高温（9000℃），带有反物质与强辐射危险特性，无铁罐无识别码。</p>
+     */
+    public static final FluidDef PLASMA_AMAT = def("PLASMA_AMAT", 2071, 0x651C9C, "plasma_amat")
+            .temp(9000)
+            .hazard(5, 5, 5, EnumSymbol.ANTIMATTER)
+            .trait(Fluids.PLASMA)
+            .trait(Fluids.ANTI)
+            .noContainer()
+            .noID();
+
+    /**
+     * 约束态反物质等离子体：离子凝胶+反物质约束生成的等离子体形态，品红紫（0xB432C8）。
+     * 照 PLASMA_AMAT 模式：极端高温、反物质危险、无铁罐无识别码。
+     */
+    public static final FluidDef PLASMA_POSITRON_AMAT = def("PLASMA_POSITRON_AMAT", 2076, 0xB432C8, "plasma_positron_amat")
+            .temp(9000)
+            .hazard(5, 5, 5, EnumSymbol.ANTIMATTER)
+            .trait(Fluids.PLASMA)
+            .trait(Fluids.ANTI)
+            .noContainer()
+            .noID();
+
+    /**
+     * 反Sa326等离子体：反Sa326聚变的高能电浆形态，比原版反Sa326（0xB50000）更深沉的暗猩红（0x750008）。
+     * 极端高温（12000℃）、反物质危险、无铁罐无识别码。
+     */
+    public static final FluidDef PLASMA_ASCHRAB = def("PLASMA_ASCHRAB", 2077, 0x750008, "plasma_aschrab")
+            .temp(12000)
+            .hazard(5, 5, 5, EnumSymbol.ANTIMATTER)
+            .trait(Fluids.PLASMA)
+            .trait(Fluids.ANTI)
+            .noContainer()
+            .noID();
+
+    /**
+     * 液态硼：硼锭在液化机里熔出来的高温熔体，硼中子吸收剂 / 硼玻璃路线的液体形态。
+     *
+     * <p><b>属性依据</b>：硼的熔点是 2076℃，这里取 <b>2100℃</b>（略高于熔点，常温即凝，
+     * 和铁系熔体一样<b>不给铁罐</b>）；熔融硼黏度大，加 {@code VISCOUS}；2100℃ 下会侵蚀
+     * 多数金属容器，腐蚀给 40（HBM 里 20~60 才是“真腐蚀”的量级）；硼本身低毒、不可燃，
+     * 只在接触水时危险，所以毒/可燃填 0、反应 1，危险符号用 {@code NOWATER}。</p>
+     *
+     * <p>颜色 0xB96A22：熔融硼的暗琥珀/青铜色，和铁系熔体（0xA8B2BE 冷银灰）、
+     * 铂系熔体（0xD9D2E4 淡银紫）区分开。流体 GUI 贴图由 {@code ferro_melt} 重染而来，
+     * 储罐贴图由 {@code tank_TEMPLATE} 重染、铭牌文字简写为 {@code B}。</p>
+     */
+    public static final FluidDef LIQUID_BORON = def("LIQUID_BORON", 2068, 0xB96A22, "liquid_boron")
+            .liquid()
+            .viscous()
+            .temp(2100)
+            .hazard(0, 0, 1, EnumSymbol.NOWATER)
+            .corrosive(40)
+            .tankTexture("tank_LIQUID_BORON");
+
+    /**
+     * 高温液态硼：液态硼在 PWR / ICF 里被加热后的形态，冷却回路与钠完全同构。
+     *
+     * <p>热交换器里 1 mB 高温硼冷却回 1 mB 液态硼，放出 <b>800 TU</b>（钠是 400 TU/mB，
+     * 硼的体积热容约是钠的两倍）。加热端效率见 {@link #linkFluids()}：
+     * PWR 0.25（硼是强中子吸收剂，吃掉 75% 中子通量）、ICF 2.5。</p>
+     */
+    public static final FluidDef LIQUID_BORON_HOT = def("LIQUID_BORON_HOT", 2069, 0xD98A3A, "liquid_boron_hot")
+            .liquid()
+            .viscous()
+            .temp(2600)
+            .hazard(0, 0, 1, EnumSymbol.NOWATER)
+            .corrosive(40)
+            .tankTexture("tank_LIQUID_BORON_HOT");
+
+    /**
+     * 氢氟酸（HF）：无色剧毒强腐蚀性无机酸，能溶蚀玻璃及多数金属，可穿透皮肤造成深层组织损伤。
+     *
+     * <p>真实物性：沸点 19.5℃（工业流程中按液态酸处理，temp=20），NFPA 4-0-1（极毒/不可燃/遇水或金属反应），
+     * 危险符号 {@code ACID}，腐蚀度 70（高于硫酸 50 / 硝酸 60），强毒（{@code FT_Poison} + 毒气污染）。</p>
+     */
+    public static final FluidDef HYDROFLUORIC_ACID = def("HYDROFLUORIC_ACID", 2072, 0x4ECECC, "hydrofluoric_acid")
+            .liquid()
+            .temp(20)
+            .hazard(4, 0, 1, EnumSymbol.ACID)
+            .corrosive(70)
+            .trait(new FT_Poison(true, 4))
+            .polluting(new FT_Polluting().release(PollutionType.POISON, 0.0008F))
+            .canister(0x4ECECC)
+            .tankTexture("tank_HYDROFLUORIC_ACID");
+
+    /**
+     * 氟苯（C6H5F）：无色透明芳香族卤代烃溶剂，沸点 85℃、闪点 -15℃。
+     *
+     * <p>真实物性：NFPA 2-3-0（中等毒/高度易燃/稳定），可燃芳烃溶剂（可作燃料，芳环不完全燃烧冒黑烟）。</p>
+     */
+    public static final FluidDef FLUOROBENZENE = def("FLUOROBENZENE", 2073, 0x8CA2E6, "fluorobenzene")
+            .liquid()
+            .temp(20)
+            .hazard(2, 3, 0, EnumSymbol.NONE)
+            .fuel(650_000L, FuelGrade.MEDIUM, 4.0D)
+            .trait(SOOT_AROMATIC)
+            .canister(0x8CA2E6)
+            .tankTexture("tank_FLUOROBENZENE");
+
+    /**
+     * 奇异夸克：由奇异夸克胶囊（particle_strange）入罐解封的夸克级流体，品红紫色。
+     *
+     * <p><b>属性</b>：amat() 复用反物质排他语义——灌进非磁约束容器即炸，只有
+     * 磁约束反物质容器与重型磁约束储罐（Orbus 豁免）能存；noContainer() 禁一切通用
+     * 罐装/桶/32k 包装；unsiphonable() 禁虹吸。高毒、高辐射、弱腐蚀，不燃不烧。</p>
+     *
+     * <p>粒子→流体容器在 {@link #addStrangeContainer()} 单独注册（1000mB/胶囊）。</p>
+     */
+    public static final FluidDef STRANGE_QUARK = def("STRANGE_QUARK", 2074, 0xC832C8, "strange_quark")
+            .liquid()
+            .temp(20)
+            .hazard(4, 0, 3, EnumSymbol.ANTIMATTER)
+            .corrosive(20)
+            .ventRadiation(0.5F)
+            .amat()
+            .noContainer()
+            .unsiphonable();
+
+    /**
+     * 正电子：正电子胶囊入罐解封的反物质流体，蓝色。与奇异夸克同模式：
+     * amat() 只准两台磁约束储罐存放，noContainer() 禁通用罐装，unsiphonable() 禁虹吸。
+     */
+    public static final FluidDef POSITRON = def("POSITRON", 2075, 0x3296FF, "positron")
+            .liquid()
+            .temp(20)
+            .hazard(3, 0, 3, EnumSymbol.ANTIMATTER)
+            .ventRadiation(0.3F)
+            .amat()
+            .noContainer()
+            .unsiphonable();
+
+    /**
+     * 超临界蒸汽：仿星器超高温高焓闭环冷却工质，电青白色（0x78E8FF）。
+     *
+     * <p><b>属性</b>：2200℃ 极高温、气态、不可虹吸、禁止常规随身容器灌装；未添加
+     * {@code FT_Coolable(TURBINE)}，原版汽轮机无法处理。</p>
+     */
+    public static final FluidDef SUPERCRITICAL_STEAM = def("SUPERCRITICAL_STEAM", 2078, 0x78E8FF, "supercritical_steam")
+            .gaseous()
+            .temp(2200)
+            .hazard(3, 0, 4, EnumSymbol.ASPHYXIANT)
+            .trait(new FT_MagneticTank())
+            .unsiphonable()
+            .noContainer()
+            .tankTexture("tank_SUPERCRITICAL_STEAM");
+
+    /**
      * 最简示例（复制这一行改参数即可）：
      * 一种可燃烧的燃料，每桶 120,000 热量，燃烧值 300,000，MEDIUM 级。
      */
@@ -942,7 +1109,28 @@ public final class ModFluids {
         }
     }
 
+    private static boolean customTraitsRegistered = false;
+
+    private static void ensureCustomTraitsRegistered() {
+        if (customTraitsRegistered) return;
+        customTraitsRegistered = true;
+
+        if (!FluidTrait.traitList.contains(FT_MagneticTank.class)) {
+            FluidTrait.traitList.add(FT_MagneticTank.class);
+        }
+        if (!FluidTrait.traitNameMap.containsValue(FT_MagneticTank.class)) {
+            FluidTrait.traitNameMap.put(FT_MagneticTank.TRAIT_NAME, FT_MagneticTank.class);
+        }
+        if (!FluidTrait.traitList.contains(FT_FluidLore.class)) {
+            FluidTrait.traitList.add(FT_FluidLore.class);
+        }
+        if (!FluidTrait.traitNameMap.containsValue(FT_FluidLore.class)) {
+            FluidTrait.traitNameMap.put(FT_FluidLore.TRAIT_NAME, FT_FluidLore.class);
+        }
+    }
+
     private static void registerAll(boolean duringReload) {
+        ensureCustomTraitsRegistered();
         for (FluidDef def : ALL) def.register();
         // reloadFluids 的收尾动作就是 `for(foreignFluids) metaOrder.add(...)`，
         // 那条路上由它负责入列，我们再插手就会重复。
@@ -952,6 +1140,38 @@ public final class ModFluids {
         linkFluids();
         addConduitRecipes();
         addLeadContainerRecipes();
+        addStrangeContainer();
+        addPositronContainer();
+    }
+
+    /** 正电子粒子容器防重集合 */
+    private static final Set<Integer> POSITRON_CON_DONE = new HashSet<Integer>();
+
+    /** 正电子胶囊 = 1000mB 正电子容器；放入磁约束储罐桶入槽即解封成流体 */
+    private static void addPositronContainer() {
+        FluidType type = POSITRON.type;
+        if (type == null || type == Fluids.NONE) return;
+        int id = type.getID();
+        if (id <= 0 || !POSITRON_CON_DONE.add(id)) return;
+        com.hbm.inventory.FluidContainerRegistry.registerContainer(
+                new com.hbm.inventory.FluidContainer(
+                        new ItemStack(com.makentmgreatagain.init.ModItems.particle_positron),
+                        new ItemStack(com.hbm.items.ModItems.particle_empty), type, 1000));
+    }
+
+    /** 奇异夸克粒子容器防重集合（registerContainer 不防重，重载时避免重复） */
+    private static final Set<Integer> STRANGE_CON_DONE = new HashSet<Integer>();
+
+    /** 奇异夸克胶囊 = 1000mB 奇异夸克容器；放入磁约束储罐桶入槽即解封成流体 */
+    private static void addStrangeContainer() {
+        FluidType type = STRANGE_QUARK.type;
+        if (type == null || type == Fluids.NONE) return;
+        int id = type.getID();
+        if (id <= 0 || !STRANGE_CON_DONE.add(id)) return;
+        com.hbm.inventory.FluidContainerRegistry.registerContainer(
+                new com.hbm.inventory.FluidContainer(
+                        new ItemStack(com.hbm.items.ModItems.particle_strange),
+                        new ItemStack(com.hbm.items.ModItems.particle_empty), type, 1000));
     }
 
     /** 已经补过危险品罐容器的流体 id，避免重载时重复注册。 */
@@ -1037,6 +1257,17 @@ public final class ModFluids {
         // 热盐水 --热交换(放热 300 TU/1mB)--> 盐水，1:1 等量回冷。
         // 热盐水与盐水同物质冷热回路按 1:1 转换；热量参数与上面的加热步骤一致。
         HOT_SALT_WATER.type.addTraits(new FT_Coolable(SALT_WATER.type, 1, 1, 300)
+                .setEff(FT_Coolable.CoolingType.HEATEXCHANGER, 1.0D));
+
+        // 液态硼 --800 TU/1mB--> 高温液态硼。
+        // 硼是强中子吸收剂：PWR 只给 0.25 效率（相当于中子通量被吃掉 75%），ICF 2.5。
+        LIQUID_BORON.type.addTraits(new FT_Heatable()
+                .setEff(FT_Heatable.HeatingType.PWR, 0.25D)
+                .setEff(FT_Heatable.HeatingType.ICF, 2.5D)
+                .addStep(800, 1, LIQUID_BORON_HOT.type, 1));
+
+        // 高温液态硼 --热交换(放热 800 TU/1mB)--> 液态硼，1:1 等量回冷，效率 100%。
+        LIQUID_BORON_HOT.type.addTraits(new FT_Coolable(LIQUID_BORON.type, 1, 1, 800)
                 .setEff(FT_Coolable.CoolingType.HEATEXCHANGER, 1.0D));
     }
 	

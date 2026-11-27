@@ -81,6 +81,16 @@ public class LargeCentrifugeRecipes {
 
 		FluidType hcl = HBMCompat.hcl();
 
+		// 经验汁 + 完全体稳定X晶体簇 → 稳定X晶体×2 + 不稳态X晶体 + 亚稳态X晶体
+		RECIPES.add(new CentrifugeRecipe()
+			.items(new ComparableStack(com.makentmgreatagain.init.ModBlocks.xen_crystal_cluster, 1))
+			.fluid(new FluidStack(Fluids.XPJUICE, 4_000))
+			.outItems(new ItemStack(ModItems.crystal_xen, 2),
+					  new ItemStack(ModItems.crystal_xen_unstable, 1),
+					  new ItemStack(ModItems.crystal_xen_metastable, 1))
+			.power(10_000L)
+			.duration(180));
+
 		// 灰尘、铁粉、铀粉、水
 		RECIPES.add(new CentrifugeRecipe()
 			.fluid(new FluidStack(ModFluids.TAILINGS_SLURRY.type, 2_000))
@@ -147,14 +157,13 @@ public class LargeCentrifugeRecipes {
 			.power(10_000L)
 			.duration(180));
 
-		// 钍粉、铀粉、稀土母液、灰尘
+		// 钍粉、铀粉、灰尘（稀土母液已删除，不再产出）
 		RECIPES.add(new CentrifugeRecipe()
 			.items(new ComparableStack(ModItems.thorium_concentrate, 2))
 			.fluid(new FluidStack(Fluids.NITRIC_ACID, 500))
 			.outItems(new ItemStack(com.hbm.items.ModItems.powder_thorium, 1),
 					  new ItemStack(com.hbm.items.ModItems.powder_uranium, 1),
 					  new ItemStack(com.hbm.items.ModItems.dust, 1))
-			.outFluids(new FluidStack(ModFluids.RE_MOTHER_LIQUOR.type, 400))
 			.power(10_000L)
 			.duration(180));
 
@@ -212,15 +221,7 @@ public class LargeCentrifugeRecipes {
 			.power(10_000L)
 			.duration(180));
 
-		// 混合稀土氢氧化物、盐水、灰尘
-		RECIPES.add(new CentrifugeRecipe()
-			.items(new ComparableStack(com.hbm.items.ModItems.powder_sodium, 3))
-			.fluid(new FluidStack(ModFluids.RE_MOTHER_LIQUOR.type, 1_000))
-			.outItems(new ItemStack(ModItems.mixed_re_hydroxide, 2),
-					  new ItemStack(com.hbm.items.ModItems.dust, 1))
-			.outFluids(new FluidStack(ModFluids.SALT_WATER.type, 600))
-			.power(10_000L)
-			.duration(180));
+		// 混合稀土氢氧化物改由 PUREX 直接沉淀（d7）供给，离心机母液配方随流体删除
 
 		// 白砷、硫酸钠、灰尘
 		RECIPES.add(new CentrifugeRecipe()

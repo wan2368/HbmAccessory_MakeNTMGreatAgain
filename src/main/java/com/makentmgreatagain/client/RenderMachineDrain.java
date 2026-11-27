@@ -37,7 +37,10 @@ public class RenderMachineDrain extends TileEntitySpecialRenderer implements IIt
 	}
 
 	private ResourceLocation textureFor(TileEntity te) {
-		return te.getBlockType() == ModBlocks.machine_drain_tungsten ? AddonModels.drain_tungsten_tex : AddonModels.drain_tex;
+		if(te.getBlockType() == ModBlocks.machine_drain_adjustable_tungsten) return AddonModels.drain_adjustable_tungsten_tex;
+		if(te.getBlockType() == ModBlocks.machine_drain_adjustable_steel) return AddonModels.drain_adjustable_tex;
+		if(te.getBlockType() == ModBlocks.machine_drain_tungsten) return AddonModels.drain_tungsten_tex;
+		return AddonModels.drain_tex;
 	}
 
 	@Override

@@ -130,18 +130,76 @@ public class TileEntityFluidCooler extends TileEntityMachineBase implements IFlu
 	 *
 	 * <p>识别码指向的流体不在配对表里时直接忽略：罐型保持原样，也不弹提示。
 	 * 玩家插错识别码只是「没反应」，不会把已经设好的罐子清空。</p>
+	 *
+	 * <p><b>两侧互斥</b>：设成与另一侧相同的流体时同样静默忽略。六个端口共用同一批坐标，
+	 * 每个接收罐靠自己的类型挂到对应流体网络，两侧类型一旦相同，两个罐会并进同一张网，
+	 * 进料无法区分该进哪个罐。所以这里不做任何提示，只是「改不动」。</p>
 	 */
 	protected void applySlotIdentifiers() {
 
 		FluidType coolant = readIdentifier(slots[0]);
 		if(coolant != null && isCoolant(coolant) && coolant != tanks[0].getTankType()) {
-			tanks[0].setTankType(coolant);
+			if(canSetCoolant(coolant)) tanks[0].setTankType(coolant);
 		}
 
 		FluidType target = readIdentifier(slots[1]);
 		if(target != null && isCoolable(target) && target != tanks[1].getTankType()) {
-			tanks[1].setTankType(target);
+			if(canSetCoolable(target)) tanks[1].setTankType(target);
 		}
+	}
+
+	/**
+	 * 能否把 {@code type} 设为冷却剂：必须在配对表里，且不能与被冷却流体构成转换对。
+	 *
+	 * <p>不满足时调用方应静默忽略，不给任何提示。</p>
+	 */
+	public boolean canSetCoolant(FluidType type) {
+
+		if(type == null || !isCoolant(type)) return false;
+
+		return !sidesInverse(type, tanks[1].getTankType());
+	}
+
+	/** 能否把 {@code type} 设为被冷却流体：必须在配对表里，且不能与冷却剂构成转换对。 */
+	public boolean canSetCoolable(FluidType type) {
+
+		if(type == null || !isCoolable(type)) return false;
+
+		return !sidesInverse(tanks[0].getTankType(), type);
+	}
+
+	/** 两侧是否构成自循环：为 true 时 {@link #exchange()} 直接返回。 */
+	public boolean sidesConflict() {
+
+		return sidesInverse(tanks[0].getTankType(), tanks[1].getTankType());
+	}
+
+	/**
+	 * 两侧是否「互为转换」，这类组合必须禁止。
+	 *
+	 * <h3>为什么只拦同型不够</h3>
+	 * <p>把两侧设成同一种流体只是最浅的一种撞车。真正会出问题、而且玩家很容易凑出来的是
+	 * <b>一对互为产物的流体</b>：例如冷却剂吃「冷却液」，升温成「热冷却液」；
+	 * 被冷却侧吃「热冷却液」，降温成「冷却液」。单独看每一步都是合法的，
+	 * 但把两个产物分别接回对方的入口，就闭合成一个自循环——机器一边加热、一边冷却，
+	 * 中间没有外部热源也没有实际产出，纯粹是自己和自己换热。</p>
+	 *
+	 * <p>判定覆盖三个方向：两侧同型、冷却剂的加热产物 == 被冷却侧输入、
+	 * 被冷却侧的冷却产物 == 冷却剂输入。两条方向都查，是因为
+	 * {@link FluidCoolerRecipes} 里有手工补的配对（四氟甲烷 → 冷四氟甲烷），
+	 * 两侧的表并不严格互为镜像。</p>
+	 */
+	public static boolean sidesInverse(FluidType coolant, FluidType coolable) {
+
+		if(coolant == null || coolable == null) return false;
+		if(coolant == Fluids.NONE || coolable == Fluids.NONE) return false;
+		if(coolant == coolable) return true;
+
+		FluidCoolerRecipes.Heating heat = FluidCoolerRecipes.heating(coolant);
+		if(heat != null && heat.output == coolable) return true;
+
+		FluidCoolerRecipes.Cooling cool = FluidCoolerRecipes.cooling(coolable);
+		return cool != null && cool.output == coolant;
 	}
 
 	protected FluidType readIdentifier(ItemStack stack) {
@@ -188,6 +246,9 @@ public class TileEntityFluidCooler extends TileEntityMachineBase implements IFlu
 
 		this.isOn = false;
 		this.lastRate = 0;
+
+		// 两侧同型时两个接收罐并网、进料无法区分，换热也没有意义，直接不启动（无提示）
+		if(this.sidesConflict()) return;
 
 		FluidCoolerRecipes.Heating heat = FluidCoolerRecipes.heating(tanks[0].getTankType());
 		FluidCoolerRecipes.Cooling cool = FluidCoolerRecipes.cooling(tanks[1].getTankType());

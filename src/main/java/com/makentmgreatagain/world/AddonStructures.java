@@ -143,6 +143,19 @@ public final class AddonStructures {
     private static final String SUNSET_SPAWN_NAME = "mnga_sunset_six";
     private static final String SUNSET_PIECE_NAME = "mnga_sunset_six";
 
+    /** 新增三座主世界遗迹的 NBT 路径与注册名 */
+    public static final String PYRAMID_NBT = "structures/mnga_structure_pyramid_nuclear.nbt";
+    private static final String PYRAMID_SPAWN_NAME = "mnga_pyramid_nuclear";
+    private static final String PYRAMID_PIECE_NAME = "mnga_pyramid_nuclear";
+
+    public static final String UNDERGROUND_NBT = "structures/mnga_structure_underground_nucle.nbt";
+    private static final String UNDERGROUND_SPAWN_NAME = "mnga_underground_nucle";
+    private static final String UNDERGROUND_PIECE_NAME = "mnga_underground_nucle";
+
+    public static final String POWER_PLANT_NBT = "structures/mnga_structure_large_power_plant.nbt";
+    private static final String POWER_PLANT_SPAWN_NAME = "mnga_large_power_plant";
+    private static final String POWER_PLANT_PIECE_NAME = "mnga_large_power_plant";
+
     /**
      * 【遗迹生成概率】命中格子后真正生成的概率（%）。<b>只改这一个数字就能调稀/调密。</b>
      *
@@ -177,7 +190,9 @@ public final class AddonStructures {
             Blocks.trapped_chest,
             ModBlocks.crate_iron,
             ModBlocks.crate_steel,   // 地心实验室里的 10 个箱子全是这个（BlockStorageCrate，36 格）
-            ModBlocks.crate_desh
+            ModBlocks.crate_desh,
+            ModBlocks.safe,          // 大型发电站保险箱
+            ModBlocks.filing_cabinet // 地下核研究所档案柜
     };
 
     /**
@@ -308,6 +323,11 @@ public final class AddonStructures {
         registerLaboratory();
         registerAlienHive();
         registerSunsetSix();
+
+        // 新增三座主世界遗迹：核金字塔（平顶山）、地下核研究所（平原地下+柱顶探出）、大型发电站（丘陵）
+        registerPyramidNuclear();
+        registerUndergroundNucle();
+        registerLargePowerPlant();
     }
 
     /** 地心实验室：下界、固定层位，带方块劣化与战利品随机化。 */
@@ -2044,6 +2064,685 @@ public final class AddonStructures {
         float keepChance(int count) {
             float bonus = Math.min(15F, perExtra * Math.max(0, count - 1));
             return Math.min(100F, this.baseFromConfig() + bonus);
+        }
+    }
+
+    /* ==================================================================================
+     *  新增三座主世界遗迹：核金字塔 / 地下核研究所 / 大型发电站
+     * ================================================================================== */
+
+    private static final Map<String, boolean[][][]> EXTRA_INTERIOR_CACHE = new HashMap<String, boolean[][][]>();
+    private static UndergroundNucleProfile undergroundNucleProfile;
+
+    private static final class UndergroundNucleProfile {
+        final int sx, sy, sz;
+        final boolean[][][] occupied;
+        final boolean[][] shaftMask;
+        final int[][] colMaxY;
+        final int shaftMinX, shaftMaxX, shaftMinZ, shaftMaxZ;
+        final int bodyTopY;
+
+        UndergroundNucleProfile(int sx, int sy, int sz, boolean[][][] occupied, boolean[][] shaftMask,
+                                int[][] colMaxY, int shaftMinX, int shaftMaxX, int shaftMinZ, int shaftMaxZ, int bodyTopY) {
+            this.sx = sx;
+            this.sy = sy;
+            this.sz = sz;
+            this.occupied = occupied;
+            this.shaftMask = shaftMask;
+            this.colMaxY = colMaxY;
+            this.shaftMinX = shaftMinX;
+            this.shaftMaxX = shaftMaxX;
+            this.shaftMinZ = shaftMinZ;
+            this.shaftMaxZ = shaftMaxZ;
+            this.bodyTopY = bodyTopY;
+        }
+    }
+
+    private static boolean isWaterBiome(BiomeGenBase biome) {
+        if(biome == null) return true;
+        return BiomeDictionary.isBiomeOfType(biome, Type.OCEAN)
+                || BiomeDictionary.isBiomeOfType(biome, Type.RIVER)
+                || BiomeDictionary.isBiomeOfType(biome, Type.WATER)
+                || BiomeDictionary.isBiomeOfType(biome, Type.BEACH);
+    }
+
+    private static boolean isMesaBiome(BiomeGenBase biome) {
+        return biome != null && BiomeDictionary.isBiomeOfType(biome, Type.MESA);
+    }
+
+    private static boolean isPlainsLandBiome(BiomeGenBase biome) {
+        return biome != null
+                && BiomeDictionary.isBiomeOfType(biome, Type.PLAINS)
+                && !isWaterBiome(biome)
+                && !BiomeDictionary.isBiomeOfType(biome, Type.SWAMP);
+    }
+
+    private static boolean isHillsLandBiome(BiomeGenBase biome) {
+        return biome != null
+                && BiomeDictionary.isBiomeOfType(biome, Type.HILLS)
+                && !isWaterBiome(biome);
+    }
+
+    /** 独立网格 + 概率落点判定（各结构独立 salt，互不冲突）。 */
+    private static boolean isGridSpawnChunk(World world, int chunkX, int chunkZ, int grid, int chancePercent, long salt) {
+        if(GeneralConfig.enableDungeons <= 0) return false;
+        int cellX = Math.floorDiv(chunkX, grid);
+        int cellZ = Math.floorDiv(chunkZ, grid);
+        long seed = world.getSeed() ^ salt
+                ^ (cellX * 341873128712L) ^ (cellZ * 132897987541L);
+        Random r = new Random(seed);
+        int targetX = cellX * grid + 1 + r.nextInt(Math.max(1, grid - 2));
+        int targetZ = cellZ * grid + 1 + r.nextInt(Math.max(1, grid - 2));
+        if(chunkX != targetX || chunkZ != targetZ) return false;
+        return r.nextInt(100) < chancePercent;
+    }
+
+    private static boolean isDrySurface(World world, int x, int z) {
+        int y = world.getTopSolidOrLiquidBlock(x, z);
+        if(y <= 1) return false;
+        Block b = world.getBlock(x, y - 1, z);
+        Block at = world.getBlock(x, y, z);
+        return b != null && !b.getMaterial().isLiquid() && (at == null || !at.getMaterial().isLiquid());
+    }
+
+    private static int getUndergroundNucleProtrusion(World world, int chunkX, int chunkZ) {
+        long seed = world.getSeed() ^ 0x554E444552474E44L
+                ^ (chunkX * 341873128712L) ^ (chunkZ * 132897987541L);
+        return 3 + new Random(seed).nextInt(4);
+    }
+
+    private static int undergroundSurfaceY(World world, int chunkX, int chunkZ) {
+        return world.getTopSolidOrLiquidBlock(chunkX << 4, chunkZ << 4);
+    }
+
+    private static UndergroundNucleProfile getUndergroundNucleProfile() {
+        if(undergroundNucleProfile != null) return undergroundNucleProfile;
+        InputStream in = AddonStructures.class.getResourceAsStream(
+                "/assets/" + MakeNTMGreatAgain.MODID + "/" + UNDERGROUND_NBT);
+        if(in == null) return null;
+        try {
+            NBTTagCompound data = CompressedStreamTools.readCompressed(in);
+            NBTTagList size = data.getTagList("size", NBT.TAG_INT);
+            int sx = ((NBTTagInt) size.tagList.get(0)).func_150287_d();
+            int sy = ((NBTTagInt) size.tagList.get(1)).func_150287_d();
+            int sz = ((NBTTagInt) size.tagList.get(2)).func_150287_d();
+            boolean[][][] occupied = new boolean[sx][sy][sz];
+            NBTTagList blocks = data.getTagList("blocks", NBT.TAG_COMPOUND);
+            for(int i = 0; i < blocks.tagCount(); i++) {
+                NBTTagCompound entry = blocks.getCompoundTagAt(i);
+                NBTTagList pos = entry.getTagList("pos", NBT.TAG_INT);
+                int x = ((NBTTagInt) pos.tagList.get(0)).func_150287_d();
+                int y = ((NBTTagInt) pos.tagList.get(1)).func_150287_d();
+                int z = ((NBTTagInt) pos.tagList.get(2)).func_150287_d();
+                if(x >= 0 && x < sx && y >= 0 && y < sy && z >= 0 && z < sz) {
+                    occupied[x][y][z] = true;
+                }
+            }
+
+            // 1) 从顶层 (y = sy - 1) 识别突出竖井的 XZ 包围区域（支持多格竖井，如 4x3）
+            int sMinX = sx, sMaxX = -1, sMinZ = sz, sMaxZ = -1;
+            for(int x = 0; x < sx; x++) {
+                for(int z = 0; z < sz; z++) {
+                    if(occupied[x][sy - 1][z]) {
+                        if(x < sMinX) sMinX = x;
+                        if(x > sMaxX) sMaxX = x;
+                        if(z < sMinZ) sMinZ = z;
+                        if(z > sMaxZ) sMaxZ = z;
+                    }
+                }
+            }
+            if(sMaxX < sMinX || sMaxZ < sMinZ) return null;
+
+            boolean[][] shaftMask = new boolean[sx][sz];
+            for(int x = sMinX; x <= sMaxX; x++) {
+                for(int z = sMinZ; z <= sMaxZ; z++) {
+                    shaftMask[x][z] = true;
+                }
+            }
+
+            // 2) 找到除突出竖井之外、地下主体的最高层 bodyTopY
+            int bodyTopY = 0;
+            for(int y = sy - 1; y >= 0; y--) {
+                boolean hasNonShaft = false;
+                for(int x = 0; x < sx && !hasNonShaft; x++) {
+                    for(int z = 0; z < sz; z++) {
+                        if(occupied[x][y][z] && !shaftMask[x][z]) {
+                            hasNonShaft = true;
+                            break;
+                        }
+                    }
+                }
+                if(hasNonShaft) {
+                    bodyTopY = y;
+                    break;
+                }
+            }
+
+            // 3) 预计算每个非竖井列在地下主体范围内的最高方块高度
+            int[][] colMaxY = new int[sx][sz];
+            for(int x = 0; x < sx; x++) {
+                for(int z = 0; z < sz; z++) {
+                    colMaxY[x][z] = -1;
+                    for(int y = bodyTopY; y >= 0; y--) {
+                        if(occupied[x][y][z]) {
+                            colMaxY[x][z] = y;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            undergroundNucleProfile = new UndergroundNucleProfile(
+                    sx, sy, sz, occupied, shaftMask, colMaxY, sMinX, sMaxX, sMinZ, sMaxZ, bodyTopY);
+            return undergroundNucleProfile;
+        } catch(Exception e) {
+            LOG.warn("[structure-underground] 解析模板占用格失败", e);
+            return null;
+        } finally {
+            try { in.close(); } catch(Exception ignored) { }
+        }
+    }
+
+    private static boolean isNaturalTerrainBlock(World world, int x, int y, int z) {
+        if(y < 1 || y > 255) return false;
+        Block block = world.getBlock(x, y, z);
+        return block != null && block != Blocks.air && !block.getMaterial().isLiquid()
+                && block.getMaterial().isSolid();
+    }
+
+    /**
+     * 在真正生成前对整个 38x41 占地做地表掩埋与竖井探出校验：
+     * 1) 突出竖井所在区域必须干燥平缓，且顶部高出当地地表 protrude(3~6) 格；
+     * 2) 除竖井外的全部地下主体上方地表必须干燥实心，且地表高度严格高于地下主体顶面（玩家从地面只能看到探出的竖井）；
+     * 3) 忽略深层天然矿洞，避免地下矿洞误判导致无法生成。
+     */
+    private static int computePinnedMinYIfValid(World world, int originX, int originZ, int anchorChunkX, int anchorChunkZ) {
+        UndergroundNucleProfile p = getUndergroundNucleProfile();
+        if(p == null) return -1;
+
+        // 1) 采样突出竖井投影区的地表高度
+        int shaftMinSurf = Integer.MAX_VALUE;
+        int shaftMaxSurf = Integer.MIN_VALUE;
+        for(int x = p.shaftMinX; x <= p.shaftMaxX; x++) {
+            for(int z = p.shaftMinZ; z <= p.shaftMaxZ; z++) {
+                int wx = originX + x;
+                int wz = originZ + z;
+                if(!isDrySurface(world, wx, wz)) return -1;
+                int surf = world.getTopSolidOrLiquidBlock(wx, wz);
+                if(surf < shaftMinSurf) shaftMinSurf = surf;
+                if(surf > shaftMaxSurf) shaftMaxSurf = surf;
+            }
+        }
+        if(shaftMaxSurf - shaftMinSurf > 2) return -1;
+
+        int protrude = getUndergroundNucleProtrusion(world, anchorChunkX, anchorChunkZ);
+        int topWorldY = shaftMaxSurf + protrude;
+        int minY = topWorldY - (p.sy - 1);
+        if(minY < 5) return -1;
+
+        // 确认竖井探出地表部分（shaftMaxSurf + 1 .. topWorldY）目前均为空气
+        for(int x = p.shaftMinX; x <= p.shaftMaxX; x++) {
+            for(int z = p.shaftMinZ; z <= p.shaftMaxZ; z++) {
+                int wx = originX + x;
+                int wz = originZ + z;
+                for(int wy = shaftMaxSurf + 1; wy <= topWorldY; wy++) {
+                    if(world.getBlock(wx, wy, wz) != Blocks.air) return -1;
+                }
+            }
+        }
+
+        // 2) 检查除竖井外所有列的地表高度与表层实心掩盖（只保证地面上看不到任何主体，不因深层矿洞拒生成）
+        for(int x = 0; x < p.sx; x++) {
+            for(int z = 0; z < p.sz; z++) {
+                if(p.shaftMask[x][z]) continue;
+                int maxLocalY = p.colMaxY[x][z];
+                if(maxLocalY < 0) continue;
+                int wx = originX + x;
+                int wz = originZ + z;
+                if(!isDrySurface(world, wx, wz)) return -1;
+                int surf = world.getTopSolidOrLiquidBlock(wx, wz);
+                int roofWorldY = minY + maxLocalY;
+                if(surf < roofWorldY + 2) return -1;
+                if(!isNaturalTerrainBlock(world, wx, surf - 1, wz)) return -1;
+            }
+        }
+
+        return minY;
+    }
+
+    private static void registerPyramidNuclear() {
+        if(!assetExists(PYRAMID_NBT)) {
+            LOG.warn("[structure-pyramid] 找不到 " + PYRAMID_NBT + "，跳过注册");
+            return;
+        }
+        NBTStructure.register();
+        MapGenStructureIO.registerStructure(PyramidNuclearStart.class, "MNGA_PyramidNuclearStart");
+
+        NBTStructure structure = new NBTStructure(new ResourceLocation(MakeNTMGreatAgain.MODID, PYRAMID_NBT));
+        SpawnCondition spawn = new SpawnCondition(PYRAMID_SPAWN_NAME);
+        spawn.canSpawn = AddonStructures::isMesaBiome;
+        spawn.structure = new JigsawPiece(PYRAMID_PIECE_NAME, structure, 0);
+        spawn.minHeight = 40;
+        spawn.maxHeight = 140;
+        spawn.checkCoordinates = coord -> {
+            if(!isGridSpawnChunk(coord.world, coord.coords.chunkXPos, coord.coords.chunkZPos, 14, 40, 0x505952414D4944L)) {
+                return false;
+            }
+            int cx = (coord.coords.chunkXPos << 4) + 8;
+            int cz = (coord.coords.chunkZPos << 4) + 8;
+            return isMesaBiome(coord.world.getBiomeGenForCoords(cx, cz)) && isDrySurface(coord.world, cx, cz);
+        };
+        spawn.start = data -> new PyramidNuclearStart(data.getW(), data.getX(), spawn, data.getY(), data.getZ());
+        NBTStructure.registerStructure(0, spawn);
+        LOG.info("[MNGA-Structures] 核金字塔已注册 (Mesa, 19x9x19)");
+    }
+
+    private static void registerUndergroundNucle() {
+        if(!assetExists(UNDERGROUND_NBT)) {
+            LOG.warn("[structure-underground] 找不到 " + UNDERGROUND_NBT + "，跳过注册");
+            return;
+        }
+        NBTStructure.register();
+        MapGenStructureIO.registerStructure(UndergroundNucleStart.class, "MNGA_UndergroundNucleStart");
+
+        NBTStructure structure = new NBTStructure(new ResourceLocation(MakeNTMGreatAgain.MODID, UNDERGROUND_NBT));
+        SpawnCondition spawn = new SpawnCondition(UNDERGROUND_SPAWN_NAME);
+        spawn.canSpawn = AddonStructures::isPlainsLandBiome;
+        spawn.structure = new JigsawPiece(UNDERGROUND_PIECE_NAME, structure, 0);
+        spawn.minHeight = 5;
+        spawn.maxHeight = 100;
+        spawn.checkCoordinates = coord -> {
+            int chunkX = coord.coords.chunkXPos;
+            int chunkZ = coord.coords.chunkZPos;
+            if(!isGridSpawnChunk(coord.world, chunkX, chunkZ, 20, 35, 0x554E444552474E44L)) return false;
+            int ox = chunkX << 4;
+            int oz = chunkZ << 4;
+            // 规划阶段只做零区块生成开销的群系覆域粗筛，完整 38×41 掩埋校验在 UndergroundNucleStart 首次落块前完成
+            int[][] sampleOffsets = {
+                    { 19, 20 }, { 2, 2 }, { 35, 2 }, { 2, 38 }, { 35, 38 }, { 31, 20 }
+            };
+            for(int[] off : sampleOffsets) {
+                BiomeGenBase b = coord.world.getWorldChunkManager().getBiomeGenAt(ox + off[0], oz + off[1]);
+                if(!isPlainsLandBiome(b)) return false;
+            }
+            return isDrySurface(coord.world, ox + 8, oz + 8);
+        };
+        spawn.start = data -> new UndergroundNucleStart(data.getW(), data.getX(), spawn, data.getY(), data.getZ());
+        NBTStructure.registerStructure(0, spawn);
+        LOG.info("[MNGA-Structures] 地下核研究所已注册 (Plains, 38x40x41, 柱顶探出 3~6 格)");
+    }
+
+    private static void registerLargePowerPlant() {
+        if(!assetExists(POWER_PLANT_NBT)) {
+            LOG.warn("[structure-powerplant] 找不到 " + POWER_PLANT_NBT + "，跳过注册");
+            return;
+        }
+        NBTStructure.register();
+        MapGenStructureIO.registerStructure(LargePowerPlantStart.class, "MNGA_LargePowerPlantStart");
+
+        NBTStructure structure = new NBTStructure(new ResourceLocation(MakeNTMGreatAgain.MODID, POWER_PLANT_NBT));
+        SpawnCondition spawn = new SpawnCondition(POWER_PLANT_SPAWN_NAME);
+        spawn.canSpawn = AddonStructures::isHillsLandBiome;
+        spawn.structure = new JigsawPiece(POWER_PLANT_PIECE_NAME, structure, 0);
+        spawn.minHeight = 40;
+        spawn.maxHeight = 140;
+        spawn.checkCoordinates = coord -> {
+            if(!isGridSpawnChunk(coord.world, coord.coords.chunkXPos, coord.coords.chunkZPos, 20, 70, 0x504F574552504C54L)) {
+                return false;
+            }
+            int cx = (coord.coords.chunkXPos << 4) + 8;
+            int cz = (coord.coords.chunkZPos << 4) + 8;
+            return isHillsLandBiome(coord.world.getBiomeGenForCoords(cx, cz)) && isDrySurface(coord.world, cx, cz);
+        };
+        spawn.start = data -> new LargePowerPlantStart(data.getW(), data.getX(), spawn, data.getY(), data.getZ());
+        NBTStructure.registerStructure(0, spawn);
+        LOG.info("[MNGA-Structures] 大型发电站已注册 (Hills, 49x27x32)");
+    }
+
+    /**
+     * 通用 3D 外表面 BFS 泛洪内腔识别：
+     * 从包围盒 6 个外表面的未记录格子向内泛洪标记「外部」，
+     * 凡外部无法到达的未记录格子即为「建筑内部」，生成时强制清空为空气。
+     */
+    private static boolean[][][] getCachedInterior(String nbtPath) {
+        if(EXTRA_INTERIOR_CACHE.containsKey(nbtPath)) {
+            return EXTRA_INTERIOR_CACHE.get(nbtPath);
+        }
+        boolean[][][] result = null;
+        InputStream in = AddonStructures.class.getResourceAsStream(
+                "/assets/" + MakeNTMGreatAgain.MODID + "/" + nbtPath);
+        if(in != null) {
+            try {
+                NBTTagCompound data = CompressedStreamTools.readCompressed(in);
+                NBTTagList sizeList = data.getTagList("size", NBT.TAG_INT);
+                int sx = ((NBTTagInt) sizeList.tagList.get(0)).func_150287_d();
+                int sy = ((NBTTagInt) sizeList.tagList.get(1)).func_150287_d();
+                int sz = ((NBTTagInt) sizeList.tagList.get(2)).func_150287_d();
+
+                boolean[][][] occupied = new boolean[sx][sy][sz];
+                NBTTagList blocks = data.getTagList("blocks", NBT.TAG_COMPOUND);
+                for(int i = 0; i < blocks.tagCount(); i++) {
+                    NBTTagCompound b = blocks.getCompoundTagAt(i);
+                    NBTTagList pos = b.getTagList("pos", NBT.TAG_INT);
+                    int x = ((NBTTagInt) pos.tagList.get(0)).func_150287_d();
+                    int y = ((NBTTagInt) pos.tagList.get(1)).func_150287_d();
+                    int z = ((NBTTagInt) pos.tagList.get(2)).func_150287_d();
+                    if(x >= 0 && x < sx && y >= 0 && y < sy && z >= 0 && z < sz) {
+                        occupied[x][y][z] = true;
+                    }
+                }
+
+                // 1) 逐层 2D 水平外缘 BFS（防止顶部开口竖井/天窗导致整座建筑内腔漏水）
+                boolean[][][] outside2D = new boolean[sx][sy][sz];
+                ArrayDeque<Integer> q = new ArrayDeque<Integer>();
+                int[] dx = {1, -1, 0, 0};
+                int[] dz = {0, 0, 1, -1};
+                for(int y = 0; y < sy; y++) {
+                    q.clear();
+                    for(int x = 0; x < sx; x++) {
+                        for(int z = 0; z < sz; z++) {
+                            if(x == 0 || x == sx - 1 || z == 0 || z == sz - 1) {
+                                if(!occupied[x][y][z] && !outside2D[x][y][z]) {
+                                    outside2D[x][y][z] = true;
+                                    q.add((x << 8) | z);
+                                }
+                            }
+                        }
+                    }
+                    while(!q.isEmpty()) {
+                        int v = q.poll();
+                        int x = (v >> 8) & 0xFF;
+                        int z = v & 0xFF;
+                        for(int d = 0; d < 4; d++) {
+                            int nx = x + dx[d], nz = z + dz[d];
+                            if(nx < 0 || nx >= sx || nz < 0 || nz >= sz) continue;
+                            if(occupied[nx][y][nz] || outside2D[nx][y][nz]) continue;
+                            outside2D[nx][y][nz] = true;
+                            q.add((nx << 8) | nz);
+                        }
+                    }
+                }
+
+                // 2) 垂直方向地板~屋顶夹层判定（防止侧面敞开门洞/窗洞导致室内未被清空）
+                int[][] minOccY = new int[sx][sz];
+                int[][] maxOccY = new int[sx][sz];
+                for(int x = 0; x < sx; x++) {
+                    for(int z = 0; z < sz; z++) {
+                        int lo = -1, hi = -1;
+                        for(int y = 0; y < sy; y++) {
+                            if(occupied[x][y][z]) {
+                                if(lo < 0) lo = y;
+                                hi = y;
+                            }
+                        }
+                        minOccY[x][z] = lo;
+                        maxOccY[x][z] = hi;
+                    }
+                }
+
+                result = new boolean[sx][sy][sz];
+                for(int x = 0; x < sx; x++) {
+                    for(int y = 0; y < sy; y++) {
+                        for(int z = 0; z < sz; z++) {
+                            if(occupied[x][y][z]) continue;
+                            boolean enclosed2D = !outside2D[x][y][z];
+                            boolean underRoof = minOccY[x][z] >= 0 && y > minOccY[x][z] && y < maxOccY[x][z];
+                            result[x][y][z] = enclosed2D || underRoof;
+                        }
+                    }
+                }
+            } catch(Exception e) {
+                LOG.warn("[MNGA-Structures] 解析内腔失败: " + nbtPath, e);
+            } finally {
+                try { in.close(); } catch(Exception ignored) { }
+            }
+        }
+        EXTRA_INTERIOR_CACHE.put(nbtPath, result);
+        return result;
+    }
+
+    /** 通用后处理：内腔挖空 + 可选专属方块变体 + 箱子战利品随机化（成书原样保留）。 */
+    private static void postProcessOverworldStructure(
+            NBTStructure.Start start, World world, Random rand, StructureBoundingBox box,
+            String nbtPath, boolean applyPowerPlantVariants, boolean randomizeLoot) {
+        List<?> comps = start.getComponents();
+        if(comps.isEmpty() || !(comps.get(0) instanceof StructureComponent)) return;
+        StructureComponent component = (StructureComponent) comps.get(0);
+        StructureBoundingBox bb = component.getBoundingBox();
+        if(bb == null) return;
+
+        NBTStructure structure = HiveStart.resolveHiveStructure(component);
+        if(structure == null) return;
+        int mode = HiveStart.resolveHiveCoordMode(component);
+
+        // 1) 内部空腔清为空气，建筑外部保留自然地形
+        boolean[][][] interior = getCachedInterior(nbtPath);
+        if(interior != null) {
+            for(int bx = 0; bx < interior.length; bx++) {
+                for(int by = 0; by < interior[bx].length; by++) {
+                    for(int bz = 0; bz < interior[bx][by].length; bz++) {
+                        if(!interior[bx][by][bz]) continue;
+                        int rx = structure.rotateX(bx, bz, mode) + bb.minX;
+                        int rz = structure.rotateZ(bx, bz, mode) + bb.minZ;
+                        int ry = by + bb.minY;
+                        if(rx < box.minX || rx > box.maxX || rz < box.minZ || rz > box.maxZ) continue;
+                        if(ry < 1 || ry > 255) continue;
+                        world.setBlock(rx, ry, rz, Blocks.air, 0, 2);
+                    }
+                }
+            }
+        }
+
+        int minX = Math.max(box.minX, bb.minX);
+        int maxX = Math.min(box.maxX, bb.maxX);
+        int minZ = Math.max(box.minZ, bb.minZ);
+        int maxZ = Math.min(box.maxZ, bb.maxZ);
+        if(minX > maxX || minZ > maxZ) return;
+
+        // 2) 大型发电站专属方块变体
+        if(applyPowerPlantVariants) {
+            for(int x = minX; x <= maxX; x++) {
+                for(int z = minZ; z <= maxZ; z++) {
+                    for(int y = Math.max(1, bb.minY); y <= Math.min(255, bb.maxY); y++) {
+                        Block b = world.getBlock(x, y, z);
+                        if(b == ModBlocks.brick_concrete) {
+                            float r = rand.nextFloat() * 100.0F;
+                            if(r < 10.0F) {
+                                world.setBlock(x, y, z, ModBlocks.brick_concrete_cracked, 0, 2);
+                            } else if(r < 15.0F) {
+                                world.setBlock(x, y, z, ModBlocks.brick_concrete_broken, 0, 2);
+                            } else if(r < 16.0F) {
+                                world.setBlock(x, y, z, Blocks.air, 0, 2);
+                            }
+                        } else if(b == ModBlocks.brick_light) {
+                            float r = rand.nextFloat() * 100.0F;
+                            if(r < 4.0F) {
+                                world.setBlock(x, y, z, Blocks.sandstone, 0, 2);
+                            } else if(r < 5.0F) {
+                                world.setBlock(x, y, z, Blocks.air, 0, 2);
+                            }
+                        } else if(b == ModBlocks.spotlight_incandescent) {
+                            if(rand.nextFloat() * 100.0F < 10.0F) {
+                                world.setBlock(x, y, z, Blocks.air, 0, 2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3) 有物品 NBT 的战利品容器按附属规则随机化（成书在 randomizeContainer 内原样保留）
+        if(randomizeLoot && ModConfig.structureLootRandomize) {
+            for(int x = minX; x <= maxX; x++) {
+                for(int z = minZ; z <= maxZ; z++) {
+                    for(int y = Math.max(1, bb.minY); y <= Math.min(255, bb.maxY); y++) {
+                        if(!isLootContainer(world.getBlock(x, y, z))) continue;
+                        TileEntity te = world.getTileEntity(x, y, z);
+                        if(te instanceof IInventory) {
+                            randomizeContainer((IInventory) te, rand);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** 核金字塔 StructureStart：底面贴合平顶山地表。 */
+    public static class PyramidNuclearStart extends NBTStructure.Start {
+        private boolean heightPinned;
+
+        public PyramidNuclearStart() { }
+
+        public PyramidNuclearStart(World world, Random rand, SpawnCondition spawn, int chunkX, int chunkZ) {
+            super(world, rand, spawn, chunkX, chunkZ);
+        }
+
+        @Override
+        public void generateStructure(World world, Random rand, StructureBoundingBox box) {
+            if(!heightPinned) {
+                heightPinned = true;
+                List<?> comps = getComponents();
+                if(!comps.isEmpty()) {
+                    StructureBoundingBox bb = ((StructureComponent) comps.get(0)).getBoundingBox();
+                    if(bb != null) {
+                        int cx = (bb.minX + bb.maxX) / 2;
+                        int cz = (bb.minZ + bb.maxZ) / 2;
+                        int targetY = MathHelper.clamp_int(world.getTopSolidOrLiquidBlock(cx, cz), 40, 140);
+                        offsetYHeight(targetY - bb.minY);
+                    }
+                }
+            }
+            super.generateStructure(world, rand, box);
+            postProcessOverworldStructure(this, world, rand, box, PYRAMID_NBT, false, true);
+        }
+    }
+
+    /** 地下核研究所 StructureStart：主体深埋平原地下（全范围实心掩盖），仅顶部 4×3 竖井探出地表 3~6 格。 */
+    public static class UndergroundNucleStart extends NBTStructure.Start {
+        private boolean evaluated;
+        private boolean aborted;
+        private boolean orientationPinned;
+        private int anchorChunkX;
+        private int anchorChunkZ;
+
+        public UndergroundNucleStart() { }
+
+        public UndergroundNucleStart(World world, Random rand, SpawnCondition spawn, int chunkX, int chunkZ) {
+            super(world, rand, spawn, chunkX, chunkZ);
+            anchorChunkX = chunkX;
+            anchorChunkZ = chunkZ;
+            pinUndergroundOrientation();
+        }
+
+        private void pinUndergroundOrientation() {
+            try {
+                if(fieldComponentMode == null) {
+                    fieldComponentMode = StructureComponent.class.getDeclaredField("coordBaseMode");
+                    fieldComponentMode.setAccessible(true);
+                }
+                if(fieldComponentPiece == null) {
+                    fieldComponentPiece = NBTStructure.Component.class.getDeclaredField("piece");
+                    fieldComponentPiece.setAccessible(true);
+                }
+                for(Object object : getComponents()) {
+                    fieldComponentMode.setInt(object, 0);
+                    JigsawPiece piece = (JigsawPiece) fieldComponentPiece.get(object);
+                    StructureBoundingBox bb = ((StructureComponent) object).getBoundingBox();
+                    if(piece != null && piece.structure != null && bb != null) {
+                        bb.maxX = bb.minX + piece.structure.getSizeX() - 1;
+                        bb.maxZ = bb.minZ + piece.structure.getSizeZ() - 1;
+                    }
+                }
+                this.updateBoundingBox();
+                orientationPinned = true;
+            } catch(Exception e) {
+                orientationPinned = false;
+                LOG.warn("[structure-underground] 无法固定结构朝向", e);
+            }
+        }
+
+        private void evaluateAndPinHeight(World world) {
+            evaluated = true;
+            aborted = true;
+            List<?> components = getComponents();
+            if(components.isEmpty()) return;
+            StructureBoundingBox bb = ((StructureComponent) components.get(0)).getBoundingBox();
+            if(bb == null) return;
+            anchorChunkX = bb.minX >> 4;
+            anchorChunkZ = bb.minZ >> 4;
+            int targetMinY = computePinnedMinYIfValid(world, bb.minX, bb.minZ, anchorChunkX, anchorChunkZ);
+            if(targetMinY < 5) return;
+            offsetYHeight(targetMinY - bb.minY);
+            this.updateBoundingBox();
+            aborted = false;
+        }
+
+        @Override
+        public void generateStructure(World world, Random rand, StructureBoundingBox box) {
+            if(!orientationPinned) pinUndergroundOrientation();
+            if(!orientationPinned) return;
+            if(!evaluated) evaluateAndPinHeight(world);
+            if(aborted) return;
+            super.generateStructure(world, rand, box);
+            postProcessOverworldStructure(this, world, rand, box, UNDERGROUND_NBT, false, true);
+        }
+
+        @Override
+        public void func_143022_a(NBTTagCompound nbt) {
+            super.func_143022_a(nbt);
+            nbt.setBoolean("mngaEvaluated", evaluated);
+            nbt.setBoolean("mngaAborted", aborted);
+            nbt.setBoolean("mngaOrientPinned", orientationPinned);
+            nbt.setInteger("mngaAnchorCX", anchorChunkX);
+            nbt.setInteger("mngaAnchorCZ", anchorChunkZ);
+        }
+
+        @Override
+        public void func_143017_b(NBTTagCompound nbt) {
+            super.func_143017_b(nbt);
+            evaluated = nbt.getBoolean("mngaEvaluated");
+            aborted = nbt.getBoolean("mngaAborted");
+            orientationPinned = nbt.getBoolean("mngaOrientPinned");
+            anchorChunkX = nbt.getInteger("mngaAnchorCX");
+            anchorChunkZ = nbt.getInteger("mngaAnchorCZ");
+            if(!orientationPinned) pinUndergroundOrientation();
+        }
+    }
+
+    /** 大型发电站 StructureStart：生成于丘陵地表，带专属方块变体与战利品随机化。 */
+    public static class LargePowerPlantStart extends NBTStructure.Start {
+        private boolean heightPinned;
+
+        public LargePowerPlantStart() { }
+
+        public LargePowerPlantStart(World world, Random rand, SpawnCondition spawn, int chunkX, int chunkZ) {
+            super(world, rand, spawn, chunkX, chunkZ);
+        }
+
+        @Override
+        public void generateStructure(World world, Random rand, StructureBoundingBox box) {
+            if(!heightPinned) {
+                heightPinned = true;
+                List<?> comps = getComponents();
+                if(!comps.isEmpty()) {
+                    StructureBoundingBox bb = ((StructureComponent) comps.get(0)).getBoundingBox();
+                    if(bb != null) {
+                        int cx = (bb.minX + bb.maxX) / 2;
+                        int cz = (bb.minZ + bb.maxZ) / 2;
+                        // 多点采样取偏低地表，尽量减少大型底座在丘陵的悬空
+                        int yC = world.getTopSolidOrLiquidBlock(cx, cz);
+                        int y1 = world.getTopSolidOrLiquidBlock(bb.minX + 4, bb.minZ + 4);
+                        int y2 = world.getTopSolidOrLiquidBlock(bb.maxX - 4, bb.minZ + 4);
+                        int y3 = world.getTopSolidOrLiquidBlock(bb.minX + 4, bb.maxZ - 4);
+                        int y4 = world.getTopSolidOrLiquidBlock(bb.maxX - 4, bb.maxZ - 4);
+                        int avg = (yC + y1 + y2 + y3 + y4) / 5;
+                        int targetY = MathHelper.clamp_int(Math.min(yC, avg), 40, 140);
+                        offsetYHeight(targetY - bb.minY);
+                    }
+                }
+            }
+            super.generateStructure(world, rand, box);
+            postProcessOverworldStructure(this, world, rand, box, POWER_PLANT_NBT, true, true);
         }
     }
 }

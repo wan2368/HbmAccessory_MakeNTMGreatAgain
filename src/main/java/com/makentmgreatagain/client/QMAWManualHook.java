@@ -51,6 +51,9 @@ public class QMAWManualHook implements IResourceManagerReloadListener {
 			"core_lava_extractor.json",
 			"industrial_gas_turbine.json",
 			"fluid_cooler.json",
+			"stellarator.json",
+			"plasma_heater.json",
+			"xen_crystal.json",
 	};
 
 	private static final String ROOT = "/assets/hbm/manual/makentmgreatagain/";

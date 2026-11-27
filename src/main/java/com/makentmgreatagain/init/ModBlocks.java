@@ -16,11 +16,14 @@ import com.makentmgreatagain.blocks.BlockAlloyShredder;
 import com.makentmgreatagain.blocks.BlockCoreFissure;
 import com.makentmgreatagain.blocks.BlockCoreLavaExtractor;
 import com.makentmgreatagain.blocks.BlockIndustrialGasTurbine;
+import com.makentmgreatagain.blocks.BlockLargeThermalPowerStation;
+import com.makentmgreatagain.blocks.BlockStellarator;
 import com.makentmgreatagain.blocks.BlockLargeCentrifuge;
 import com.makentmgreatagain.blocks.BlockThrex;
 import com.makentmgreatagain.blocks.BlockThrexShieldBrick;
 import com.makentmgreatagain.blocks.BlockThrexShieldGlass;
 import com.makentmgreatagain.blocks.BlockWirelessStation;
+import com.makentmgreatagain.blocks.BlockXenCrystal;
 import com.makentmgreatagain.blocks.BlockArcHeater;
 import com.makentmgreatagain.blocks.BlockBat9000Reborn;
 import com.makentmgreatagain.blocks.BlockLargeCatalyticChemicalFactory;
@@ -38,6 +41,7 @@ import com.makentmgreatagain.blocks.BlockOreLeadZinc;
 import com.makentmgreatagain.blocks.BlockOreRefractoryGold;
 import com.makentmgreatagain.blocks.BlockOreScheelite;
 import com.makentmgreatagain.blocks.BlockPipeAnchorAdvanced;
+import com.makentmgreatagain.blocks.BlockPlasmaHeater;
 import com.makentmgreatagain.blocks.BlockRiserPipe;
 import com.makentmgreatagain.blocks.BlockRiserRig;
 import com.makentmgreatagain.blocks.BlockStorageMetal;
@@ -52,6 +56,10 @@ import com.makentmgreatagain.tileentity.TileEntityArcHeater;
 import com.makentmgreatagain.tileentity.TileEntityWirelessStation;
 import com.makentmgreatagain.tileentity.TileEntityCoreLavaExtractor;
 import com.makentmgreatagain.tileentity.TileEntityIndustrialGasTurbine;
+import com.makentmgreatagain.tileentity.TileEntityLargeThermalPowerStation;
+import com.makentmgreatagain.tileentity.TileEntityLargeThermalPowerStationPort;
+import com.makentmgreatagain.tileentity.TileEntityStellarator;
+import com.makentmgreatagain.tileentity.TileEntityPlasmaHeater;
 import com.makentmgreatagain.tileentity.TileEntityLargeCentrifuge;
 import com.makentmgreatagain.tileentity.TileEntityBat9000Reborn;
 import com.makentmgreatagain.tileentity.TileEntityLargeCatalyticChemicalFactory;
@@ -125,6 +133,8 @@ public class ModBlocks {
 	public static Block environment_pump;
 	/** 无线充电站（一格、可旋转、背面接电） */
 	public static Block wireless_station;
+	/** 稳定X晶体簇（一格、六向附着、整簇立体渲染） */
+	public static Block xen_crystal_cluster;
 	/** 集成式换热加热器 */
 	public static Block heatex_reborn;
 	/** 流体冷却机（3×3×7 多方块，6 个电力/流体通用接口；目前只有外壳、储罐与接口，内部逻辑待实现） */
@@ -140,6 +150,10 @@ public class ModBlocks {
 	public static Block machine_drain;
 	/** 小型钨排液管（单方块，容量 2000 mB，钨色加深贴图） */
 	public static Block machine_drain_tungsten;
+	/** 可调节钢排液管（可控流量 1~50 mB/t） */
+	public static Block machine_drain_adjustable_steel;
+	/** 可调节钨排液管（可控流量 1~100 mB/t） */
+	public static Block machine_drain_adjustable_tungsten;
 	/** 电锅炉（单方块，off/on 双态，移植自原版 1.0.27） */
 	public static Block machine_electric_boiler_off, machine_electric_boiler_on;
 	/** 小型电解机 */
@@ -151,6 +165,17 @@ public class ModBlocks {
 	public static Block core_lava_extractor;
 	/** 工业燃气轮机（4×13×4 外观多方块，左右各 4 个通用接口：电力输出 + 流体收发） */
 	public static Block industrial_gas_turbine;
+	/** 大型火力发电站（6×4×5 外观多方块，暂无交互） */
+	public static Block large_thermal_power_station;
+	/** 仿星器（31×29×9 外观多方块，上下各 5 个接口，暂无功能逻辑） */
+	public static Block stellarator;
+	public static Block plasma_heater;
+	/** 超临界磁流体膨胀发电机（11×5×5 无 GUI 多方块） */
+	public static Block supercritical_mhd_generator;
+	/** 流体传送器（单方块跨维流体传送） */
+	public static Block xen_fluid_transceiver;
+	/** 物品传送器（单方块跨维物品传送） */
+	public static Block xen_item_transceiver;
 	public static Block core_fissure;
 	/** 高级管锚（25m） */
 	public static Block pipe_anchor_advanced;
@@ -408,6 +433,14 @@ public class ModBlocks {
 			com.hbm.items.ModItems.gem_alexandrite,
 			net.minecraft.init.Items.redstone);
 
+		// 稳定X晶体簇：一格六向晶簇，破坏掉 crystal_xen（不是掉自己）
+		xen_crystal_cluster = new BlockXenCrystal();
+		xen_crystal_cluster.setBlockName("xen_crystal_cluster");
+		xen_crystal_cluster.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+
+		GameRegistry.registerBlock(xen_crystal_cluster, BlockXenCrystal.ItemBlockXenCrystal.class, "xen_crystal_cluster");
+		GameRegistry.registerTileEntity(BlockXenCrystal.TileEntityXenCrystal.class, "makentmgreatagain.xen_crystal");
+
 		// 集成式换热加热器（5×3×1 多方块，顶部 3×3 热面）
 		heatex_reborn = ((Block) new BlockHeatexReborn())
 			.setBlockName("heatex_reborn")
@@ -454,6 +487,26 @@ public class ModBlocks {
 		machine_drain_tungsten.setHarvestLevel("pickaxe", 3);
 
 		GameRegistry.registerBlock(machine_drain_tungsten, "machine_drain_tungsten");
+
+		// 可调节钢排液管（容量 1000 mB，流量 1~50 mB/t）
+		machine_drain_adjustable_steel = ((Block) new BlockMachineDrain(1000, 1, 50))
+			.setBlockName("machine_drain_adjustable_steel")
+			.setBlockTextureName("minecraft:iron_block")
+			.setHardness(5.0F)
+			.setResistance(10.0F)
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		machine_drain_adjustable_steel.setHarvestLevel("pickaxe", 2);
+		GameRegistry.registerBlock(machine_drain_adjustable_steel, "machine_drain_adjustable_steel");
+
+		// 可调节钨排液管（容量 2000 mB，流量 1~100 mB/t）
+		machine_drain_adjustable_tungsten = ((Block) new BlockMachineDrain(2000, 1, 100))
+			.setBlockName("machine_drain_adjustable_tungsten")
+			.setBlockTextureName("minecraft:iron_block")
+			.setHardness(8.0F)
+			.setResistance(20.0F)
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		machine_drain_adjustable_tungsten.setHarvestLevel("pickaxe", 3);
+		GameRegistry.registerBlock(machine_drain_adjustable_tungsten, "machine_drain_adjustable_tungsten");
 		GameRegistry.registerTileEntity(TileEntityMachineDrain.class, "makentmgreatagain.machine_drain");
 
 		// 混合催化分馏塔（5×5×6 多方块，每面 2 个流体口，共 8 个；可向上叠放）
@@ -590,6 +643,65 @@ public class ModBlocks {
 		// 转发到物品提示（默认 ItemBlock 不转发，导致燃料效率简介不显示）
 		GameRegistry.registerBlock(industrial_gas_turbine, com.hbm.items.block.ItemBlockBase.class, "industrial_gas_turbine");
 		GameRegistry.registerTileEntity(TileEntityIndustrialGasTurbine.class, "makentmgreatagain.industrial_gas_turbine");
+
+		// 大型火力发电站（6×4×5 外观多方块，燃料热值发电+压缩空气/液氧助推+细烟灰产出）
+		large_thermal_power_station = ((Block) new BlockLargeThermalPowerStation())
+			.setBlockName("large_thermal_power_station")
+			.setBlockTextureName("minecraft:iron_block")
+			.setHardness(5.0F)
+			.setResistance(20.0F)
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		large_thermal_power_station.setHarvestLevel("pickaxe", 2);
+
+		GameRegistry.registerBlock(large_thermal_power_station, com.hbm.items.block.ItemBlockBase.class, "large_thermal_power_station");
+		GameRegistry.registerTileEntity(TileEntityLargeThermalPowerStation.class, "makentmgreatagain.large_thermal_power_station");
+		GameRegistry.registerTileEntity(TileEntityLargeThermalPowerStationPort.class, "makentmgreatagain.large_thermal_power_station_port");
+
+		// 仿星器（31×29×9 外观多方块，底面/顶面各 5 个接口，本阶段只有外观与结构）
+		stellarator = ((Block) new BlockStellarator())
+			.setBlockName("stellarator")
+			.setBlockTextureName("minecraft:iron_block")
+			.setHardness(5.0F)
+			.setResistance(20.0F)
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		stellarator.setHarvestLevel("pickaxe", 2);
+
+		GameRegistry.registerBlock(stellarator, com.hbm.items.block.ItemBlockBase.class, "stellarator");
+		GameRegistry.registerTileEntity(TileEntityStellarator.class, "makentmgreatagain.stellarator");
+		// 接口格复用本体的 TileEntityProxyCombo，其映射已由 HBM 的 TileMappings 注册，无需重复登记
+
+		// 等离子加热器：21×7×8 长条机器，把两侧输入罐的流体加热成等离子直写仿星器
+		plasma_heater = ((Block) new BlockPlasmaHeater())
+			.setBlockName("plasma_heater")
+			.setBlockTextureName("minecraft:iron_block")
+			.setHardness(5.0F)
+			.setResistance(20.0F)
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		plasma_heater.setHarvestLevel("pickaxe", 2);
+
+		GameRegistry.registerBlock(plasma_heater, com.hbm.items.block.ItemBlockBase.class, "plasma_heater");
+		GameRegistry.registerTileEntity(TileEntityPlasmaHeater.class, "makentmgreatagain.plasma_heater");
+
+		// 超临界磁流体膨胀发电机：11×5×5 无 GUI 多方块（1 mB 超临界蒸汽 -> 10M HE + 10 mB 水）
+		supercritical_mhd_generator = ((Block) new com.makentmgreatagain.blocks.BlockSupercriticalMHDGenerator())
+			.setBlockName("supercritical_mhd_generator")
+			.setBlockTextureName("minecraft:iron_block")
+			.setHardness(5.0F)
+			.setResistance(20.0F)
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		supercritical_mhd_generator.setHarvestLevel("pickaxe", 2);
+
+		GameRegistry.registerBlock(supercritical_mhd_generator, com.hbm.items.block.ItemBlockBase.class, "supercritical_mhd_generator");
+		GameRegistry.registerTileEntity(com.makentmgreatagain.tileentity.TileEntitySupercriticalMHDGenerator.class, "makentmgreatagain.supercritical_mhd_generator");
+
+		// 流体传送器 / 物品传送器（单方块，无需供电）
+		xen_fluid_transceiver = new com.makentmgreatagain.blocks.BlockXenTransceiver(true).setBlockName("xen_fluid_transceiver");
+		GameRegistry.registerBlock(xen_fluid_transceiver, "xen_fluid_transceiver");
+		GameRegistry.registerTileEntity(com.makentmgreatagain.tileentity.TileEntityXenFluidTransceiver.class, "makentmgreatagain.xen_fluid_transceiver");
+
+		xen_item_transceiver = new com.makentmgreatagain.blocks.BlockXenTransceiver(false).setBlockName("xen_item_transceiver");
+		GameRegistry.registerBlock(xen_item_transceiver, "xen_item_transceiver");
+		GameRegistry.registerTileEntity(com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver.class, "makentmgreatagain.xen_item_transceiver");
 
 		// 地核熔岩裂隙（下界基岩层 3×3 生成，不可破坏无掉落，地核熔岩开采机的开采对象）
 		core_fissure = ((Block) new BlockCoreFissure())

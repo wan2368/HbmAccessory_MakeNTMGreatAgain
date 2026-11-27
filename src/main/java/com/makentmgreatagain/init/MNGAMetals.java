@@ -508,6 +508,12 @@ public class MNGAMetals {
 				new ComparableStack(new ItemStack(ModItems.ingot_helium, 1)),
 				new FluidStack(Fluids.HELIUM3, 2000));
 		MakeNTMGreatAgain.LOG.info("MNGAMetals: liquefactor 1 ingot_helium -> 2000 mB HELIUM3");
+
+		// 液态硼：1 硼锭 → 100 mB。键同样必须建成 1 个（ComparableStack.equals 会比较 stacksize）
+		LiquefactionRecipes.recipes.put(
+				new ComparableStack(new ItemStack(com.hbm.items.ModItems.ingot_boron, 1)),
+				new FluidStack(com.makentmgreatagain.init.ModFluids.LIQUID_BORON.type, 100));
+		MakeNTMGreatAgain.LOG.info("MNGAMetals: liquefactor 1 ingot_boron -> 100 mB LIQUID_BORON");
 	}
 
 	/**

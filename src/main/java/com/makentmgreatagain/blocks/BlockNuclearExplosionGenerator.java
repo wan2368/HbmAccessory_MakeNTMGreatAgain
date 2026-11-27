@@ -1,6 +1,7 @@
 package com.makentmgreatagain.blocks;
 
 import com.hbm.blocks.BlockDummyable;
+import com.hbm.entity.projectile.EntityMeteor;
 import com.hbm.handler.MultiblockHandlerXR;
 import com.makentmgreatagain.init.ModNetwork;
 import com.makentmgreatagain.packet.NukeOpenGuiPacket;
@@ -9,6 +10,7 @@ import com.makentmgreatagain.tileentity.TileEntityNuclearExplosionGeneratorPort;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
@@ -44,6 +46,12 @@ public class BlockNuclearExplosionGenerator extends BlockDummyable {
 
 	public BlockNuclearExplosionGenerator() {
 		super(Material.iron);
+	}
+
+	@Override
+	public float getExplosionResistance(Entity exploder, World world, int x, int y, int z, double explosionX, double explosionY, double explosionZ) {
+		if(exploder instanceof EntityMeteor) return 1_000_000_000F;
+		return super.getExplosionResistance(exploder, world, x, y, z, explosionX, explosionY, explosionZ);
 	}
 
 	@Override

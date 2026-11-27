@@ -122,14 +122,12 @@ public class BlockHeatexReborn extends BlockDummyable implements ILookOverlay, I
 			TileEntityHeatexReborn heatex = (TileEntityHeatexReborn) te;
 			FluidType type = ((IItemFluidIdentifier) player.getHeldItem().getItem()).getType(world, pos[0], pos[1], pos[2], player.getHeldItem());
 
-			if(type != null && TileEntityHeatexReborn.isHeatable(type)) {
+			// 加热回路强制只认水：非水识别码直接无视，不给任何提示
+			if(type != null && heatex.canSetHeatedInput(type)) {
 				heatex.tanks[2].setTankType(type);
 				heatex.markChanged();
 				player.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.YELLOW
 					+ I18nUtil.resolveKey("info.heatex_reborn.changed") + " " + I18nUtil.resolveKey(type.getUnlocalizedName())));
-			} else {
-				player.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.RED
-					+ I18nUtil.resolveKey("info.heatex_reborn.not_heatable")));
 			}
 
 			return true;

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.hbm.itempool.ItemPool;
 import com.hbm.itempool.ItemPoolsPile;
+import com.hbm.itempool.ItemPoolsSingle;
 import com.hbm.lib.HbmChestContents;
 import com.makentmgreatagain.ModCreativeTabs;
 import com.makentmgreatagain.items.ItemTarkovFood;
@@ -20,6 +21,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.WeightedRandomChestContent;
+import net.minecraftforge.common.ChestGenHooks;
 
 /**
  * 塔可夫食物与杂项：17 件罐头 / 巧克力 / 糖 / 蛋黄酱 / 酒 / 面包。
@@ -359,6 +361,26 @@ public final class ModTarkovFood {
 
 		pool.pool = entries.toArray(new WeightedRandomChestContent[entries.size()]);
 
+		// 丰饶之角：极低概率（权重 1）注入补给堆、保险库及原版地牢/神庙战利品箱
+		if(ModItems.horn_of_plenty != null) {
+			injectRareItem(ItemPoolsPile.POOL_PILE_SUPPLIES, ModItems.horn_of_plenty, 1);
+			injectRareItem(ItemPoolsSingle.POOL_VAULT_REINFORCED, ModItems.horn_of_plenty, 1);
+			injectRareItem(ItemPoolsSingle.POOL_VAULT_UNBREAKABLE, ModItems.horn_of_plenty, 1);
+			WeightedRandomChestContent chestLoot = new WeightedRandomChestContent(new ItemStack(ModItems.horn_of_plenty), 1, 1, 1);
+			ChestGenHooks.addItem(ChestGenHooks.DUNGEON_CHEST, chestLoot);
+			ChestGenHooks.addItem(ChestGenHooks.PYRAMID_DESERT_CHEST, chestLoot);
+			ChestGenHooks.addItem(ChestGenHooks.PYRAMID_JUNGLE_CHEST, chestLoot);
+		}
+
 		System.out.println("[MakeNTMGreatAgain] Tarkov food injected into supplies pool (" + added + " entries).");
+	}
+
+	private static void injectRareItem(String poolName, Item item, int weight) {
+		ItemPool target = ItemPool.pools.get(poolName);
+		if(target == null || target.pool == null) return;
+		List<WeightedRandomChestContent> list =
+			new ArrayList<WeightedRandomChestContent>(Arrays.asList(target.pool));
+		list.add(HbmChestContents.weighted(item, 0, 1, 1, weight));
+		target.pool = list.toArray(new WeightedRandomChestContent[list.size()]);
 	}
 }

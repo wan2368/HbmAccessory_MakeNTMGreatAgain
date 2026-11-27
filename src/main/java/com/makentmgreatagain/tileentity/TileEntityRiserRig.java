@@ -630,6 +630,24 @@ public class TileEntityRiserRig extends TileEntityLoadedBase
 			return false;
 		}
 
+		// 先把这一轮要产的物品全部算出来（含粉碎产物兑换），再一次性校验 3×3 输出格装不装得下。
+		// 只判「至少有一格空位」不够：一轮最多同时产 3 种精矿、粉碎后一种可能是 2 个，
+		// 装不下时 addItemOutputs 会把多出来的直接丢掉，而结核次数已经扣掉了。
+		java.util.List<ItemStack> loot = new java.util.ArrayList<ItemStack>();
+
+		if(worldObj.rand.nextFloat() < ORE_ITEM_CHANCE_COBALT) {
+			loot.add(this.resolveOreOutput(com.makentmgreatagain.init.ModItems.cobalt_polymetallic_concentrate));
+		}
+		if(worldObj.rand.nextFloat() < ORE_ITEM_CHANCE_HEAVY_SAND) {
+			loot.add(this.resolveOreOutput(com.makentmgreatagain.init.ModItems.heavy_sand_concentrate));
+		}
+		if(worldObj.rand.nextFloat() < ORE_ITEM_CHANCE_RARE_EARTH) {
+			loot.add(this.resolveOreOutput(com.makentmgreatagain.init.ModItems.rare_earth_concentrate));
+		}
+
+		// 装不下就整轮不采：不扣次数、不灌流体、不扣溶剂，等玩家把输出槽腾出来
+		if(!this.canStoreItemOutputs(loot)) return false;
+
 		nodule.uses--;
 		nodule.markDirty();
 
@@ -640,16 +658,8 @@ public class TileEntityRiserRig extends TileEntityLoadedBase
 			tank.setFill(Math.min(tank.getMaxFill(), tank.getFill() + amount));
 		}
 
-		// 物品：各自独立掷概率，命中就往 3×3 输出格里放（走 addOreOutput，粉碎开关开着就直接输出混粉）
-		if(worldObj.rand.nextFloat() < ORE_ITEM_CHANCE_COBALT) {
-			this.addOreOutput(com.makentmgreatagain.init.ModItems.cobalt_polymetallic_concentrate);
-		}
-		if(worldObj.rand.nextFloat() < ORE_ITEM_CHANCE_HEAVY_SAND) {
-			this.addOreOutput(com.makentmgreatagain.init.ModItems.heavy_sand_concentrate);
-		}
-		if(worldObj.rand.nextFloat() < ORE_ITEM_CHANCE_RARE_EARTH) {
-			this.addOreOutput(com.makentmgreatagain.init.ModItems.rare_earth_concentrate);
-		}
+		// 物品：按刚才算好的清单落位（空间已校验过，这里一定塞得进）
+		for(ItemStack stack : loot) this.addItemOutputs(stack);
 
 		// 采空：变成空结核方块，钻机在范围内继续找下一块
 		if(nodule.isDepleted()) this.depleteNodule(tx, ty, tz);
@@ -691,15 +701,21 @@ public class TileEntityRiserRig extends TileEntityLoadedBase
 	/** 往 3×3 输出格里塞一个物品：先找同类可堆叠的，再找空位 */
 	protected boolean addItemOutput(ItemStack stack) {
 
+		int max = Math.min(stack.getMaxStackSize(), this.getInventoryStackLimit());
+
 		for(int i = SLOT_OUTPUT_START; i < SLOT_UPGRADE_START; i++) {
-			if(slots[i] == null) {
-				slots[i] = stack;
+			ItemStack slot = slots[i];
+			if(slot == null) {
+				ItemStack placed = stack.copy();
+				placed.stackSize = 1;
+				slots[i] = placed;
 				return true;
 			}
-			if(slots[i].getItem() == stack.getItem()
-					&& slots[i].getItemDamage() == stack.getItemDamage()
-					&& slots[i].stackSize < slots[i].getMaxStackSize()) {
-				slots[i].stackSize++;
+			if(slot.getItem() == stack.getItem()
+					&& slot.getItemDamage() == stack.getItemDamage()
+					&& ItemStack.areItemStackTagsEqual(slot, stack)
+					&& slot.stackSize < max) {
+				slot.stackSize++;
 				return true;
 			}
 		}
@@ -713,8 +729,58 @@ public class TileEntityRiserRig extends TileEntityLoadedBase
 		int count = Math.max(1, stack.stackSize);
 
 		for(int n = 0; n < count; n++) {
-			if(!this.addItemOutput(new ItemStack(stack.getItem(), 1, stack.getItemDamage()))) return;
+			ItemStack one = stack.copy();
+			one.stackSize = 1;
+			if(!this.addItemOutput(one)) return;
 		}
+	}
+
+	/**
+	 * 这轮产物是否都能完整塞进 3×3 输出格：在槽位副本上按 {@link #addItemOutput}
+	 * 的真实落位顺序（先叠同类、再占空格）逐件模拟，任何一件放不下就返回 false。
+	 *
+	 * <p>只判「至少有一格空位」是不够的：一轮最多同时产 3 种精矿、粉碎后一种可能有 2 个，
+	 * 光有空位也装不下全部，剩下的会被 {@link #addItemOutputs} 直接丢弃。</p>
+	 */
+	protected boolean canStoreItemOutputs(java.util.List<ItemStack> loot) {
+
+		int count = SLOT_UPGRADE_START - SLOT_OUTPUT_START;
+
+		ItemStack[] sim = new ItemStack[count];
+		for(int i = 0; i < count; i++) {
+			ItemStack s = slots[SLOT_OUTPUT_START + i];
+			sim[i] = s == null ? null : s.copy();
+		}
+
+		for(ItemStack stack : loot) {
+			if(stack == null) continue;
+
+			int max = Math.min(stack.getMaxStackSize(), this.getInventoryStackLimit());
+			int remaining = Math.max(1, stack.stackSize);
+
+			for(int i = 0; i < count && remaining > 0; i++) {
+				ItemStack s = sim[i];
+				if(s == null) continue;
+				if(s.getItem() != stack.getItem() || s.getItemDamage() != stack.getItemDamage()) continue;
+				if(!ItemStack.areItemStackTagsEqual(s, stack)) continue;
+				int add = Math.min(remaining, max - s.stackSize);
+				if(add <= 0) continue;
+				s.stackSize += add;
+				remaining -= add;
+			}
+
+			for(int i = 0; i < count && remaining > 0; i++) {
+				if(sim[i] != null) continue;
+				ItemStack s = stack.copy();
+				s.stackSize = Math.min(remaining, max);
+				sim[i] = s;
+				remaining -= s.stackSize;
+			}
+
+			if(remaining > 0) return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -725,19 +791,16 @@ public class TileEntityRiserRig extends TileEntityLoadedBase
 	 * 没有配方的物品原样输出；粉碎机配方用的是本体 {@code ShredderRecipes} 的同一张表，
 	 * 配方改了这里自动跟随，不需要另建一份映射。</p>
 	 */
-	protected void addOreOutput(Item item) {
+	protected ItemStack resolveOreOutput(Item item) {
 
 		ItemStack raw = new ItemStack(item);
 
 		if(this.enableCrusher) {
 			ItemStack crushed = getCrushedResult(raw);
-			if(crushed != null) {
-				this.addItemOutputs(crushed);
-				return;
-			}
+			if(crushed != null) return crushed;
 		}
 
-		this.addItemOutputs(raw);
+		return raw;
 	}
 
 	/**

@@ -13,6 +13,9 @@ import com.makentmgreatagain.client.RenderMachineDrain;
 import com.makentmgreatagain.client.RenderArcHeater;
 import com.makentmgreatagain.client.RenderCoreLavaExtractor;
 import com.makentmgreatagain.client.RenderIndustrialGasTurbine;
+import com.makentmgreatagain.client.RenderLargeThermalPowerStation;
+import com.makentmgreatagain.client.RenderStellarator;
+import com.makentmgreatagain.client.RenderPlasmaHeater;
 import com.makentmgreatagain.client.RenderLargeCentrifuge;
 import com.makentmgreatagain.client.RenderBat9000Reborn;
 import com.makentmgreatagain.client.RenderLargeCatalyticChemicalFactory;
@@ -43,6 +46,8 @@ import com.makentmgreatagain.tileentity.TileEntityNuclearExplosionGenerator;
 import com.makentmgreatagain.tileentity.TileEntityArcHeater;
 import com.makentmgreatagain.tileentity.TileEntityCoreLavaExtractor;
 import com.makentmgreatagain.tileentity.TileEntityIndustrialGasTurbine;
+import com.makentmgreatagain.tileentity.TileEntityLargeThermalPowerStation;
+import com.makentmgreatagain.tileentity.TileEntityStellarator;
 import com.makentmgreatagain.tileentity.TileEntityLargeCentrifuge;
 import com.makentmgreatagain.tileentity.TileEntityBat9000Reborn;
 import com.makentmgreatagain.tileentity.TileEntityLargeCatalyticChemicalFactory;
@@ -143,6 +148,15 @@ public class ClientProxy extends CommonProxy {
         // 核装药核心的 hover 数据：按住 Shift 显示中子通量 / 耗电量 / 液态钠
         MinecraftForge.EVENT_BUS.register(new com.makentmgreatagain.client.NukeCoreTooltip());
 
+        // 大型火力发电站燃料简介：16 种燃料物品提示行「热值: XXX」
+        MinecraftForge.EVENT_BUS.register(new com.makentmgreatagain.client.ThermalFuelTooltip());
+
+        // 高强度碳化钨锭：物品栏图标放大 20%（替换 GUI/HUD 渲染实例，失败回退原尺寸）
+        com.makentmgreatagain.client.BigIconRender.install();
+
+        // 乱码X晶体：SILEX NEI 配方页不显示它（机器分离照常），替换 HBM 的 SILEX handler
+        com.makentmgreatagain.compat.nei.SILEXHiddenHandler.install();
+
         // 耐摔合金掉落物：原版 RenderItem 会对掉落物做 billboard 旋转，绕 Y 轴转多少都被
         // 抵消，所以必须自己画 quad 才能看出「顺时针自旋」，见 client/RenderItemHelicopter
         cpw.mods.fml.client.registry.RenderingRegistry.registerEntityRenderingHandler(
@@ -156,6 +170,8 @@ public class ClientProxy extends CommonProxy {
         // 无线充电站：标准立方体 + 灯条自发光 overlay
         cpw.mods.fml.client.registry.RenderingRegistry.registerBlockHandler(
                 new com.makentmgreatagain.client.RenderWirelessStation());
+
+        // 晶体簇走原版 renderType 1（交叉平面），不需要自定义方块渲染器
 
         // 手册兜底通道：挂得比 HBM 的 QMAWLoader 晚，每次资源重载都在它之后补页
         IReloadableResourceManager resMan = (IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager();
@@ -225,6 +241,23 @@ public class ClientProxy extends CommonProxy {
         MinecraftForgeClient.registerItemRenderer(
                 Item.getItemFromBlock(ModBlocks.machine_drain_tungsten),
                 drainRenderer.itemRenderer(AddonModels.drain_tungsten_tex));
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.machine_drain_adjustable_steel),
+                drainRenderer.itemRenderer(AddonModels.drain_adjustable_tex));
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.machine_drain_adjustable_tungsten),
+                drainRenderer.itemRenderer(AddonModels.drain_adjustable_tungsten_tex));
+
+        // 流体传送器 / 物品传送器：1×1×1 EIO 风格外框 + 悬浮旋转 X 晶体
+        com.makentmgreatagain.client.RenderXenTransceiver xenTransceiverRenderer = new com.makentmgreatagain.client.RenderXenTransceiver();
+        ClientRegistry.bindTileEntitySpecialRenderer(com.makentmgreatagain.tileentity.TileEntityXenFluidTransceiver.class, xenTransceiverRenderer);
+        ClientRegistry.bindTileEntitySpecialRenderer(com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver.class, xenTransceiverRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.xen_fluid_transceiver),
+                xenTransceiverRenderer.itemRenderer(AddonModels.xen_fluid_transceiver_tex));
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.xen_item_transceiver),
+                xenTransceiverRenderer.itemRenderer(AddonModels.xen_item_transceiver_tex));
 
         // 混合催化分馏塔：5×5×6 八棱柱，底部 8 个检修口
         RenderHybridCatalyticFractionTower fractionTowerRenderer = new RenderHybridCatalyticFractionTower();
@@ -288,6 +321,34 @@ public class ClientProxy extends CommonProxy {
         MinecraftForgeClient.registerItemRenderer(
                 Item.getItemFromBlock(ModBlocks.industrial_gas_turbine),
                 gasTurbineRenderer.getRenderer());
+
+        // 大型火力发电站：6×4×5 外观多方块，模型原点在核心格底面中心，仅按 metadata 旋转
+        RenderLargeThermalPowerStation thermalPowerStationRenderer = new RenderLargeThermalPowerStation();
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityLargeThermalPowerStation.class, thermalPowerStationRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.large_thermal_power_station),
+                thermalPowerStationRenderer.getRenderer());
+
+        // 仿星器：31×29×9 外观多方块，模型原点在核心格底面中心，仅按 metadata 旋转
+        RenderStellarator stellaratorRenderer = new RenderStellarator();
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityStellarator.class, stellaratorRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.stellarator),
+                stellaratorRenderer.getRenderer());
+
+        // 等离子加热器：21×7×8 长条机器，模型原点在核心格底面中心
+        RenderPlasmaHeater plasmaHeaterRenderer = new RenderPlasmaHeater();
+        ClientRegistry.bindTileEntitySpecialRenderer(com.makentmgreatagain.tileentity.TileEntityPlasmaHeater.class, plasmaHeaterRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.plasma_heater),
+                plasmaHeaterRenderer.getRenderer());
+
+        // 超临界磁流体膨胀发电机：11×5×5 无 GUI 多方块
+        com.makentmgreatagain.client.RenderSupercriticalMHDGenerator mhdRenderer = new com.makentmgreatagain.client.RenderSupercriticalMHDGenerator();
+        ClientRegistry.bindTileEntitySpecialRenderer(com.makentmgreatagain.tileentity.TileEntitySupercriticalMHDGenerator.class, mhdRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.supercritical_mhd_generator),
+                mhdRenderer.getRenderer());
 
         // 海面立管钻机：7×7×16 平台井架
         RenderRiserRig riserRigRenderer = new RenderRiserRig();
@@ -430,6 +491,53 @@ public class ClientProxy extends CommonProxy {
             TileEntity te = world.getTileEntity(x, y, z);
             if(te instanceof com.makentmgreatagain.tileentity.TileEntityIndustrialGasTurbine) {
                 return new com.makentmgreatagain.gui.GUIIndustrialGasTurbine(player.inventory, (com.makentmgreatagain.tileentity.TileEntityIndustrialGasTurbine) te);
+            }
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_LARGE_THERMAL_POWER_STATION) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityLargeThermalPowerStation)
+                return new com.makentmgreatagain.gui.GUILargeThermalPowerStation(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityLargeThermalPowerStation) te);
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_STELLARATOR) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityStellarator) {
+                return new com.makentmgreatagain.gui.GUIStellarator(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityStellarator) te);
+            }
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_PLASMA_HEATER) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityPlasmaHeater) {
+                return new com.makentmgreatagain.gui.GUIPlasmaHeater(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityPlasmaHeater) te);
+            }
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_MACHINE_DRAIN) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityMachineDrain) {
+                return new com.makentmgreatagain.gui.GUIMachineDrain(
+                        (com.makentmgreatagain.tileentity.TileEntityMachineDrain) te);
+            }
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_XEN_FLUID_TRANSCEIVER) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityXenFluidTransceiver) {
+                return new com.makentmgreatagain.gui.GUIXenFluidTransceiver(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityXenFluidTransceiver) te);
+            }
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_XEN_ITEM_TRANSCEIVER) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver) {
+                return new com.makentmgreatagain.gui.GUIXenItemTransceiver(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver) te);
             }
         }
 

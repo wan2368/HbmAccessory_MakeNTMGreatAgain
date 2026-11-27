@@ -28,12 +28,12 @@ import net.minecraftforge.common.util.ForgeDirection;
 /**
  * 小型电解机核心。
  *
- * <p>2×2×3 多方块，四个底部插座全部接流体与电力：模型 +Z 面的两个是进料口（共用输入罐），
- * -Z 面的两个是出料口（两个输出罐各占一个，方便把氢、氧分开接走）。</p>
+ * <p>2×2×3 多方块，四个底部插座都可输入或输出流体，也都可输入电力。每个插座独立成网节点，
+ * 避免多位置端口把互不相连的外部管线桥接在一起；流体仍使用一个输入罐和两个输出罐。</p>
  *
  * <p>配方直接读 {@link ElectrolyserFluidRecipes#recipes}，每 tick 现查，
- * 所以 /ntmreload 之后原版与附属新增的电解配方立刻生效；只接受纯流体配方
- * （无物品副产、且两路输出都是流体），带物品或单流体输出的配方会被筛掉。
+ * 所以 /ntmreload 之后原版与附属新增的电解配方立刻生效；需要两路流体输出，
+ * 物品副产进入内部缓冲，单流体输出配方不适用。
  * 识别码只改输入罐类型。</p>
  *
  * <p>速度写在 {@link #speedMultiplier} 里：1.0 就是配方写的 duration，
@@ -100,7 +100,10 @@ public class TileEntityElectrolyzerReborn extends TileEntityMachineBase implemen
 		this.syncOutputTanks(recipe);
 
 		this.setupPorts();
-		this.updatePortPIFIFO();
+		this.configureFluidPorts(recipe);
+		this.updateAllPorts();
+		this.registerFluidPorts();
+		this.receivePower();
 
 		if(recipe != null && this.canProcess(recipe)) {
 			this.power -= this.getUsage();
@@ -148,13 +151,45 @@ public class TileEntityElectrolyzerReborn extends TileEntityMachineBase implemen
 		if(this.powerPorts != null) return;
 
 		PortDef[] ports = getPorts();
-
-		// 四个插座都能接电
 		this.setupPowerPorts(ports);
-		// 两个出料口各绑一个输出罐，管道才能把氢和氧分开
-		this.fluidOutPorts = TilePort.manyToMany(this, ports[0], ports[1]);
-		// 两个进料口共用输入罐
-		this.fluidInPorts = TilePort.oneToMany(this, 1, PortDef.combine(ports[2], ports[3]));
+		this.fluidInPorts = TilePort.manyToMany(this, ports);
+		this.fluidOutPorts = TilePort.manyToMany(this, ports);
+	}
+
+	protected void configureFluidPorts(ElectrolysisRecipe recipe) {
+
+		FluidType inputType = isFluidRecipe(recipe) && this.tanks[0].getFill() < this.tanks[0].getMaxFill()
+			? this.tanks[0].getTankType() : Fluids.NONE;
+		FluidTank[] outputs = this.getSendingTanks();
+		for(int i = 0; i < this.fluidInPorts.length; i++) {
+			FluidTank output = outputs[i % outputs.length];
+			FluidType outputType = output.getFill() > 0 || isFluidRecipe(recipe) ? output.getTankType() : Fluids.NONE;
+			boolean sameTypeCollision = inputType != Fluids.NONE && outputType == inputType;
+			FluidType portInputType = sameTypeCollision ? Fluids.NONE : inputType;
+			this.fluidInPorts[i].setupType(portInputType.getNetworkProvider());
+			this.fluidOutPorts[i].setupType(outputType.getNetworkProvider());
+		}
+	}
+
+	protected void registerFluidPorts() {
+		for(TilePort output : this.fluidOutPorts) {
+			if(!output.needsRebuild && output.getNetwork() != null) output.checkProvide(worldObj);
+		}
+		for(TilePort input : this.fluidInPorts) {
+			if(input.needsRebuild || input.getNetwork() == null) continue;
+			boolean sharesOutputNetwork = false;
+			for(TilePort output : this.fluidOutPorts) {
+				if(!output.needsRebuild && input.getNetwork() == output.getNetwork()) {
+					sharesOutputNetwork = true;
+					break;
+				}
+			}
+			if(sharesOutputNetwork) {
+				input.getNetwork().removeReceiver(this);
+				continue;
+			}
+			input.checkSubscribe(worldObj);
+		}
 	}
 
 	/* ---- 配方 ---- */
@@ -163,15 +198,14 @@ public class TileEntityElectrolyzerReborn extends TileEntityMachineBase implemen
 
 		ElectrolysisRecipe recipe = ElectrolyserFluidRecipes.getRecipe(this.tanks[0].getTankType());
 
-		// 这台机器只走纯流体流程：无固体副产，且必须有两路流体输出
-		return isFluidOnlyRecipe(recipe) ? recipe : null;
+		// 配方须有两路有效流体输出；物品副产由缓冲槽处理
+		return isFluidRecipe(recipe) ? recipe : null;
 	}
 
-	/** 筛掉带物品副产、以及只有一路流体输出的配方 */
-	public static boolean isFluidOnlyRecipe(ElectrolysisRecipe recipe) {
+	/** 仅接受两路有效流体输出的配方；副产受缓冲区容量约束 */
+	public static boolean isFluidRecipe(ElectrolysisRecipe recipe) {
 
 		if(recipe == null) return false;
-		if(recipe.byproduct != null && recipe.byproduct.length > 0) return false;
 		if(recipe.output1 == null || recipe.output1.type == Fluids.NONE || recipe.output1.fill <= 0) return false;
 		if(recipe.output2 == null || recipe.output2.type == Fluids.NONE || recipe.output2.fill <= 0) return false;
 
@@ -181,7 +215,7 @@ public class TileEntityElectrolyzerReborn extends TileEntityMachineBase implemen
 	/** 换配方：只动输入罐，旧产物留在输出罐里等管道抽走 */
 	public boolean setInputType(FluidType type) {
 
-		if(!isFluidOnlyRecipe(type == null ? null : ElectrolyserFluidRecipes.getRecipe(type))) return false;
+		if(!isFluidRecipe(type == null ? null : ElectrolyserFluidRecipes.getRecipe(type))) return false;
 
 		if(this.tanks[0].getTankType() != type) {
 			this.tanks[0].setTankType(type);
@@ -397,7 +431,7 @@ public class TileEntityElectrolyzerReborn extends TileEntityMachineBase implemen
 		return new FluidTank[] {this.tanks[0]};
 	}
 
-	/** 只有 ±rot 两个侧面是真正的流体与电力接口 */
+	/** 四个实体接口位于 ±rot 两侧；其连接方向由各自 PortDef 限定。 */
 	@Override
 	public boolean canConnect(FluidType type, ForgeDirection side) {
 		ForgeDirection dir = ForgeDirection.getOrientation(this.getBlockMetadata() - BlockDummyable.offset);

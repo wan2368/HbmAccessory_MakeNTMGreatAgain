@@ -31,6 +31,7 @@ import com.makentmgreatagain.world.AddonStructures;
 import com.makentmgreatagain.world.WorldGenCoreFissure;
 import com.makentmgreatagain.world.WorldGenDeepSeaNodule;
 import com.makentmgreatagain.world.WorldGenLeadZincOre;
+import com.makentmgreatagain.world.WorldGenXenCrystal;
 import com.makentmgreatagain.world.WorldGenRefractoryGoldOre;
 import com.makentmgreatagain.world.WorldGenSaltBlocks;
 import com.makentmgreatagain.world.WorldGenScheeliteOre;
@@ -76,7 +77,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 
     public static final String MODID = "makentmgreatagain";
     public static final String NAME = "Make NTM Great Again";
-    public static final String VERSION = "1.0.0-beta.8";
+    public static final String VERSION = "1.0.0";
 
     /** 统一用这个 logger 打日志，输出会带上模组名，比 System.out.println 好排查。 */
     public static final Logger LOG = LogManager.getLogger(NAME);
@@ -111,6 +112,18 @@ public class MakeNTMGreatAgain implements IGuiHandler {
     public static final int GUI_NUCLEAR_EXPLOSION_GENERATOR = 11;
     /** GUI ID：工业燃气轮机 */
     public static final int GUI_INDUSTRIAL_GAS_TURBINE = 12;
+    /** GUI ID：大型火力发电站 */
+    public static final int GUI_LARGE_THERMAL_POWER_STATION = 13;
+    /** GUI ID：仿星器 */
+    public static final int GUI_STELLARATOR = 15;
+    /** GUI ID：等离子加热器 */
+    public static final int GUI_PLASMA_HEATER = 16;
+    /** GUI ID：可调节排液管 */
+    public static final int GUI_MACHINE_DRAIN = 17;
+    /** GUI ID：流体传送器 */
+    public static final int GUI_XEN_FLUID_TRANSCEIVER = 18;
+    /** GUI ID：物品传送器 */
+    public static final int GUI_XEN_ITEM_TRANSCEIVER = 19;
 
     /** 让 Forge 把"打开 GUI"转发到本模组实例 */
     public void registerGuiHandler() {
@@ -204,6 +217,36 @@ public class MakeNTMGreatAgain implements IGuiHandler {
                         (com.makentmgreatagain.tileentity.TileEntityIndustrialGasTurbine) world.getTileEntity(x, y, z));
             }
         }
+        if(id == GUI_LARGE_THERMAL_POWER_STATION) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityLargeThermalPowerStation)
+                return new com.makentmgreatagain.container.ContainerLargeThermalPowerStation(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityLargeThermalPowerStation) world.getTileEntity(x, y, z));
+        }
+        if(id == GUI_STELLARATOR) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityStellarator)
+                return new com.makentmgreatagain.container.ContainerStellarator(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityStellarator) world.getTileEntity(x, y, z));
+        }
+        if(id == GUI_PLASMA_HEATER) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityPlasmaHeater)
+                return new com.makentmgreatagain.container.ContainerPlasmaHeater(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityPlasmaHeater) world.getTileEntity(x, y, z));
+        }
+        if(id == GUI_MACHINE_DRAIN) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityMachineDrain)
+                return new com.makentmgreatagain.container.ContainerMachineDrain(
+                        (com.makentmgreatagain.tileentity.TileEntityMachineDrain) world.getTileEntity(x, y, z));
+        }
+        if(id == GUI_XEN_FLUID_TRANSCEIVER) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityXenFluidTransceiver)
+                return new com.makentmgreatagain.container.ContainerXenFluidTransceiver(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityXenFluidTransceiver) world.getTileEntity(x, y, z));
+        }
+        if(id == GUI_XEN_ITEM_TRANSCEIVER) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver)
+                return new com.makentmgreatagain.container.ContainerXenItemTransceiver(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver) world.getTileEntity(x, y, z));
+        }
         return null;
     }
 
@@ -282,6 +325,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 		GameRegistry.registerWorldGenerator(new WorldGenDeepSeaNodule(), 0);
 		// 地核熔岩裂隙：仅下界，y=0 基岩层 3×3 一片 + 深岩盖层/岩丘，平均 100 区块一个
 		GameRegistry.registerWorldGenerator(new WorldGenCoreFissure(), 0);
+		// 稳定X晶体簇：仅末地，全世界共 8 个，根部必须贴末地石
+		GameRegistry.registerWorldGenerator(new WorldGenXenCrystal(), 0);
 
 		// 注册本模组 GUI 处理器（方块打开界面用）
 		registerGuiHandler();
@@ -320,9 +365,13 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModRecipes.addArsineCrackingRecipe();// 砷粒、液氢
 					ModRecipes.addDeepSeaPyroRecipes();// 碱熔砂、稀土熟料、铂粉
 				}
+				if(recipeClassName.equals("FusionRecipes")) {
+					com.makentmgreatagain.recipes.HydrogenFusion.addRecipe();// 氢-氢聚变
+				}
 				if(recipeClassName.equals("ChemicalPlantRecipes")) {
 					ModRecipes.addBaltFireRecipe();
 					ModRecipes.addAceticAcidRecipe();
+					ModRecipes.addSyntheticEthanolRecipes();// 工业合成乙醇：乙烯水合(简单)+合成气两步(难)
 					ModRecipes.addEthylAcetateRecipe();
 					ModRecipes.addPropyleneOxideRecipes();// 环氧丙烷、高性能溶剂、有机溶剂、冷却液、聚合物锭、硬质塑料锭
 					ModRecipes.addHeavyOilChemicalRecipes();// 润滑油、沥青、高纯炭黑
@@ -356,13 +405,14 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModRecipes.addLeadZincChemicalRecipes();
 					// 盐酸、硫酸钠
 					ModRecipes.addChlorAlkaliDechlorRecipe();
-					ModRecipes.addDeepSeaChemicalRecipes();// 尾氯化气、粗铂液、稀土母液、钴料液
+					ModRecipes.addDeepSeaChemicalRecipes();// 尾氯化气、粗铂液、钴料液
 					// ===== 原先只有兜底、缺监听的补齐（/ntmreload 重建后不再消失）=====
 					ModRecipes.addPetrochemDownstreamRecipes();// 石油下游9条（PU/电木/MTBE/高级燃料/N2O4二硝基/PUREX/生物柴油/苯胺/溶剂）
 					ModRecipes.addThiosulfateGoldRecipes();// 无氰浸金：硫代硫酸盐合成/浸出/置换/脱氯
 					ModRecipes.addCokerGasDownstreamRecipes();// 焦化气下游（大化工独占+热解石墨）
 					ModRecipes.addRubberBranchRecipes();// 胶体→生胶→橡胶锭
 					ModRecipes.addCalciumBranchRecipes();// 钙溶液→石灰石/石膏
+					ModRecipes.addPeekChemicalRecipes();// 氢氟酸、氟苯、PEEK 锭
 
 					// 等本体表和附属配方都补齐后，再重建大型机的配方表
 					LargeChemicalFactoryRecipes.invalidate();
@@ -383,10 +433,13 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				if(recipeClassName.equals("PUREXRecipes")) {
 					ModRecipes.addSeawaterPUREXRecipe();// 铀粉、硝酸
 					ModRecipes.addBismuthRecoveryRecipes();// 铋粒
-					ModRecipes.addDeepSeaPUREXRecipes();// 稀土母液、钍精矿
+					ModRecipes.addDeepSeaPUREXRecipes();// 钍精矿、混合稀土氢氧化物(直接沉淀)
 				}
 				if(recipeClassName.equals("FusionRecipes")) {
 					//ModRecipes.addFusionHelium3Recipe();// 氦-3（定义已注释停用，此处同步注释）
+				}
+				if(recipeClassName.equals("ParticleAcceleratorRecipes")) {
+					ModRecipes.addPositronAcceleratorRecipe();// 正电子：氢胶囊×2 低动量
 				}
 				if(recipeClassName.equals("SolidificationRecipes")) {
 					ModRecipes.addWaterToSnowballRecipe();
@@ -396,6 +449,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				if(recipeClassName.equals("MixerRecipes")) {
 					ModRecipes.addSaltWaterMixerRecipe();// 需要 dustSalt，没有就自动跳过
 					ModRecipes.addHCLMixerRecipe();
+					ModRecipes.addSyntheticEthanolMixerRecipes();// 乙烯水合/甲醇羰基化/乙酸加氢，与化工厂同配比
 					ModRecipes.addWoodMashMixerRecipe();// 木质浆料
 					ModRecipes.addCoreLineVanillaRecipes();// 地核线：原浆+盐酸→钴料液（幂等put）
 				}
@@ -404,6 +458,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModRecipes.addDeepSeaCrystallizerRecipes();// 钍晶体、钴晶体
 					ModRecipes.addMagicPowderRecipe();// 末影果汁+青金石→魔法粉
 					ModRecipes.addEnderBranchRecipe();// 末影果汁+末地石→末影珍珠
+					ModRecipes.addXenCrystalAcidRecipe();// 稳定X晶体+经验汁→人造X晶体
+					ModRecipes.addXenCrystalSILEXRecipe();// 稳定X晶体+可见光→概率分离
 				}
 				if(recipeClassName.equals("ShredderRecipes")) {
 					ModRecipes.addGraphiteShredderRecipe();
@@ -412,6 +468,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModRecipes.addSaltRedSandShredderRecipe();
 					ModRecipes.addSaltGravelShredderRecipe();// 盐粉
 					ModRecipes.addDeepSeaShredderRecipes();// 重砂混粉、稀土混粉、多金属混粉
+					ModRecipes.addPeekShredderRecipes();// PEEK 粉
 				}
 				if(recipeClassName.equals("CentrifugeRecipes")) {
 					ModRecipes.addSaltFromSandRecipe();
@@ -432,6 +489,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				}
 				if(recipeClassName.equals("AnnihilatorRecipes")) {
 					ModRecipes.addCoreLava528Annihilator(); // 528：烧1024铂锭得地核开采蓝图
+					ModRecipes.addStellarator528Annihilator(); // 528：烧1024反Sa326单元得仿星器&加热器蓝图
 				}
 			if(recipeClassName.equals("AssemblyMachineRecipes")) {
 				ModRecipes.addEnvironmentPumpAssemblyRecipe(); // 环境地下泵
@@ -439,6 +497,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				ModRecipes.addLargeCatalyticChemicalFactoryRecipe();   //大型化工
 				ModRecipes.addShredderAssemblyRecipe();   // 高级粉碎机
 				ModRecipes.addGasTurbineAssemblyRecipe(); // 工业燃气轮机
+				ModRecipes.addThermalStationAssemblyRecipe(); // 大型火力发电站
+				ModRecipes.addSupercriticalMHDAssemblyRecipe(); // 超临界磁流体膨胀发电机
 				ModRecipes.addBat9000AssemblyRecipe();    // 大型储罐
 				ModRecipes.addElectrolyzerRebornAssemblyRecipe(); // 小型电解机
 				ModRecipes.addHybridFractionTowerAssemblyRecipe(); // 混合催化分馏塔
@@ -455,6 +515,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				com.makentmgreatagain.init.ModCoatings.addRecipes(); // 五级机器覆层
 				ModRecipes.addBatteryCellAssemblyRecipes();        // 电池/电容元件
 				ModRecipes.addCoreLavaExtractorRecipe();           // 地核开采机（含528蓝图门槛）
+				ModRecipes.addStellaratorRecipe();                 // 仿星器（含528蓝图门槛）
+				ModRecipes.addPlasmaHeaterRecipe();                // 等离子加热器（共用528蓝图）
 				ModRecipes.addElectricBlastFurnaceRecipe();        // 电力高炉
 				}
 				// ===== 铂细线替代（金/铅细线 → 铂细线，产出翻倍，原配方保留）=====

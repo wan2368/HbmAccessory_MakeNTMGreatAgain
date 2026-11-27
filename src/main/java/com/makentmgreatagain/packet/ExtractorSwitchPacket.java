@@ -1,6 +1,7 @@
 package com.makentmgreatagain.packet;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import com.makentmgreatagain.tileentity.TileEntityCoreLavaExtractor;
 
@@ -26,16 +27,27 @@ import net.minecraft.world.World;
  */
 public class ExtractorSwitchPacket {
 
-	public static final ConcurrentLinkedQueue<Runnable> MAIN_THREAD_TASKS =
-			new ConcurrentLinkedQueue<Runnable>();
+	public static final int MAX_PENDING_TASKS = 256;
+	public static final int MAX_TASKS_PER_TICK = 32;
+	public static final BlockingQueue<Runnable> MAIN_THREAD_TASKS =
+			new ArrayBlockingQueue<Runnable>(MAX_PENDING_TASKS);
+
+	public static boolean schedule(Runnable task) {
+		return task != null && MAIN_THREAD_TASKS.offer(task);
+	}
 
 	/** 服务端 tick 泵：由 CommonProxy 注册到 FML 总线 */
 	public static class ServerTaskPump {
 		@SubscribeEvent
 		public void onServerTick(TickEvent.ServerTickEvent event) {
+			if(event.phase != TickEvent.Phase.END) return;
 			Runnable task;
-			while((task = MAIN_THREAD_TASKS.poll()) != null) {
-				task.run();
+			for(int i = 0; i < MAX_TASKS_PER_TICK && (task = MAIN_THREAD_TASKS.poll()) != null; i++) {
+				try {
+					task.run();
+				} catch(Throwable t) {
+					com.makentmgreatagain.MakeNTMGreatAgain.LOG.error("Queued machine packet task failed", t);
+				}
 			}
 		}
 	}
@@ -84,7 +96,7 @@ public class ExtractorSwitchPacket {
 			final EntityPlayer player = ctx.getServerHandler().playerEntity;
 			if(player == null) return null;
 
-			MAIN_THREAD_TASKS.add(new Runnable() {
+			schedule(new Runnable() {
 				@Override
 				public void run() {
 					World world = player.worldObj;

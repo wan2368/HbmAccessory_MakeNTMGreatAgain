@@ -29,7 +29,7 @@ import net.minecraft.nbt.NBTTagCompound;
  *   <li><b>同种物品累加、共用一份</b>：同 item + 同 meta + 同 NBT 视为同种；</li>
  *   <li>同种流体累加 mB（压力不同视为不同种，避免带压与不带压混在一起）；</li>
  *   <li>输出同样按种类累加；</li>
- *   <li><b>耗时取各配方最大值</b>（最慢的决定整组），<b>耗电取合计</b>（5 个一起做，电费按总量收）。</li>
+ *   <li><b>耗时与耗电取各配方相加后的中间值</b>（合计 ÷ 配方数量，整数截断），不与数量相乘。</li>
  * </ul>
  *
  * <h2>不会串味</h2>
@@ -78,7 +78,7 @@ public final class MergedRecipe {
 			// 这类配方在 MF 下一律跳过（选择器也会拦下不让选）。
 			if(recipe instanceof SolidFuelRecipe) continue;
 
-			// 耗时与耗电都先累加，最后统一乘配方数量
+			// 耗时与耗电先累加，最后除以配方数量取中间值（整数截断）
 			duration += recipe.duration;
 			power += recipe.power;
 
@@ -120,10 +120,11 @@ public final class MergedRecipe {
 		// 否则模块会判「输入充足」而凭空产出（固体燃料那类无清单配方就会这样）。
 		if(inItems.isEmpty() && inFluids.isEmpty()) return null;
 
-		// 整条产线：耗时与耗电都是「各配方合计 × 配方数量」
+		// 整条产线：耗时与耗电都是「各配方相加后取中间值」= 合计 ÷ 配方数量，
+		// 整数截断不含小数点；不再与配方数量相乘
 		int count = picked.size();
 		MergedHeatRecipe merged = new MergedHeatRecipe(NAME, heat, catalyst, picked);
-		merged.setup(Math.max(1, duration * count), power * count);
+		merged.setup(Math.max(1, duration / count), power / count);
 		merged.inputItem = inItems.toArray(new AStack[inItems.size()]);
 		merged.inputFluid = inFluids.toArray(new FluidStack[inFluids.size()]);
 		merged.outputItem = outItems.toArray(new IOutput[outItems.size()]);
@@ -146,7 +147,7 @@ public final class MergedRecipe {
 			Object obj = set.recipeNameMap.get(name);
 			if(!(obj instanceof GenericRecipe)) continue;
 
-			// 去重兜底：同一配方只算一次，避免耗时耗电被重复项放大
+			// 去重兜底：同一配方只算一次，避免重复项抬高合计与数量
 			boolean dup = false;
 			for(GenericRecipe exist : picked) {
 				if(exist.getInternalName().equals(name)) { dup = true; break; }

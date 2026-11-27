@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.hbm.blocks.BlockEnums.EnumMeteorType;
+import com.hbm.blocks.IMeteorProof;
 import com.hbm.blocks.ModBlocks;
 import com.hbm.config.WorldConfig;
 import com.hbm.explosion.ExplosionLarge;
@@ -696,6 +697,7 @@ public class Meteorite {
 
 	private void setBlock(World world, int x, int y, int z, Block b, int meta, int flag) {
 		Block target = world.getBlock(x, y, z);
+		if(target instanceof IMeteorProof) return;
 
 		if(safeMode) {
 			if(!target.isReplaceable(world, x, y, z) && !replacables.contains(target)) return;

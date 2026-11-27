@@ -1,6 +1,7 @@
 package com.makentmgreatagain.tileentity;
 
 import com.hbm.blocks.ModBlocks;
+import com.hbm.interfaces.IControlReceiver;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
@@ -21,6 +22,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MovingObjectPosition;
@@ -37,19 +39,64 @@ import net.minecraftforge.common.util.ForgeDirection;
  * <p>接口规则与本体一致：{@link #canConnect} 拒绝顶面和底面，四个侧面都能接。
  * 液体特效的发射点改在方块正底部中心（原版是凸出排口的位置）。</p>
  */
-public class TileEntityMachineDrain extends TileEntityLoadedBase implements IFluidStandardReceiverMK2, IBufPacketReceiver {
+public class TileEntityMachineDrain extends TileEntityLoadedBase implements IFluidStandardReceiverMK2, IBufPacketReceiver, IControlReceiver {
 
 	/** 默认罐容量（钢制）；钨制方块会传入 2,000 */
 	public static final int CAPACITY = 1_000;
 
 	public FluidTank tank;
 
+	/** 可控流量配置：maxFlow <= 0 表示普通不可调排液管 */
+	public int minFlow;
+	public int maxFlow;
+	public int flowLimit;
+
 	public TileEntityMachineDrain() {
-		this(CAPACITY);
+		this(CAPACITY, 0, 0);
 	}
 
 	public TileEntityMachineDrain(int capacity) {
+		this(capacity, 0, 0);
+	}
+
+	public TileEntityMachineDrain(int capacity, int minFlow, int maxFlow) {
 		this.tank = new FluidTank(Fluids.NONE, capacity);
+		this.minFlow = minFlow;
+		this.maxFlow = maxFlow;
+		this.flowLimit = maxFlow > 0 ? maxFlow : 0;
+	}
+
+	public boolean isAdjustable() {
+		return this.maxFlow > 0;
+	}
+
+	/**
+	 * 调整排液上限：1~10 mB/t 按 1 mB 步进，10 以上按 10 mB 步进，到边界循环回绕。
+	 */
+	public int cycleFlow(boolean decrease) {
+		if(!isAdjustable()) return 0;
+		int cur = Math.max(this.minFlow, Math.min(this.maxFlow, this.flowLimit));
+		int next;
+		if(!decrease) {
+			if(cur >= this.maxFlow) {
+				next = this.minFlow;
+			} else if(cur < 10) {
+				next = cur + 1;
+			} else {
+				next = ((cur / 10) + 1) * 10;
+			}
+		} else {
+			if(cur <= this.minFlow) {
+				next = this.maxFlow;
+			} else if(cur <= 10) {
+				next = cur - 1;
+			} else {
+				next = ((cur - 1) / 10) * 10;
+			}
+		}
+		this.flowLimit = Math.max(this.minFlow, Math.min(this.maxFlow, next));
+		this.markChanged();
+		return this.flowLimit;
 	}
 
 	@Override
@@ -69,7 +116,9 @@ public class TileEntityMachineDrain extends TileEntityLoadedBase implements IFlu
 					return;
 				}
 
-				int toSpill = Math.max(tank.getFill() / 2, 1);
+				int toSpill = this.isAdjustable()
+						? Math.min(tank.getFill(), Math.max(this.minFlow, Math.min(this.maxFlow, this.flowLimit)))
+						: Math.max(tank.getFill() / 2, 1);
 				tank.setFill(tank.getFill() - toSpill);
 				FluidTrait.onRelease(worldObj, xCoord, yCoord, zCoord, tank.getTankType(), tank, FluidReleaseType.SPILL, toSpill);
 				this.markChanged();
@@ -171,20 +220,64 @@ public class TileEntityMachineDrain extends TileEntityLoadedBase implements IFlu
 	public void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
 		this.tank.readFromNBT(nbt, "t");
+		this.minFlow = nbt.getInteger("minFlow");
+		this.maxFlow = nbt.getInteger("maxFlow");
+		this.flowLimit = nbt.getInteger("flowLimit");
+		if(this.maxFlow > 0) {
+			this.flowLimit = Math.max(this.minFlow, Math.min(this.maxFlow, this.flowLimit));
+		}
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbt) {
 		super.writeToNBT(nbt);
 		this.tank.writeToNBT(nbt, "t");
+		nbt.setInteger("minFlow", this.minFlow);
+		nbt.setInteger("maxFlow", this.maxFlow);
+		nbt.setInteger("flowLimit", this.flowLimit);
 	}
 
-	@Override public void serialize(ByteBuf buf) { tank.serialize(buf); }
-	@Override public void deserialize(ByteBuf buf) { tank.deserialize(buf); }
+	@Override
+	public void serialize(ByteBuf buf) {
+		tank.serialize(buf);
+		buf.writeInt(this.minFlow);
+		buf.writeInt(this.maxFlow);
+		buf.writeInt(this.flowLimit);
+	}
+
+	@Override
+	public void deserialize(ByteBuf buf) {
+		tank.deserialize(buf);
+		this.minFlow = buf.readInt();
+		this.maxFlow = buf.readInt();
+		this.flowLimit = buf.readInt();
+	}
 
 	@Override public FluidTank[] getAllTanks() { return new FluidTank[] {tank}; }
 	@Override public FluidTank[] getReceivingTanks() { return new FluidTank[] {tank}; }
 	@Override public ConnectionPriority getFluidPriority() { return ConnectionPriority.LOW; }
+
+	@Override
+	public boolean hasPermission(EntityPlayer player) {
+		return this.worldObj != null
+				&& this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) == this
+				&& player.getDistanceSq(this.xCoord + 0.5D, this.yCoord + 0.5D, this.zCoord + 0.5D) <= 64.0D;
+	}
+
+	@Override
+	public void receiveControl(EntityPlayer player, NBTTagCompound data) {
+		if(!this.isAdjustable()) return;
+		if(data.hasKey("flow")) {
+			int f = data.getInteger("flow");
+			this.flowLimit = Math.max(this.minFlow, Math.min(this.maxFlow, f));
+			this.markChanged();
+		}
+		if(data.hasKey("pressure")) {
+			int pu = Math.max(0, Math.min(5, data.getInteger("pressure")));
+			this.tank.withPressure(pu);
+			this.markChanged();
+		}
+	}
 
 	@Override
 	public boolean canConnect(FluidType type, ForgeDirection dir) {

@@ -847,13 +847,12 @@ public class ModuleLargeChemicalFactory extends ModuleMachineBase {
 			return false;
 		}
 
-		int fuelCap = totalFuel > 0
-				? capacityFor(baseOutput, GROUPS, new ItemStack(com.hbm.items.ModItems.solid_fuel)) : Integer.MAX_VALUE;
-		int ashCap = totalAsh > 0
-				? capacityFor(baseOutput, GROUPS, SolidFuelRecipe.ash(1)) : Integer.MAX_VALUE;
-
-		// 装不下就按罐整份缩减（每罐要么全做要么不做），直到全部装得下
-		while(totalFuel > fuelCap || totalAsh > ashCap) {
+		// 装不下就按罐整份缩减（每罐要么全做要么不做），直到燃料 + 灰烬合起来装得下。
+		//
+		// 这里必须把燃料和灰烬放进同一批输出槽一起模拟：它们共用 baseOutput 起的那 8 格，
+		// 若分别算「燃料装得下」和「灰烬装得下」，两个条件会同时成立、合起来却溢出，
+		// 多出来的部分被 insertStackAllOutputs 的 break 静默丢掉（正是离心机那个坑）。
+		while(!fitsSolidFuelOutput(totalFuel, totalAsh)) {
 			int victim = -1;
 			int best = 0;
 			for(int t = 0; t < GROUPS; t++) {
@@ -897,17 +896,29 @@ public class ModuleLargeChemicalFactory extends ModuleMachineBase {
 		}
 	}
 
-	/** 输出槽是否装得下本轮的燃料 + 灰烬 */
+	/** 输出槽是否装得下本轮的燃料 + 灰烬（共用同一批输出槽，必须合起来算） */
 	private boolean canFitOutputSolidFuel() {
+		return fitsSolidFuelOutput(sfTotalFuel, sfTotalAsh);
+	}
 
-		if(sfTotalFuel > 0) {
-			ItemStack fuelStack = new ItemStack(com.hbm.items.ModItems.solid_fuel);
-			if(capacityFor(baseOutput, GROUPS, fuelStack) < sfTotalFuel) return false;
+	/**
+	 * 在输出槽快照上按真实写入顺序（produceItemSolidFuel：先燃料、后灰烬）模拟塞一遍，
+	 * 两种产物全部塞得下才返回 true。分别校验会导致「各自都装得下、合起来溢出」→ 灰烬被吞。
+	 */
+	private boolean fitsSolidFuelOutput(int fuel, int ash) {
+
+		if(fuel <= 0 && ash <= 0) return true;
+
+		int count = GROUPS * OUTPUT_SLOTS;
+		ItemStack[] sim = new ItemStack[count];
+		for(int i = 0; i < count; i++) {
+			ItemStack s = slots[baseOutput + i];
+			sim[i] = s == null ? null : s.copy();
 		}
-		if(sfTotalAsh > 0) {
-			ItemStack ashStack = SolidFuelRecipe.ash(1);
-			if(capacityFor(baseOutput, GROUPS, ashStack) < sfTotalAsh) return false;
-		}
+
+		if(fuel > 0 && !insertSim(sim, new ItemStack(com.hbm.items.ModItems.solid_fuel), fuel)) return false;
+		if(ash > 0 && !insertSim(sim, SolidFuelRecipe.ash(1), ash)) return false;
+
 		return true;
 	}
 

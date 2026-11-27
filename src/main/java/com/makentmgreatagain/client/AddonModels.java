@@ -232,6 +232,14 @@ public class AddonModels {
 	public static final ResourceLocation drain_tungsten_tex =
 			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/drain_tungsten.png");
 
+	/** 可调节钢排液管：顶面加装红铜调节阀 */
+	public static final ResourceLocation drain_adjustable_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/drain_adjustable.png");
+
+	/** 可调节钨排液管：顶面加装红铜调节阀 */
+	public static final ResourceLocation drain_adjustable_tungsten_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/drain_adjustable_tungsten.png");
+
 	private static IModelCustom drain = null;
 
 	public static IModelCustom drainModel() {
@@ -281,6 +289,32 @@ public class AddonModels {
 		return industrialGasTurbine;
 	}
 
+	/** 大型火力发电站：6×4×5，3 格厂房 + 2 格烟囱，256×256 图集 */
+	public static final ResourceLocation large_thermal_power_station_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/large_thermal_power_station.png");
+
+	private static IModelCustom largeThermalPowerStation = null;
+
+	public static IModelCustom largeThermalPowerStationModel() {
+		if(largeThermalPowerStation == null) {
+			largeThermalPowerStation = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/large_thermal_power_station.obj")).asVBO();
+		}
+		return largeThermalPowerStation;
+	}
+
+	/** 仿星器：31×29×9，模型 X ±14.89、Z ±13.94、高 8.806，512×512 烘焙图集 */
+	public static final ResourceLocation stellarator_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/stellarator.png");
+
+	private static IModelCustom stellarator = null;
+
+	public static IModelCustom stellaratorModel() {
+		if(stellarator == null) {
+			stellarator = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/stellarator.obj")).asVBO();
+		}
+		return stellarator;
+	}
+
 	/** 电力高炉：5×5×7，炉基 → 炉缸 → 炉腹 → 炉身收分 → 炉喉 → 顶盖平台 + 上料钟 */
 	public static final ResourceLocation electric_blast_furnace_tex =
 			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/electric_blast_furnace.png");
@@ -292,5 +326,50 @@ public class AddonModels {
 			electricBlastFurnace = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/electric_blast_furnace.obj")).asVBO();
 		}
 		return electricBlastFurnace;
+	}
+
+	/** 等离子加热器：21×7×8 长条机器，模型原点在核心格底面中心、长轴在 +X、桶管朝 -X */
+	public static final ResourceLocation plasma_heater_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/plasma_heater.png");
+
+	private static IModelCustom plasmaHeater = null;
+
+	public static IModelCustom plasmaHeaterModel() {
+		if(plasmaHeater == null) {
+			plasmaHeater = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/plasma_heater.obj")).asVBO();
+		}
+		return plasmaHeater;
+	}
+
+	/** 超临界磁流体膨胀发电机：11×5×5 无 GUI 多方块 */
+	public static final ResourceLocation supercritical_mhd_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/supercritical_mhd_generator.png");
+
+	private static IModelCustom supercriticalMhd = null;
+
+	public static IModelCustom supercriticalMhdModel() {
+		if(supercriticalMhd == null) {
+			supercriticalMhd = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/supercritical_mhd_generator.obj")).asVBO();
+		}
+		return supercriticalMhd;
+	}
+
+	/** 流体传送器 / 物品传送器：1×1×1 单方块，参考 EIO 空间传送器外框 + 中心悬浮棱面晶体（含超频贴图变体） */
+	public static final ResourceLocation xen_fluid_transceiver_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/xen_fluid_transceiver.png");
+	public static final ResourceLocation xen_fluid_transceiver_overclock_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/xen_fluid_transceiver_overclock.png");
+	public static final ResourceLocation xen_item_transceiver_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/xen_item_transceiver.png");
+	public static final ResourceLocation xen_item_transceiver_overclock_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/xen_item_transceiver_overclock.png");
+
+	private static IModelCustom xenTransceiver = null;
+
+	public static IModelCustom xenTransceiverModel() {
+		if(xenTransceiver == null) {
+			xenTransceiver = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/xen_transceiver.obj")).asVBO();
+		}
+		return xenTransceiver;
 	}
 }

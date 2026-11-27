@@ -32,7 +32,16 @@ import net.minecraftforge.common.util.ForgeDirection;
  * 所以这里只实现 {@code onBlockActivated}，不挂 {@code IGUIProvider}。</p>
  */
 public class BlockWirelessStation extends BlockContainer {
-	private static String formatEnergyM(long value) { return ((value + 500_000L) / 1_000_000L) + " m"; }
+	/**
+	 * 一律用带千分位的完整数字。
+	 *
+	 * <p>不要用 {@code m}（百万）缩写：HBM 的单位里 {@code m} 与「毫」在中文语境下
+	 * 容易误读，而这里的量级（万级到十万级）用缩写反而看不出真实差距——
+	 * 50,000 与 5,000,000 会分别显示成 0 m 与 5.0 m，看起来像同一量级。</p>
+	 */
+	private static String formatEnergy(long value) {
+		return String.format("%,d", value);
+	}
 
 	/** 附属自己的渲染 ID，与 HBM 的方块渲染器完全分开。 */
 	public static final int RENDER_ID = RenderingRegistry.getNextAvailableRenderId();
@@ -143,17 +152,17 @@ public class BlockWirelessStation extends BlockContainer {
 
 		player.addChatMessage(new ChatComponentText(
 			EnumChatFormatting.GRAY + "缓冲：" + EnumChatFormatting.WHITE
-			+ formatEnergyM(station.power) + EnumChatFormatting.GRAY + " / "
-			+ formatEnergyM(TileEntityWirelessStation.BUFFER) + " HE"));
+			+ formatEnergy(station.power) + EnumChatFormatting.GRAY + " / "
+			+ formatEnergy(TileEntityWirelessStation.BUFFER) + " HE"));
 
 		// 只有仍在余辉窗口内，lastMoved 才是最近的合计输出；否则按 0 显示
 		long output = station.getLampState() == 2 ? station.lastMoved : 0L;
 
 		player.addChatMessage(new ChatComponentText(
 			EnumChatFormatting.GRAY + "输出：" + EnumChatFormatting.WHITE
-			+ formatEnergyM(output) + EnumChatFormatting.GRAY
+			+ formatEnergy(output) + EnumChatFormatting.GRAY
 			+ " HE/t（合计；单人上限 "
-			+ formatEnergyM(TileEntityWirelessStation.PLAYER_LIMIT) + "）"));
+			+ formatEnergy(TileEntityWirelessStation.PLAYER_LIMIT) + "）"));
 
 		String state;
 		if(station.getLampState() == 2) {

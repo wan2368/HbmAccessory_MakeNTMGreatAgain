@@ -1,0 +1,21 @@
+{
+	"name": "Plasma Heater",
+	"icon": [
+		"makentmgreatagain:plasma_heater",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:plasma_heater"
+		]
+	],
+	"title": {
+		"en_US": "Plasma Heater",
+		"zh_CN": "等离子加热器"
+	},
+	"content": {
+		"en_US": "Plasma generator and injector for the [[Stellarator|Stellarator]]. Place it so its front muzzle extends into the Stellarator's inner ring cavity to dock and auto-inject plasma.<br><br>Select a fusion recipe at the bottom of the GUI and supply the left/right input fluids and power. Insert a blueprint if required by the recipe.<br><br>Only speed (+50% conversion/level) and power-saving (-15% power/level) upgrades are supported. The Stellarator only accepts a recipe switch when its plasma tank is empty.",
+		"zh_CN": "[[仿星器|Stellarator]]的等离子体发生器与注入口。放置时需将前端炮口伸入仿星器圆环内空腔，才能建立对接并自动注入等离子体。<br><br>在界面底部选择聚变配方并供入左右两罐对应原料与电力即可制备等离子体；若配方需要蓝图，请先放入蓝图槽。<br><br>升级插件仅支持速度（每级 +50% 转化量）与节能（每级 -15% 耗电）。仿星器仅在等离子罐为空时接收新配方切换。"
+	}
+}

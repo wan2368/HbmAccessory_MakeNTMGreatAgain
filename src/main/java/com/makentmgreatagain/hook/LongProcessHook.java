@@ -33,7 +33,7 @@ public final class LongProcessHook {
      * @param stackObj 实际是 ItemStack，即这处基岩矿将要产出的东西
      */
     public static boolean allowBedrockOre(Object worldObj, Object stackObj) {
-        if (!GlobalConfig.longProcessMode) return true;
+        if (!GlobalConfig.longProcessMode && !com.hbm.config.GeneralConfig.enable528) return true;
         boolean ice = isPackedIce(stackObj);
         diag(stackObj, worldObj, ice);
         return ice;

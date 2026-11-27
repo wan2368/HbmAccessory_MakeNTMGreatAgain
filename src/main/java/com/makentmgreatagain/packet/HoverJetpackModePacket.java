@@ -3,7 +3,8 @@ package com.makentmgreatagain.packet;
 import com.hbm.handler.ArmorModHandler;
 import com.makentmgreatagain.items.ItemHoverJetPack;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
@@ -29,16 +30,27 @@ import net.minecraft.util.EnumChatFormatting;
 public class HoverJetpackModePacket {
 
 	/** netty 线程投递、服务端主线程执行的任务队列 */
-	private static final ConcurrentLinkedQueue<Runnable> MAIN_THREAD_TASKS =
-			new ConcurrentLinkedQueue<Runnable>();
+	private static final int MAX_PENDING_TASKS = 256;
+	private static final int MAX_TASKS_PER_TICK = 32;
+	private static final BlockingQueue<Runnable> MAIN_THREAD_TASKS =
+			new ArrayBlockingQueue<Runnable>(MAX_PENDING_TASKS);
+
+	private static boolean schedule(Runnable task) {
+		return task != null && MAIN_THREAD_TASKS.offer(task);
+	}
 
 	/** 服务端 tick 泵：把队列里的任务搬回主线程执行。由 CommonProxy 注册到 FML 总线。 */
 	public static class ServerTaskPump {
 		@cpw.mods.fml.common.eventhandler.SubscribeEvent
 		public void onServerTick(TickEvent.ServerTickEvent event) {
+			if(event.phase != TickEvent.Phase.END) return;
 			Runnable task;
-			while((task = MAIN_THREAD_TASKS.poll()) != null) {
-				task.run();
+			for(int i = 0; i < MAX_TASKS_PER_TICK && (task = MAIN_THREAD_TASKS.poll()) != null; i++) {
+				try {
+					task.run();
+				} catch(Throwable t) {
+					com.makentmgreatagain.MakeNTMGreatAgain.LOG.error("Queued jetpack packet task failed", t);
+				}
 			}
 		}
 	}
@@ -76,7 +88,7 @@ public class HoverJetpackModePacket {
 			if (player == null) return null;
 
 			// 包体工作体：入队，由 ServerTaskPump 在服务端主线程执行
-			MAIN_THREAD_TASKS.add(new Runnable() {
+			schedule(new Runnable() {
 				@Override
 				public void run() {
 					int mode = applyToggle(player);

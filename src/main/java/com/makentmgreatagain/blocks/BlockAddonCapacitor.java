@@ -104,7 +104,7 @@ public class BlockAddonCapacitor extends Block implements ITooltipProvider, IBat
         if (spec.capacity > 0L) {
             list.add(EnumChatFormatting.GOLD + "电容值: " + BobMathUtil.getShortNumber(spec.capacity) + " HE");
             list.add(EnumChatFormatting.AQUA + "单块提速：充电 ×" + spec.chargeMult + " / 放电 ×" + spec.dischargeMult);
-            list.add(EnumChatFormatting.GRAY + "可堆叠，同级相加；放电提速高于充电。");
+            list.add(EnumChatFormatting.GRAY + "可堆叠，同级相加。");
         } else {
             list.add(EnumChatFormatting.GOLD + "电容值: 无（方向连接件）");
             list.add(EnumChatFormatting.GRAY + "不提供提速，仅作连接/装饰件。");

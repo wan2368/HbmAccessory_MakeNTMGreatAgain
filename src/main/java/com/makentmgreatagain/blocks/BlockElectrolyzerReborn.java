@@ -29,7 +29,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 /**
  * 小型电解机：2×2×3 多方块，不做 GUI。
  *
- * <p>四个底部插座都是流体 / 电力口：模型 +Z 侧两个进料，-Z 侧两个出料。</p>
+ * <p>四个底部插座都是流体 / 电力口：四个接口都可输入或输出流体，也都可输入电力。</p>
  */
 public class BlockElectrolyzerReborn extends BlockDummyable implements ILookOverlay, ITooltipProvider {
 

@@ -1,0 +1,21 @@
+{
+	"name": "Stellarator",
+	"icon": [
+		"makentmgreatagain:stellarator",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:stellarator"
+		]
+	],
+	"title": {
+		"en_US": "Stellarator",
+		"zh_CN": "仿星器"
+	},
+	"content": {
+		"en_US": "31x31x9 advanced fusion multiblock. It cannot select recipes or make plasma on its own; dock a [[Plasma Heater|Plasma Heater]] with its muzzle inside the inner ring cavity to inject plasma and sync the recipe.<br><br>10 ports in total (at the core's top/bottom center and ±2 offsets) accept power, fluids, and items.<br><br>Requires at least 64,000 mB of plasma to ignite, then consumes confinement power and cooling water (1,000 TU: 100 mB Water -> 10 mB Supercritical Steam; 64,000 mB base tank + 32,000 mB/tier) to output products and supercritical steam.<br><br>Accumulated neutron flux drives breeding: item breeding takes priority, otherwise the breeding fluid selected by the fluid identifier is transmuted. Stops if water runs out or steam is full.",
+		"zh_CN": "31x31x9 高阶核聚变多方块。本身不选配方也不制取等离子体，需由[[等离子加热器|Plasma Heater]]将炮口伸入环内空腔注入等离子体并同步配方。<br><br>接口共 10 个（核心顶/底面中心与 ±2 格处），可接入电力、流体与物品。<br><br>点火前等离子罐至少需攒够 64,000 mB 才会开机，并持续消耗约束电力与冷却水（1,000 TU：100 mB 水 → 10 mB 超临界蒸汽；基础水容 64,000 mB，每级 +32,000 mB），产出流体、物品与超临界蒸汽。<br><br>中子通量会累积用于增殖：优先处理增殖物品，否则处理流体识别码指定的增殖流体。水不足或蒸汽罐满时会停机。"
+	}
+}

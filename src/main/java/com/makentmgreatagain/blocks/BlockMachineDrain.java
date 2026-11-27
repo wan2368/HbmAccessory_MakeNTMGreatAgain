@@ -7,7 +7,10 @@ import com.hbm.blocks.ILookOverlay;
 import com.hbm.inventory.fluid.FluidType;
 import com.hbm.items.machine.IItemFluidIdentifier;
 import com.hbm.util.i18n.I18nUtil;
+import com.makentmgreatagain.MakeNTMGreatAgain;
 import com.makentmgreatagain.tileentity.TileEntityMachineDrain;
+
+import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -33,19 +36,28 @@ public class BlockMachineDrain extends BlockContainer implements ILookOverlay {
 
 	/** 罐容量：钢制 1,000，钨制 2,000 */
 	protected final int capacity;
+	/** 可控流量范围：maxFlow <= 0 表示不可调 */
+	protected final int minFlow;
+	protected final int maxFlow;
 
 	public BlockMachineDrain() {
-		this(1000);
+		this(1000, 0, 0);
 	}
 
 	public BlockMachineDrain(int capacity) {
+		this(capacity, 0, 0);
+	}
+
+	public BlockMachineDrain(int capacity, int minFlow, int maxFlow) {
 		super(Material.iron);
 		this.capacity = capacity;
+		this.minFlow = minFlow;
+		this.maxFlow = maxFlow;
 	}
 
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta) {
-		return new TileEntityMachineDrain(capacity);
+		return new TileEntityMachineDrain(capacity, minFlow, maxFlow);
 	}
 
 	// 模型完全由 TESR 绘制，方块本身不可见（与 BlockDummyable 一致）
@@ -56,15 +68,13 @@ public class BlockMachineDrain extends BlockContainer implements ILookOverlay {
 	@Override
 	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
 
-		if(!world.isRemote && !player.isSneaking()) {
+		if(!world.isRemote) {
 
-			if(player.getHeldItem() != null && player.getHeldItem().getItem() instanceof IItemFluidIdentifier) {
+			TileEntity te = world.getTileEntity(x, y, z);
+			if(!(te instanceof TileEntityMachineDrain)) return false;
+			TileEntityMachineDrain drain = (TileEntityMachineDrain) te;
 
-				TileEntity te = world.getTileEntity(x, y, z);
-				if(!(te instanceof TileEntityMachineDrain)) return false;
-
-				TileEntityMachineDrain drain = (TileEntityMachineDrain) te;
-
+			if(!player.isSneaking() && player.getHeldItem() != null && player.getHeldItem().getItem() instanceof IItemFluidIdentifier) {
 				FluidType type = ((IItemFluidIdentifier) player.getHeldItem().getItem()).getType(world, x, y, z, player.getHeldItem());
 				drain.tank.setTankType(type);
 				drain.markDirty();
@@ -72,13 +82,18 @@ public class BlockMachineDrain extends BlockContainer implements ILookOverlay {
 						.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.YELLOW))
 						.appendSibling(new ChatComponentTranslation(type.getConditionalName()))
 						.appendSibling(new ChatComponentText("!")));
-
 				return true;
 			}
+
+			if(drain.isAdjustable() && !player.isSneaking()) {
+				FMLNetworkHandler.openGui(player, MakeNTMGreatAgain.instance, MakeNTMGreatAgain.GUI_MACHINE_DRAIN, world, x, y, z);
+				return true;
+			}
+
 			return false;
 
 		} else {
-			return true;
+			return !player.isSneaking();
 		}
 	}
 
@@ -92,6 +107,11 @@ public class BlockMachineDrain extends BlockContainer implements ILookOverlay {
 		List<String> text = new ArrayList();
 		text.add(EnumChatFormatting.GREEN + "-> " + EnumChatFormatting.RESET + drain.tank.getTankType().getLocalizedName()
 				+ ": " + drain.tank.getFill() + "/" + drain.tank.getMaxFill() + "mB");
+		if(drain.isAdjustable()) {
+			text.add(EnumChatFormatting.AQUA + "流量上限: " + EnumChatFormatting.YELLOW + drain.flowLimit + " mB/t"
+					+ EnumChatFormatting.GRAY + " (" + drain.minFlow + "~" + drain.maxFlow + ")  "
+					+ EnumChatFormatting.AQUA + "压强: " + EnumChatFormatting.YELLOW + drain.tank.getPressure() + " PU");
+		}
 		ILookOverlay.printGeneric(event, I18nUtil.resolveKey(getUnlocalizedName() + ".name"), 0xffff00, 0x404000, text);
 	}
 }

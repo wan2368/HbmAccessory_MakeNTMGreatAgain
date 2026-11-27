@@ -5,6 +5,8 @@ import java.io.File;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.hbm.config.GeneralConfig;
+
 import net.minecraftforge.common.config.Configuration;
 
 /**
@@ -24,28 +26,32 @@ public final class GlobalConfig {
 
     private static final String CAT_GAMEPLAY = "gameplay";
     private static final String CAT_UPDATE = "update";
+    private static final String CAT_DEBUG = "debug";
 
     /** 默认值唯一出处。改默认值时注意同步字段初始值（同一个常量，不会脱节）。 */
     public static final boolean DEF_LONG_PROCESS_MODE = false;
     /** 默认值唯一出处。 */
     public static final boolean DEF_PRESERVE_CONFIG_ON_UPDATE = false;
+    /** 日落六号测试模式默认值。 */
+    public static final boolean DEF_SUNSET_SIX_TEST_MODE = false;
+    /** 日落六号测试模式底座高度默认值。 */
+    public static final int DEF_SUNSET_SIX_TEST_BASE_Y = 2;
 
     /**
      * 长流程模式。
      * 开启后所有维度不再自然生成基岩矿石（浮冰基岩矿除外）；默认关。
-     * 判定入口是 {@code LongProcessHook.allowBedrockOre}，由 coremod 注入到
-     * {@code BedrockOre} 的放置点上；关掉时那个方法直接返回 true，等于不干预。
      */
     public static boolean longProcessMode = DEF_LONG_PROCESS_MODE;
 
     /**
      * 配置保护开关（世界生成配置 worldgen.cfg 专用）。
-     * <p>true：附属更新后，如果 worldgen.cfg 相对上一版「只有新增键」（旧键没删、
-     * 默认值没变），就保留玩家手调值，新键自动补进文件。</p>
-     * <p>false（默认）：附属更新升版本 → worldgen.cfg 整份重建，全部回模组新默认
-     * （旧文件备份成 .bak）。</p>
      */
     public static boolean preserveConfigOnUpdate = DEF_PRESERVE_CONFIG_ON_UPDATE;
+
+    /** 日落六号测试模式：固定刷在 (0,0) 并跳过岩浆深度校验。 */
+    public static boolean structureSunsetSixTestMode = DEF_SUNSET_SIX_TEST_MODE;
+    /** 日落六号测试模式底座高度。 */
+    public static int structureSunsetSixTestBaseY = DEF_SUNSET_SIX_TEST_BASE_Y;
 
     private static Configuration config;
 
@@ -73,27 +79,28 @@ public final class GlobalConfig {
                 + "只对新生成的区块生效，已经生成的基岩矿不会被清除。\n"
                 + "实现方式：coremod 在 BedrockOre 放置 ore_bedrock 的那一处插闸门，\n"
                 + "所以地球、下界、所有星球一次全覆盖，不需要逐个维度改。\n"
-                + "注意：本选项旧版本在 worldgen.cfg 的 gameplay 分类，已迁到本文件，\n"
-                + "旧文件里的设置不会被读取，需要在这里重新打开。");
+                + "注意：若 HBM 本体开启了 528 模式（enable528=true），附属将强制开启长流程模式，\n"
+                + "此时修改本选项无效。");
 
         preserveConfigOnUpdate = config.getBoolean("preserveConfigOnUpdate", CAT_UPDATE, DEF_PRESERVE_CONFIG_ON_UPDATE,
-                "配置保护开关（只作用于 worldgen.cfg）。默认 false。\n"
-                + "false：附属模组更新、配置版本号升上去之后，worldgen.cfg 整份重建、\n"
-                + "    所有项回到模组新默认（旧文件会备份成 worldgen.cfg.vN.bak）。\n"
-                + "true：启动时对比「本版本默认值快照 vs 上一版快照」，如果差异只有新增键\n"
-                + "    （旧键一个没删、默认值一个没变），就保留你的手调值不重建；\n"
-                + "    新增的键会自动补进文件。一旦发现旧键被移除或默认值被改动，\n"
-                + "    就视为不满足条件，照旧整份重建（有备份）。\n"
-                + "快照存在同目录的 worldgen.defaults.txt，删掉它 = 下次升版按 false 处理。\n"
-                + "configVersion 键本身不参与对比（它就是触发器）。\n"
-                + "注意：本开关只管 worldgen.cfg；配方玩家的改动由配方账本\n"
-                + "（config/MNGA/recipe_ledger.json）单独按条目保护，与这里无关。");
+                "配置保护开关（仅 worldgen.cfg）：true 且升级仅有新增键时保留玩家手调值；false 则升版重建并备份。");
+
+        structureSunsetSixTestMode = config.getBoolean("structureSunsetSixTestMode", CAT_DEBUG, DEF_SUNSET_SIX_TEST_MODE,
+                "日落六号测试模式：开启后固定刷在 (0,0) 区块并跳过岩浆深度校验（仍受每世界仅一个限制）。");
+        structureSunsetSixTestBaseY = config.getInt("structureSunsetSixTestBaseY", CAT_DEBUG, DEF_SUNSET_SIX_TEST_BASE_Y, 1, 200,
+                "日落六号测试模式的底座高度（仅测试模式开启时生效）。");
 
         config.save();   // 首次启动时确保文件落盘
 
+        boolean forcedBy528 = GeneralConfig.enable528;
+        if(forcedBy528) {
+            longProcessMode = true;
+        }
+
         LOG.info("MNGA global config -> " + file.getAbsolutePath()
                 + ", longProcessMode=" + longProcessMode
-                + (longProcessMode ? " (bedrock ores suppressed; packed-ice bedrock ore exempt)" : " (vanilla bedrock ore behavior)")
+                + (forcedBy528 ? " (FORCED by HBM 528 mode; global.cfg longProcessMode ignored)"
+                        : (longProcessMode ? " (bedrock ores suppressed; packed-ice bedrock ore exempt)" : " (vanilla bedrock ore behavior)"))
                 + ", preserveConfigOnUpdate=" + preserveConfigOnUpdate);
     }
 }

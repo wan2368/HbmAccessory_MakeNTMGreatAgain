@@ -62,6 +62,31 @@ public final class NukeGeneratorData {
 	/** 电力倍率 1 对应的电力消耗（HE）。内部电力 100M，所以 m=80 的氦气凝核心一次要 80M。 */
 	public static final long POWER_PER_M = 1_000_000L;
 
+	/**
+	 * 全局平衡倍率：下表多数沿用设计文档原值（氘化锂为单独定稿值），
+	 * {@link #core(String, int, int, int)} 在登记时统一放大，只放大一次、不叠加。
+	 *
+	 * <ul>
+	 *   <li>中子通量 ×3.0（原 ×1.5 再翻一倍，等效 +200%）</li>
+	 *   <li>液态钠 ×1.75（原 ×2.5 再降 30%；一次爆轰的进料与高温钠产出同步缩放）</li>
+	 * </ul>
+	 *
+	 * <p>{@link #SCALE_EXEMPT} 里的核心（氘化锂 / 气凝氦 / 野火 / 富集奥斯）不吃倍率，用表内数值。</p>
+	 */
+	private static final double FLUX_SCALE = 3.0D;
+	private static final double SODIUM_SCALE = 1.75D;
+
+	/** 不吃上述倍率的四个核心：氘化锂、气凝氦、野火，以及富集奥斯。
+	 *  <p>氘化锂、气凝氦、野火是设计文档里的特殊核心，数值本身就是定稿；
+	 *  氘化锂后来按用户指定改为钠 3,500,000 / 通量 240,000（直接写在上表，不经倍率）。</p>
+	 *  富集奥斯（4,000,000 mB）当初按 ×2.5 会变成 10,000,000 mB，超过最高档覆层（DNT）8,192,000 mB
+	 *  的罐容量，会被 getStartStatus 判成「冷却剂不足」而永久无法启动，故整体保持设计原值。
+	 *  注：现行倍率已是 ×1.75，富集奥斯若参与会变成 7,000,000 mB，其实已在 DNT 容量之内，
+	 *  想让它也吃倍率，把 "australium_greater" 从下面这行删掉即可。 */
+	private static final java.util.Set<String> SCALE_EXEMPT =
+			new java.util.HashSet<String>(java.util.Arrays.asList(
+					"lithium_deuteride", "helium", "balefire", "australium_greater"));
+
 	private static final Map<Item, CoreStat> CORES = new LinkedHashMap<Item, CoreStat>();
 	/** 物品 → 核心 id（禁爆判定用）。 */
 	private static final Map<Item, String> IDS = new LinkedHashMap<Item, String>();
@@ -85,7 +110,8 @@ public final class NukeGeneratorData {
 		core("schrabidium",        8, 1_600_000,  40_000);
 		core("sa327",             10, 2_400_000,  60_000);
 		core("australium_greater",16, 4_000_000,  80_000);
-		core("lithium_deuteride", 40, 5_000_000, 160_000);
+		// 氘化锂：用户直接给了绝对值（不经倍率），钠 3,500,000 / 通量 240,000
+		core("lithium_deuteride", 40, 3_500_000, 240_000);
 		core("helium",            80, 6_400_000,  50_000);
 		core("balefire",          50, 8_000_000, 400_000);
 		core("mamba",             24,         0,       0);
@@ -123,7 +149,11 @@ public final class NukeGeneratorData {
 	private static void core(String id, int power, int sodium, int flux) {
 		Item item = ModNukeCores.get(id);
 		if(item != null) {
-			CORES.put(item, new CoreStat(power, sodium, flux));
+			// 表里写的是设计文档原值，这里统一套全局倍率（豁免核心除外），只放大一次
+			boolean exempt = id != null && SCALE_EXEMPT.contains(id);
+			int scaledSodium = exempt ? sodium : (int) Math.round(sodium * SODIUM_SCALE);
+			int scaledFlux = exempt ? flux : (int) Math.round(flux * FLUX_SCALE);
+			CORES.put(item, new CoreStat(power, scaledSodium, scaledFlux));
 			IDS.put(item, id);
 		}
 	}

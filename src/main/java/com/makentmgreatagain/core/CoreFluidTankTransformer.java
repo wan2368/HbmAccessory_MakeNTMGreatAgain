@@ -29,7 +29,9 @@ public class CoreFluidTankTransformer implements IClassTransformer {
 
     private static final String[] TARGETS = {
             "com.hbm.tileentity.machine.storage.TileEntityBarrel",
-            "com.hbm.tileentity.machine.storage.TileEntityMachineFluidTank"
+            "com.hbm.tileentity.machine.storage.TileEntityMachineFluidTank",
+            "com.hbm.tileentity.machine.storage.TileEntityMachineBigAssTank",
+            "com.hbm.tileentity.machine.storage.TileEntityMachineBAT9000"
     };
 
     @Override

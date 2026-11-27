@@ -34,6 +34,8 @@ public class TileEntityBat9000Reborn extends TileEntityBarrel {
 	@Override
 	public void checkFluidInteraction() {
 
+		if(com.makentmgreatagain.hook.CoreFluidTankHook.guard(this)) return;
+
 		if(tank.getTankType().isAntimatter()) {
 			worldObj.func_147480_a(xCoord, yCoord, zCoord, false);
 			worldObj.newExplosion(null, xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, 10, true, true);

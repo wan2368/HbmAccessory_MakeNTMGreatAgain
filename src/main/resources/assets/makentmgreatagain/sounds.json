@@ -10,5 +10,61 @@
         "sounds": [
             "makentmgreatagain:manout"
         ]
+    },
+    "block.stellaratorStartup": {
+        "category": "block",
+        "sounds": [
+            {
+                "name": "makentmgreatagain:block/stellarator_startup",
+                "stream": false
+            }
+        ]
+    },
+    "block.stellaratorLoop": {
+        "category": "block",
+        "sounds": [
+            {
+                "name": "makentmgreatagain:block/stellarator_loop",
+                "stream": false
+            }
+        ]
+    },
+    "block.stellaratorShutdown": {
+        "category": "block",
+        "sounds": [
+            {
+                "name": "makentmgreatagain:block/stellarator_shutdown",
+                "stream": false
+            }
+        ]
+    },
+    "block.supercriticalMhdMag": {
+        "category": "block",
+        "sounds": [
+            {
+                "name": "hbm:block/fensuHum",
+                "stream": false
+            }
+        ]
+    },
+    "block.supercriticalMhdFlow": {
+        "category": "block",
+        "sounds": [
+            {
+                "name": "hbm:block/turbinegasRunning",
+                "stream": false
+            }
+        ]
+    },
+    "block.supercriticalMhdArc": {
+        "category": "block",
+        "sounds": [
+            "hbm:block/spark1",
+            "hbm:block/spark2",
+            "hbm:block/spark3",
+            "hbm:block/spark4",
+            "hbm:block/spark5",
+            "hbm:block/spark6"
+        ]
     }
 }

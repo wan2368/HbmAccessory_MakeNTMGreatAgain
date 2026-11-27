@@ -1,0 +1,30 @@
+{
+	"name": "Xen Crystal",
+	"icon": [
+		"makentmgreatagain:xen_crystal_cluster",
+		1,
+		0
+	],
+	"trigger": [
+		[
+			"makentmgreatagain:xen_crystal_cluster"
+		],
+		[
+			"makentmgreatagain:stable_crystal_xen"
+		],
+		[
+			"makentmgreatagain:crystal_xen_unstable"
+		],
+		[
+			"makentmgreatagain:crystal_xen_metastable"
+		]
+	],
+	"title": {
+		"en_US": "Xen Crystal Cultivation",
+		"zh_CN": "X晶体与晶簇培育"
+	},
+	"content": {
+		"en_US": "Wild Stable Xen Crystal Clusters spawn sparingly on End Stone in the End.<br><br>Using Gamma rays in SILEX separates a Stable Xen Crystal into Unstable (40%), Metastable (16%, detonates after 10s in inventory), Undefined Crystal (4%), and Dust.<br><br>Cultivation:<br>1. Right-click End Stone with an Unstable Xen Crystal to plant a seed cluster.<br>2. Expose the seed cluster to at least 600 RAD of ambient radiation to advance it to the ready stage (higher radiation absorbs faster).<br>3. Right-click the ready cluster with a Metastable Xen Crystal (before it detonates) to mature it.<br><br>Harvesting a mature cluster with a Diamond Pickaxe yields 2-4 Stable Xen Crystals (affected by Fortune). Silk Touch harvests the cluster block, which can be centrifuged with 4,000 mB XP Juice in a [[Large Centrifuge|Large Centrifuge]] for 2 Stable, 1 Unstable, and 1 Metastable X Crystals.",
+		"zh_CN": "野生完全体X晶体簇少量生成于末地的末地石表面。<br><br>将稳定X晶体放入 SILEX 配合伽马射线可分离出：不稳态X晶体 (40%)、亚稳态X晶体 (16%)、灰尘。<br><br>晶簇培育:<br>1. 手持不稳态X晶体右键末地石顶面种下幼苗期晶簇。<br>2. 让幼苗所在位置的区块辐射达到至少 600 RAD，晶簇会吸收辐射进入临熟期（超过 600 RAD 后辐射越高吸收越快）。<br>3. 在亚稳态X晶体引爆前，手持它右键临熟期晶簇即可完成定型，长成完全体。<br><br>钻石镐开采完全体掉落 2~4 个稳定X晶体 (受时运加成)；精准采集可完整带走晶簇，配合 4,000 mB 经验汁放入[[大型离心机|Large Centrifuge]]可离心出 2 个稳定X晶体、1 个不稳态X晶体与 1 个亚稳态X晶体。"
+	}
+}
