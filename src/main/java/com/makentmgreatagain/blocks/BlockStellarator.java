@@ -323,25 +323,34 @@ public class BlockStellarator extends BlockDummyable {
 	}
 
 	/**
-	 * 找到核心格。优先走元数据链；链断了（例如某格的元数据被别的东西改过）就在
-	 * 点击格周围 ±15 / 高度 0~8 的整机范围里找唯一那个核心格。
+	 * 找到包含 (x, y, z) 的核心格。优先走元数据链；链断了（例如经过内部空腔 y=1~3 / y=5~7 或
+	 * 顶板 y=8）就在合法包围盒范围内（a∈x±15, b∈[y-8, y], c∈z±15）精确匹配包含该格的唯一核心格。
 	 */
 	private int[] findCoreSafe(World world, int x, int y, int z) {
 
 		int[] pos = this.findCore(world, x, y, z);
 		if(pos != null && world.getTileEntity(pos[0], pos[1], pos[2]) instanceof TileEntityStellarator) return pos;
 
+		int[] best = null;
+		int bestDistSq = Integer.MAX_VALUE;
 		for(int a = x - 15; a <= x + 15; a++) {
-			for(int b = y - 8; b <= y + 8; b++) {
+			for(int b = y - 8; b <= y; b++) {
 				for(int c = z - 15; c <= z + 15; c++) {
 					if(world.getBlock(a, b, c) != this) continue;
 					if(world.getBlockMetadata(a, b, c) < 12) continue;
-					if(world.getTileEntity(a, b, c) instanceof TileEntityStellarator) return new int[] { a, b, c };
+					if(!(world.getTileEntity(a, b, c) instanceof TileEntityStellarator)) continue;
+					if(!this.isRingCell(y - b, x - a, z - c)) continue;
+					int dx = x - a, dy = y - b, dz = z - c;
+					int distSq = dx * dx + dy * dy + dz * dz;
+					if(distSq < bestDistSq) {
+						bestDistSq = distSq;
+						best = new int[] { a, b, c };
+					}
 				}
 			}
 		}
 
-		return null;
+		return best;
 	}
 
 	@Override
@@ -372,39 +381,68 @@ public class BlockStellarator extends BlockDummyable {
 	}
 
 	/**
-	 * 拆机时按整机范围清场：基类靠元数据链逐格传递销毁，一旦有格子元数据不合规
-	 * 就会留下“看不见但能撞”的残留方块。这里不再依赖链式反应，直接清空包围盒。
+	 * 生存模式防刷：只有能定位到尚未掉落过的活跃核心 {@link TileEntityStellarator} 时才允许掉落 1 个仿星器。
+	 * 即使旧存档有孤立残留方块，或连锁工具同 tick 挖掉多格，每台仿星器也绝不可能掉落超过 1 个。
+	 */
+	@Override
+	public void onBlockHarvested(World world, int x, int y, int z, int meta, EntityPlayer player) {
+		if(world.isRemote || player == null || player.capabilities.isCreativeMode) return;
+
+		int[] core = (meta >= 12) ? new int[] { x, y, z } : this.findCoreSafe(world, x, y, z);
+		if(core == null) return;
+
+		TileEntity te = world.getTileEntity(core[0], core[1], core[2]);
+		if(!(te instanceof TileEntityStellarator)) return;
+
+		TileEntityStellarator stellarator = (TileEntityStellarator) te;
+		if(stellarator.droppedByHarvest) return;
+		stellarator.droppedByHarvest = true;
+
+		harvesters.set(player);
+		this.dropBlockAsItem(world, x, y, z, meta, 0);
+		harvesters.set(null);
+	}
+
+	/**
+	 * 拆机时按整机范围彻底清场：
+	 * - 先判断本格是否核心（meta >= 12），否则走 {@link #findCoreSafe}（支持跨越内部空腔 y=1~3/y=5~7 与顶板 y=8 找到真正的核心）；
+	 * - 找到核心后将整台 31×31×9 范围内的所有本方块一次清干净，不会留下任何残留；
+	 * - 若本身是旧存档孤立残留（找不到核心），则清理其连通的孤立同方块，避免死砖残留。
 	 */
 	@Override
 	public void breakBlock(World world, int x, int y, int z, Block b, int meta) {
 
 		if(!world.isRemote && !BlockDummyable.safeRem) {
 
-			// 被拆的这一格此时可能已经是空气，findCore 从它本身出发会立刻断链，
-			// 所以先看六个邻居，从任意一个相邻的本方块反推核心格。
-			int[] core = null;
+			int[] core = (meta >= 12) ? new int[] { x, y, z } : this.findCoreSafe(world, x, y, z);
 
-			for(ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
-				int nx = x + d.offsetX, ny = y + d.offsetY, nz = z + d.offsetZ;
-				if(world.getBlock(nx, ny, nz) == this) {
-					core = findCore(world, nx, ny, nz);
-					if(core != null) break;
-				}
-			}
-
-			if(core == null) core = new int[] { x, y, z };
-
-			BlockDummyable.safeRem = true;
-
-			for(int a = core[0] - 15; a <= core[0] + 15; a++) {
-				for(int bb = core[1]; bb <= core[1] + 8; bb++) {
-					for(int c = core[2] - 15; c <= core[2] + 15; c++) {
-						if(world.getBlock(a, bb, c) == this) world.setBlockToAir(a, bb, c);
+			if(core == null) {
+				for(ForgeDirection d : ForgeDirection.VALID_DIRECTIONS) {
+					int nx = x + d.offsetX, ny = y + d.offsetY, nz = z + d.offsetZ;
+					if(world.getBlock(nx, ny, nz) == this) {
+						core = this.findCoreSafe(world, nx, ny, nz);
+						if(core != null) break;
 					}
 				}
 			}
 
-			BlockDummyable.safeRem = false;
+			BlockDummyable.safeRem = true;
+			try {
+				if(core != null) {
+					for(int a = core[0] - 15; a <= core[0] + 15; a++) {
+						for(int bb = core[1]; bb <= core[1] + 8; bb++) {
+							for(int c = core[2] - 15; c <= core[2] + 15; c++) {
+								if(!this.isRingCell(bb - core[1], a - core[0], c - core[2])) continue;
+								if(world.getBlock(a, bb, c) == this) {
+									world.setBlockToAir(a, bb, c);
+								}
+							}
+						}
+					}
+				}
+			} finally {
+				BlockDummyable.safeRem = false;
+			}
 		}
 
 		super.breakBlock(world, x, y, z, b, meta);

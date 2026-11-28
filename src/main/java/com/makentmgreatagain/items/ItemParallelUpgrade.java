@@ -4,22 +4,16 @@ import java.util.List;
 
 import com.hbm.items.machine.ItemMachineUpgrade;
 import com.hbm.tileentity.IUpgradeInfoProvider;
-import com.hbm.tileentity.machine.TileEntityElectrolyser;
-import com.hbm.tileentity.machine.TileEntityMachineArcWelder;
-import com.hbm.tileentity.machine.TileEntityMachineAssemblyMachine;
-import com.hbm.tileentity.machine.TileEntityMachineCentrifuge;
-import com.hbm.tileentity.machine.TileEntityMachineChemicalPlant;
 import com.hbm.tileentity.machine.TileEntityMachineCompressorBase;
 import com.hbm.tileentity.machine.TileEntityMachineCrystallizer;
 import com.hbm.tileentity.machine.TileEntityMachineElectricFurnace;
-import com.hbm.tileentity.machine.TileEntityMachineExposureChamber;
 import com.hbm.tileentity.machine.TileEntityMachineMixer;
-import com.hbm.tileentity.machine.TileEntityMachineSolderingStation;
 import com.hbm.tileentity.machine.oil.TileEntityMachineLiquefactor;
-import com.hbm.tileentity.machine.oil.TileEntityMachinePyroOven;
 import com.hbm.tileentity.machine.oil.TileEntityMachineSolidifier;
 import com.hbm.util.i18n.I18nUtil;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -45,23 +39,16 @@ public class ItemParallelUpgrade extends ItemMachineUpgrade {
 	}
 
 	private static boolean isSupportedMachine(Object inv) {
-		return inv instanceof TileEntityMachineChemicalPlant
-				|| inv instanceof TileEntityMachineAssemblyMachine
-				|| inv instanceof TileEntityMachineArcWelder
-				|| inv instanceof TileEntityMachineSolderingStation
-				|| inv instanceof TileEntityMachineExposureChamber
-				|| inv instanceof TileEntityMachineCentrifuge
-				|| inv instanceof TileEntityMachineCrystallizer
-				|| inv instanceof TileEntityElectrolyser
+		return inv instanceof TileEntityMachineCrystallizer
 				|| inv instanceof TileEntityMachineMixer
 				|| inv instanceof TileEntityMachineCompressorBase
 				|| inv instanceof TileEntityMachineLiquefactor
 				|| inv instanceof TileEntityMachineSolidifier
-				|| inv instanceof TileEntityMachinePyroOven
 				|| inv instanceof TileEntityMachineElectricFurnace;
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void addInformation(ItemStack itemstack, EntityPlayer player, List list, boolean bool) {
 		GuiScreen open = Minecraft.getMinecraft().currentScreen;

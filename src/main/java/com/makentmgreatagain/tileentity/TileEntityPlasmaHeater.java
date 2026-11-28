@@ -7,7 +7,7 @@ import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.recipes.FusionRecipe;
-import com.hbm.inventory.recipes.FusionRecipes;
+import com.makentmgreatagain.recipes.StellaratorRecipes;
 import com.hbm.inventory.recipes.loader.GenericRecipe;
 import com.hbm.interfaces.IControlReceiver;
 import com.hbm.items.ModItems;
@@ -491,7 +491,7 @@ public class TileEntityPlasmaHeater extends TileEntityMachineBase
 
 		if(this.recipe == null || NULL_RECIPE.equals(this.recipe)) return null;
 
-		GenericRecipe r = (GenericRecipe) FusionRecipes.INSTANCE.recipeNameMap.get(this.recipe);
+		GenericRecipe r = (GenericRecipe) StellaratorRecipes.INSTANCE.recipeNameMap.get(this.recipe);
 		return r instanceof FusionRecipe ? (FusionRecipe) r : null;
 	}
 

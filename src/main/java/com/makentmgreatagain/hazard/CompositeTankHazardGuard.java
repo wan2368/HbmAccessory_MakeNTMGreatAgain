@@ -9,6 +9,7 @@ import com.hbm.hazard.HazardData;
 import com.hbm.hazard.HazardEntry;
 import com.hbm.hazard.HazardSystem;
 import com.hbm.hazard.type.HazardTypeBase;
+import com.hbm.hazard.type.HazardTypeBlinding;
 import com.hbm.hazard.type.HazardTypeExplosive;
 import com.hbm.hazard.type.HazardTypeHot;
 import com.hbm.hazard.type.HazardTypeHydroactive;
@@ -21,14 +22,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 /**
- * 复合材料储罐：把「易燃易爆 / 遇水反应 / 自燃」三条 hazard 拦下来的改造层。
+ * 复合材料储罐：拦截背包物品的「易燃易爆 / 遇水反应 / 自燃 / 致盲」词条。
  *
  * 为什么不能靠护甲判断：HBM 的 hazard 是「每件带词条的物品每 tick 对持有者触发一次」，
- * 三种类型的 onUpdate 里根本没有护甲查询（HazardTypeExplosive 只看 isBurning、
- * HazardTypeHydroactive 只看 isWet、HazardTypeHot 只看背包里有没有钨长臂夹），
- * 所以没有任何现成接口可以插手。HBM 也没有提供开给附属用的 selector。
+ * 原版的易燃易爆、遇水反应和自燃不检查护甲；致盲只检查头盔的防光能力。
+ * 这些词条没有检查护腿改装件的接口。
  *
- * 做法：在 postInit 阶段遍历 HBM 的三张 hazard 注册表，把这三个类型实例换成子类。
+ * 做法：在 postInit 阶段遍历 HBM 的三张 hazard 注册表，把这四个类型实例换成子类。
  * 子类只改 onUpdate 的第一行——穿了这个配件就直接 return，否则原样交给父类。
  * 这样：
  *   - 词条等级、modifier、tooltip 全部原封不动（HazardEntry 只换了 type，baseLevel/mods 没动）；
@@ -102,6 +102,7 @@ public final class CompositeTankHazardGuard {
         HazardTypeBase explosive = new GuardedExplosive();
         HazardTypeBase hydroactive = new GuardedHydroactive();
         HazardTypeBase hot = new GuardedHot();
+        HazardTypeBase blinding = new GuardedBlinding();
 
         int scanned = 0;
         int replaced = 0;
@@ -120,7 +121,7 @@ public final class CompositeTankHazardGuard {
 
                 scanned++;
 
-                // 用精确类比较而不是 instanceof：别的模组如果继承了这三种类型并改过行为，
+                // 用精确类比较而不是 instanceof：别的模组如果继承了这些类型并改过行为，
                 // 我们不能把它一起包掉，那等于抹掉了对方的实现。
                 Class<?> c = entry.getType().getClass();
                 HazardTypeBase replacement = null;
@@ -128,6 +129,7 @@ public final class CompositeTankHazardGuard {
                 if(c == HazardTypeExplosive.class) replacement = explosive;
                 else if(c == HazardTypeHydroactive.class) replacement = hydroactive;
                 else if(c == HazardTypeHot.class) replacement = hot;
+                else if(c == HazardTypeBlinding.class) replacement = blinding;
 
                 if(replacement == null) continue;
 
@@ -143,7 +145,7 @@ public final class CompositeTankHazardGuard {
         MakeNTMGreatAgain.LOG.info("[CompositeTank] hazard 拦截已挂载：扫描 " + scanned + " 条词条，替换 " + replaced + " 条");
     }
 
-    /* 三个包装块：装了就跳过，没装就完全交给父类 */
+    /* 只拦截装备者身上的背包物品触发，其余行为交给原版。 */
 
     static class GuardedExplosive extends HazardTypeExplosive {
         @Override
@@ -162,6 +164,14 @@ public final class CompositeTankHazardGuard {
     }
 
     static class GuardedHot extends HazardTypeHot {
+        @Override
+        public void onUpdate(EntityLivingBase target, float level, ItemStack stack) {
+            if(isProtected(target)) return;
+            super.onUpdate(target, level, stack);
+        }
+    }
+
+    static class GuardedBlinding extends HazardTypeBlinding {
         @Override
         public void onUpdate(EntityLivingBase target, float level, ItemStack stack) {
             if(isProtected(target)) return;

@@ -38,6 +38,7 @@ public class CigaretteDrxEffectPacket implements IMessage {
 		public IMessage onMessage(CigaretteDrxEffectPacket msg, MessageContext ctx) {
 			if (ctx.side.isClient() && msg.stage > 0) {
 				// 可能跑在 netty 线程：只写标记，渲染管理器在主线程下一帧读取
+				CigaretteScreenEvent.clientEffectActive = true;
 				CigaretteScreenEvent.pendingStage = msg.stage;
 			}
 			return null;

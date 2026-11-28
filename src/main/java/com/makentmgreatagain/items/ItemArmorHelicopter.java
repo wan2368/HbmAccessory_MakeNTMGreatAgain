@@ -54,8 +54,8 @@ public class ItemArmorHelicopter extends ItemArmorAlloyReborn {
     /**
      * 护甲四件<b>不走</b>耐摔系列的升空演出，掉出来就是普通掉落物。
      *
-     * <p>系列里锭/部件（{@link ItemHelicopterDrop}）、工具（{@link ItemToolAbilityHelicopter}）、
-     * 方块（{@link ItemBlockHelicopter}）都会自旋升空再砸下来，落地处决落点玩家并销毁物品。
+     * <p>系列里锭/部件（{@link ItemHelicopterDrop}）、工具（{@link ItemToolAbilityHelicopter}）
+     * 都会自旋升空再砸下来，落地处决落点玩家并销毁物品。
      * 护甲必须豁免，原因有两个：</p>
      * <ol>
      *   <li><b>会永久丢装备</b>：这套甲唯一的死法是摔死，而摔死正好会把护甲掉出来

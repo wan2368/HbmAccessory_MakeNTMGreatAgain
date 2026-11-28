@@ -184,19 +184,18 @@ public class TileEntityMachinePress extends TileEntityMachineBase implements IGU
 		if(output == null) return false;
 
 		if(slots[3] == null) return true;
-		if(slots[3].stackSize + output.stackSize <= slots[3].getMaxStackSize() && slots[3].getItem() == output.getItem() && slots[3].getItemDamage() == output.getItemDamage()) return true;
+		if(slots[3].getItem() == output.getItem() && slots[3].getItemDamage() == output.getItemDamage()
+				&& ItemStack.areItemStackTagsEqual(slots[3], output)
+				&& slots[3].stackSize + output.stackSize <= Math.min(slots[3].getMaxStackSize(), output.getMaxStackSize())) return true;
 		return false;
 	}
 
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack stack) {
 
-		if(stack.getItem() instanceof ItemStamp)
-			return i == 1;
-
-		if(TileEntityFurnace.getItemBurnTime(stack) > 0 && i == 0)
-			return true;
-
+		if(i >= 4) return false;
+		if(stack.getItem() instanceof ItemStamp) return i == 1;
+		if(TileEntityFurnace.getItemBurnTime(stack) > 0 && i == 0) return true;
 		return i == 2;
 	}
 

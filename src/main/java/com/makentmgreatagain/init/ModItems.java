@@ -247,11 +247,15 @@ public class ModItems {
 	/** PEEK 特种工程塑料（聚醚醚酮）锭与粉末 */
 	public static Item ingot_peek;
 	public static Item powder_peek;
+	public static Item quantum_pulse_component;
 
 	/** PEEK 并行运算升级芯片（1~3 级，可叠加至最高 4x 并行） */
 	public static Item upgrade_parallel_1;
 	public static Item upgrade_parallel_2;
 	public static Item upgrade_parallel_3;
+
+	/** 原子投送链路绑定器 */
+	public static Item atomic_linker;
 
 	/** 流体销毁罐 */
 	public static Item inf_destroy;
@@ -293,6 +297,10 @@ public class ModItems {
 	public static Item crystal_xen_unstable;
 	/** 亚稳态X晶体：SILEX 可见光分离产物（13.3%） */
 	public static Item crystal_xen_metastable;
+	/** 精炼铜团：二阶石油萃取孔雀石热解产物 */
+	public static Item refined_copper_clump;
+	/** 精炼铁团：二阶石油萃取赤铁矿热解产物 */
+	public static Item refined_iron_clump;
 	/** 乱码X晶体：SILEX 可见光分离稀有产物（3.3%），NEI 不显示但可正常分离 */
 	public static Item crystal_xen_glitch;
 
@@ -548,6 +556,20 @@ public class ModItems {
 		powder_oxidate_iron.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
 		GameRegistry.registerItem(powder_oxidate_iron, "powder_oxidate_iron");
 
+		// 精炼铜团（二阶石油萃取孔雀石中间体）
+		refined_copper_clump = new Item();
+		refined_copper_clump.setUnlocalizedName("refined_copper_clump");
+		refined_copper_clump.setTextureName("makentmgreatagain:refined_copper_clump");
+		refined_copper_clump.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(refined_copper_clump, "refined_copper_clump");
+
+		// 精炼铁团（二阶石油萃取赤铁矿中间体）
+		refined_iron_clump = new Item();
+		refined_iron_clump.setUnlocalizedName("refined_iron_clump");
+		refined_iron_clump.setTextureName("makentmgreatagain:refined_iron_clump");
+		refined_iron_clump.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		GameRegistry.registerItem(refined_iron_clump, "refined_iron_clump");
+
 		// 碳化钨粉
 		powder_carbon_tungsten_mixture = new Item();
 		powder_carbon_tungsten_mixture.setUnlocalizedName("powder_carbon_tungsten_mixture");
@@ -797,7 +819,7 @@ public class ModItems {
 		cigarette_drx = new ItemCigaretteDrx();
 		cigarette_drx.setUnlocalizedName("cigarette_drx");
 		cigarette_drx.setTextureName("makentmgreatagain:cigarette_drx");
-		cigarette_drx.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		cigarette_drx.setCreativeTab(ModCreativeTabs.TAB_FOOD);
 		GameRegistry.registerItem(cigarette_drx, "cigarette_drx");
 
 		// 甲基苯丙胺产线：粗品 → 晶体 → 药片
@@ -816,7 +838,7 @@ public class ModItems {
 		meth_pill = new ItemMeth();
 		meth_pill.setUnlocalizedName("meth_pill");
 		meth_pill.setTextureName("makentmgreatagain:meth_pill");
-		meth_pill.setCreativeTab(ModCreativeTabs.TAB_RESOURCES);
+		meth_pill.setCreativeTab(ModCreativeTabs.TAB_FOOD);
 		GameRegistry.registerItem(meth_pill, "meth_pill");
 
 		// ==============================================================================
@@ -846,11 +868,19 @@ public class ModItems {
 		// ---- PEEK 特种工程塑料 ----
 		ingot_peek  = resource("ingot_peek");
 		powder_peek = resource("powder_peek");
+		quantum_pulse_component = resource("quantum_pulse_component");
 
 		// ---- PEEK 并行运算升级芯片（1~3 级） ----
 		upgrade_parallel_1 = parallelUpgrade(1);
 		upgrade_parallel_2 = parallelUpgrade(2);
 		upgrade_parallel_3 = parallelUpgrade(3);
+
+		// ---- 探头绑定器 ----
+		atomic_linker = new com.makentmgreatagain.items.ItemAtomicLinker()
+			.setUnlocalizedName("atomic_linker")
+			.setTextureName("makentmgreatagain:atomic_linker")
+			.setCreativeTab(ModCreativeTabs.TAB_GEAR);
+		GameRegistry.registerItem(atomic_linker, "atomic_linker");
 
 
         // 高级合金装备（重生版）
@@ -913,8 +943,9 @@ public class ModItems {
      * {@link ItemHelicopterDrop}；其它材质仍是普通 {@link ItemWithDesc}，行为不变。</p>
      *
      * <p>要让别的材质也有这个特性：把材质名加进下面这行的判断即可，
-     * 锭、粒、粉、八类部件会自动跟上。方块是另一条路 —— 还要把
-     * {@code ModBlocks.registerStorageBlock(name, true)} 的第二个参数改成 true。</p>
+     * 锭、粒、粉、八类部件会自动跟上。<b>方块不参与</b>：
+     * {@code ModBlocks.registerStorageBlock} 注册的金属储存块一律用原版
+     * {@code ItemBlock}，破坏后掉的是普通 {@code EntityItem}。</p>
      */
     private static Item materialItem(String mat) {
         return "helicopter".equals(mat) ? new ItemHelicopterDrop() : new ItemWithDesc();

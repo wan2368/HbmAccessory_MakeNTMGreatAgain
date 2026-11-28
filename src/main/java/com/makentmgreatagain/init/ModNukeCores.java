@@ -222,6 +222,16 @@ public final class ModNukeCores {
 		return stack != null && CORES.containsValue(stack.getItem());
 	}
 
+	/** 返回核心物品对应的注册 id（如 "u235"、"schrabidium"），非核心返回 ""。 */
+	public static String getCoreId(ItemStack stack) {
+		if(stack == null || stack.getItem() == null) return "";
+		Item target = stack.getItem();
+		for(Map.Entry<String, Item> entry : CORES.entrySet()) {
+			if(entry.getValue() == target) return entry.getKey();
+		}
+		return "";
+	}
+
 	/* ------------------------------------------------------------------ 注册 */
 
 	/** 注册入口：物品。危险数据与配方都在 postInit 阶段补（见 {@link #applyHazards()}）。 */

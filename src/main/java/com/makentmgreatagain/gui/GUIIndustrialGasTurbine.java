@@ -54,7 +54,7 @@ public class GUIIndustrialGasTurbine extends com.hbm.inventory.gui.GuiInfoContai
 		if(te.power > 0) {
 			int h = (int) (te.power * 52 / TileEntityIndustrialGasTurbine.MAX_POWER);
 			if(h > 52) h = 52;
-			if(h > 0) this.drawTexturedModalRect(guiLeft + 152, guiTop + 13 + 52 - h, 176, 52 - h, 16, h);
+			if(h > 0) this.drawTexturedModalRect(guiLeft + 152, guiTop + 12 + 52 - h, 176, 52 - h, 16, h);
 		}
 
 		// 开关点亮

@@ -1001,6 +1001,45 @@ public final class ModFluids {
             .noContainer()
             .tankTexture("tank_SUPERCRITICAL_STEAM");
 
+    // =====================================================================================
+    //  石油耦合孔雀石 / 赤铁矿二阶萃矿线 · id 2079 ~ 2081
+    // =====================================================================================
+
+    /** 精制萃矿剂：重整油 + 轻质芳烃(BTX) + 氨 合成的专用石油萃矿溶剂，琥珀金色。 */
+    public static final FluidDef REFORM_SOLVENT = def("REFORM_SOLVENT", 2079, 0xD49B2A, "reform_solvent")
+            .liquid()
+            .temp(25)
+            .hazard(2, 2, 0, EnumSymbol.NONE)
+            .flammable(180_000L)
+            .corrosive(20)
+            .polluting(SOOT_AROMATIC)
+            .canister(0xD49B2A)
+            .tankTexture("tank_REFORM_SOLVENT");
+
+    /** 富铜萃液：孔雀石经精制萃矿剂深层萃取得到的高浓含铜有机相，深翠绿色。 */
+    public static final FluidDef COPPER_EXTRACT_LIQUOR = def("COPPER_EXTRACT_LIQUOR", 2080, 0x1E9B78, "copper_extract_liquor")
+            .liquid()
+            .viscous()
+            .temp(40)
+            .hazard(2, 1, 0, EnumSymbol.NONE)
+            .corrosive(25)
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.08F))
+            .canister(0x1E9B78)
+            .tankTexture("tank_COPPER_EXTRACT_LIQUOR");
+
+    /** 富铁萃液：赤铁矿经精制萃矿剂深层萃取得到的高浓含铁有机相，深锈红色。 */
+    public static final FluidDef IRON_EXTRACT_LIQUOR = def("IRON_EXTRACT_LIQUOR", 2081, 0x9A3628, "iron_extract_liquor")
+            .liquid()
+            .viscous()
+            .temp(40)
+            .hazard(2, 1, 0, EnumSymbol.NONE)
+            .corrosive(25)
+            .polluting(new FT_Polluting().release(PollutionType.HEAVYMETAL,
+                    com.hbm.handler.pollution.PollutionHandler.HEAVY_METAL_PER_SECOND * 0.06F))
+            .canister(0x9A3628)
+            .tankTexture("tank_IRON_EXTRACT_LIQUOR");
+
     /**
      * 最简示例（复制这一行改参数即可）：
      * 一种可燃烧的燃料，每桶 120,000 热量，燃烧值 300,000，MEDIUM 级。

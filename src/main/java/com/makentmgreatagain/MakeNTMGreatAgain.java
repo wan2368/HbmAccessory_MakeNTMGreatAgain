@@ -77,7 +77,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 
     public static final String MODID = "makentmgreatagain";
     public static final String NAME = "Make NTM Great Again";
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.0.1_hotFixed";
 
     /** 统一用这个 logger 打日志，输出会带上模组名，比 System.out.println 好排查。 */
     public static final Logger LOG = LogManager.getLogger(NAME);
@@ -124,6 +124,10 @@ public class MakeNTMGreatAgain implements IGuiHandler {
     public static final int GUI_XEN_FLUID_TRANSCEIVER = 18;
     /** GUI ID：物品传送器 */
     public static final int GUI_XEN_ITEM_TRANSCEIVER = 19;
+    /** GUI ID：工业种植站 */
+    public static final int GUI_INDUSTRIAL_CULTIVATION_STATION = 20;
+    /** GUI ID：原子投送探头 */
+    public static final int GUI_ATOMIC_PROBE = 21;
 
     /** 让 Forge 把"打开 GUI"转发到本模组实例 */
     public void registerGuiHandler() {
@@ -247,6 +251,16 @@ public class MakeNTMGreatAgain implements IGuiHandler {
                 return new com.makentmgreatagain.container.ContainerXenItemTransceiver(player.inventory,
                         (com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver) world.getTileEntity(x, y, z));
         }
+        if(id == GUI_INDUSTRIAL_CULTIVATION_STATION) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityIndustrialCultivationStation)
+                return new com.makentmgreatagain.container.ContainerIndustrialCultivationStation(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityIndustrialCultivationStation) world.getTileEntity(x, y, z));
+        }
+        if(id == GUI_ATOMIC_PROBE) {
+            if(world.getTileEntity(x, y, z) instanceof com.makentmgreatagain.tileentity.TileEntityAtomicProbe)
+                return new com.makentmgreatagain.inventory.ContainerAtomicProbe(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityAtomicProbe) world.getTileEntity(x, y, z));
+        }
         return null;
     }
 
@@ -364,6 +378,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ScheeliteRecipes.addPyroOvenRecipes();// 三氧化钨、钨粉、白砷
 					ModRecipes.addArsineCrackingRecipe();// 砷粒、液氢
 					ModRecipes.addDeepSeaPyroRecipes();// 碱熔砂、稀土熟料、铂粉
+					ModRecipes.addPetroOrePyroRecipes();// 石油耦合孔雀石/赤铁矿双阶热解
 				}
 				if(recipeClassName.equals("FusionRecipes")) {
 					com.makentmgreatagain.recipes.HydrogenFusion.addRecipe();// 氢-氢聚变
@@ -413,6 +428,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModRecipes.addRubberBranchRecipes();// 胶体→生胶→橡胶锭
 					ModRecipes.addCalciumBranchRecipes();// 钙溶液→石灰石/石膏
 					ModRecipes.addPeekChemicalRecipes();// 氢氟酸、氟苯、PEEK 锭
+					ModRecipes.addPetroOreChemicalRecipes();// 石油耦合孔雀石/赤铁矿双阶化工
 
 					// 等本体表和附属配方都补齐后，再重建大型机的配方表
 					LargeChemicalFactoryRecipes.invalidate();
@@ -450,6 +466,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModRecipes.addSaltWaterMixerRecipe();// 需要 dustSalt，没有就自动跳过
 					ModRecipes.addHCLMixerRecipe();
 					ModRecipes.addSyntheticEthanolMixerRecipes();// 乙烯水合/甲醇羰基化/乙酸加氢，与化工厂同配比
+					ModRecipes.addChemicalPlantMixerRecipes();// 化工厂单流体产物路线
 					ModRecipes.addWoodMashMixerRecipe();// 木质浆料
 					ModRecipes.addCoreLineVanillaRecipes();// 地核线：原浆+盐酸→钴料液（幂等put）
 				}
@@ -476,6 +493,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModRecipes.addSaltFromGravelRecipe();
 					ModRecipes.addDeepSeaCentrifugeRecipes();// 锆粉、铌粉、铂族精矿、铀粉
 					ModRecipes.addIronFromRedSandRecipe();// 红沙→氧化铁粉
+					ModRecipes.addPetroOreCentrifugeRecipes();// 精炼铁团→高产铁粉/钛粉
 				}
 				if(recipeClassName.equals("FractionRecipes")) {
 					ModRecipes.addDeepSeaFractionRecipe();// 四氯化钛、尾氯重馏分
@@ -498,6 +516,7 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				ModRecipes.addShredderAssemblyRecipe();   // 高级粉碎机
 				ModRecipes.addGasTurbineAssemblyRecipe(); // 工业燃气轮机
 				ModRecipes.addThermalStationAssemblyRecipe(); // 大型火力发电站
+				ModRecipes.addIndustrialCultivationStationAssemblyRecipe(); // 工业种植站
 				ModRecipes.addSupercriticalMHDAssemblyRecipe(); // 超临界磁流体膨胀发电机
 				ModRecipes.addBat9000AssemblyRecipe();    // 大型储罐
 				ModRecipes.addElectrolyzerRebornAssemblyRecipe(); // 小型电解机
@@ -518,6 +537,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 				ModRecipes.addStellaratorRecipe();                 // 仿星器（含528蓝图门槛）
 				ModRecipes.addPlasmaHeaterRecipe();                // 等离子加热器（共用528蓝图）
 				ModRecipes.addElectricBlastFurnaceRecipe();        // 电力高炉
+				ModRecipes.addParallelUpgradeAssemblyRecipes();    // 1~3级并行升级（非528装配机）
+				ModRecipes.addQuantumPulseAssemblyRecipe();
 				}
 				// ===== 铂细线替代（金/铅细线 → 铂细线，产出翻倍，原配方保留）=====
 				// 这三台机器要挂监听器，否则玩家删掉 config/hbmRecipes 的 json 后
@@ -529,6 +550,8 @@ public class MakeNTMGreatAgain implements IGuiHandler {
 					ModPlatinumRecipes.injectMotor();
 				}
 				if(recipeClassName.equals("PrecAssRecipes")) {
+					ModRecipes.addParallelUpgradePrecAssRecipes(); // 1~3级并行升级（528精密装配机 + 废品回收）
+					ModRecipes.addQuantumPulsePrecAssRecipe();
 					ModPlatinumRecipes.injectPrecAss();
 				}
 				if(recipeClassName.equals("RefineryRecipes")) {

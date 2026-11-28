@@ -97,6 +97,8 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 	public int breedFlux;
 	/** 这份进度属于哪个物品（注册名）；换物品时清空进度 */
 	public String breedItem;
+	/** 同步给客户端的当前装入核心 id（空串表示核心槽为空，用于渲染器在腔体内显示对应核心球） */
+	public String syncedCoreId = "";
 
 	/** 20 个接口的节点定义，坐标依赖核心位置，所以缓存一份 */
 	protected PortDef[] cachedPorts;
@@ -119,11 +121,10 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 		return "container.nuclear_explosion_generator";
 	}
 
-	/** 模型比一个方块大得多，渲染包围盒要覆盖整台机器 */
+	/** 模型比一个方块大得多，渲染包围盒要覆盖整台机器（15×15×19） */
 	@Override
 	public AxisAlignedBB getRenderBoundingBox() {
-		// 结构 13×13×17，但模型机臂外伸到 x ±12，包围盒要覆盖到 ±12
-		return AxisAlignedBB.getBoundingBox(xCoord - 12, yCoord, zCoord - 12, xCoord + 13, yCoord + 18, zCoord + 13);
+		return AxisAlignedBB.getBoundingBox(xCoord - 9, yCoord, zCoord - 9, xCoord + 10, yCoord + 20, zCoord + 10);
 	}
 
 	@Override
@@ -156,22 +157,24 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 	}
 
 	/**
-	 * 20 个接口的 UNINOS 节点：位置就是接口代理方块本身，向外一格是连接点。
-	 * 结构四面各 5 个口、y+1 层，和模型上的贴片一一对应。
+	 * 16 个接口的 UNINOS 节点：位置就是接口代理方块本身，向外一格是连接点。
+	 * 底台(y=0) 与顶台(y=18) 四面各 2 个口（±3），与模型上的 16 个整格接口一一对应。
 	 */
 	public PortDef[] getPorts() {
 
 		if(this.cachedPorts == null) {
 
 			List<PortDef> ports = new ArrayList<PortDef>();
-			int y = yCoord + BlockNuclearExplosionGenerator.PORT_Y;
 			int r = BlockNuclearExplosionGenerator.RADIUS;
 
-			for(int t : BlockNuclearExplosionGenerator.PORT_T) {
-				ports.add(PortDef.make(xCoord + t, y, zCoord - r, Library.NEG_Z));
-				ports.add(PortDef.make(xCoord + t, y, zCoord + r, Library.POS_Z));
-				ports.add(PortDef.make(xCoord + r, y, zCoord + t, Library.POS_X));
-				ports.add(PortDef.make(xCoord - r, y, zCoord + t, Library.NEG_X));
+			for(int py : BlockNuclearExplosionGenerator.PORT_YS) {
+				int y = yCoord + py;
+				for(int t : BlockNuclearExplosionGenerator.PORT_T) {
+					ports.add(PortDef.make(xCoord + t, y, zCoord - r, Library.NEG_Z));
+					ports.add(PortDef.make(xCoord + t, y, zCoord + r, Library.POS_Z));
+					ports.add(PortDef.make(xCoord + r, y, zCoord + t, Library.POS_X));
+					ports.add(PortDef.make(xCoord - r, y, zCoord + t, Library.NEG_X));
+				}
 			}
 
 			this.cachedPorts = ports.toArray(new PortDef[ports.size()]);
@@ -334,12 +337,12 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 
 			if(te.worldObj != world) continue;
 
-			// 结构 13×13×17，顶部三层外扩到 ±8，再留一格余量
+			// 结构 15×15×19，四周 ±7、高 19，留一格余量
 			int dx = te.xCoord - x;
 			int dy = y - te.yCoord;
 			int dz = te.zCoord - z;
 
-			if(Math.abs(dx) > 9 || Math.abs(dz) > 9 || dy < -1 || dy > 18) continue;
+			if(Math.abs(dx) > 9 || Math.abs(dz) > 9 || dy < -1 || dy > 20) continue;
 
 			int dist = dx * dx + dy * dy + dz * dz;
 			if(dist < best) {
@@ -643,6 +646,8 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 		buf.writeBoolean(this.auto);
 		buf.writeInt(this.breedFlux);
 		cpw.mods.fml.common.network.ByteBufUtils.writeUTF8String(buf, this.breedItem == null ? "" : this.breedItem);
+		String coreId = ModNukeCores.getCoreId(this.slots[SLOT_CORE]);
+		cpw.mods.fml.common.network.ByteBufUtils.writeUTF8String(buf, coreId);
 		this.tanks[0].serialize(buf);
 		this.tanks[1].serialize(buf);
 	}
@@ -658,6 +663,7 @@ public class TileEntityNuclearExplosionGenerator extends TileEntityMachineBase
 		this.breedFlux = buf.readInt();
 		String syncedBreedItem = cpw.mods.fml.common.network.ByteBufUtils.readUTF8String(buf);
 		this.breedItem = syncedBreedItem.isEmpty() ? null : syncedBreedItem;
+		this.syncedCoreId = cpw.mods.fml.common.network.ByteBufUtils.readUTF8String(buf);
 		this.tanks[0].deserialize(buf);
 		this.tanks[1].deserialize(buf);
 	}

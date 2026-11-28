@@ -14,7 +14,7 @@ import net.minecraft.util.EnumChatFormatting;
  * 复合材料储罐：护腿槽的护甲改装件。
  *
  * 它本身不产生任何效果——真正干活的是 {@link com.makentmgreatagain.hazard.CompositeTankHazardGuard}，
- * 那个类在 postInit 里把 HBM 的「易燃易爆 / 遇水反应 / 自燃」三种 hazard 类型换成了会先检查
+ * 那个类在 postInit 里把 HBM 的「易燃易爆 / 遇水反应 / 自燃 / 致盲」四种 hazard 类型换成了会先检查
  * 「护腿里有没有这件东西」的包装类。放在这里不写逻辑，是因为 ItemArmorMod.modUpdate 只对
  * 盔甲穿戴者本人生效，而 hazard 是全局按物品触发的，接不上。
  */

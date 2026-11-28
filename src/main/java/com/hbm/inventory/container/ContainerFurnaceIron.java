@@ -24,7 +24,7 @@ public class ContainerFurnaceIron extends Container {
 		this.addSlotToContainer(new Slot(furnace, 2, 71, 53));
 		//output
 		this.addSlotToContainer(new SlotSmelting(invPlayer.player, furnace, 3, 125, 35));
-		//upgrade
+		// upgrades
 		this.addSlotToContainer(new SlotUpgrade(furnace, 4, 17, 35));
 		
 		for(int i = 0; i < 3; i++) {
@@ -48,12 +48,8 @@ public class ContainerFurnaceIron extends Container {
 			stack = originalStack.copy();
 
 			if(index <= 4) {
-				if(!this.mergeItemStack(originalStack, 5, this.inventorySlots.size(), true)) {
-					return null;
-				}
-				
+				if(!this.mergeItemStack(originalStack, 5, this.inventorySlots.size(), true)) return null;
 				slot.onSlotChange(originalStack, stack);
-				
 			} else if(!this.mergeItemStack(originalStack, 0, 5, false)) {
 				return null;
 			}

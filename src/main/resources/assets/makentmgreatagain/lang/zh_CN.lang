@@ -46,9 +46,10 @@ item.powder_cobalt_tungsten_mixture.name=高强度碳化钨粉
 item.powder_cobalt_tungsten_ingot.name=高强度碳化钨锭
 item.ingot_peek.name=聚醚醚酮锭
 item.powder_peek.name=聚醚醚酮粉
-item.upgrade_parallel_1.name=一级并行芯片
-item.upgrade_parallel_2.name=二级并行芯片
-item.upgrade_parallel_3.name=三级并行芯片
+item.quantum_pulse_component.name=量子脉冲元件
+item.upgrade_parallel_1.name=一级并行升级
+item.upgrade_parallel_2.name=二级并行升级
+item.upgrade_parallel_3.name=三级并行升级
 mnga.upgrade.parallel.info=并行 %sx
 hbmfluid.hydrofluoric_acid=氢氟酸
 hbmfluid.fluorobenzene=氟苯
@@ -434,6 +435,7 @@ nei.stellarator_fusion.startup=启动：%ss
 nei.stellarator_fusion.power=功耗：%sHE/t
 nei.plasma_heater.name=等离子加热器
 nei.plasma_heater.power=功耗：%sHE/t
+nei.industrial_cultivation_station.name=工业种植站
 
 # ---- 铅锌冶炼(ISP 法)----
 tile.ore_leadzinc.name=铅锌矿
@@ -499,7 +501,7 @@ makentmgreatagain.leadzinc.arsine=白砷还原制砷化氢
 # ---- 复合材料储罐(护腿护甲改装件)----
 item.composite_tank.name=复合材料储罐
 desc.composite_tank.1=有效治疗易燃易爆和敏感肌
-desc.composite_tank.2=背包内[易燃易爆][遇水反应][自燃]不再触发
+desc.composite_tank.2=穿戴后，背包物品的[易燃易爆][遇水反应][自燃][致盲]不再触发
 
 # ---- 自动灭火器(护腿护甲改装件)----
 item.auto_extinguisher.name=自动灭火器
@@ -655,6 +657,13 @@ tile.block_threx.name=Threx块
 tile.block_threx.desc=§cIt's too heavy!!!
 tile.threx_shield_brick.name=Threx屏蔽砖
 tile.threx_shield_glass.name=Threx屏蔽玻璃
+tile.threx_slab.name=Threx台阶
+tile.threx_double_slab.name=双层Threx台阶
+tile.threx_stairs.name=Threx楼梯
+tile.threx_tile.name=Threx瓷砖
+tile.threx_deco.name=Threx装饰块
+tile.threx_casing.name=Threx外壳
+tile.threx_vessel.name=Threx容器壁
 
 item.core_uranium_fuel.name=铀燃料核心
 item.core_thorium_fuel.name=钍燃料核心
@@ -890,4 +899,87 @@ hbmfluid.supercritical_steam.lore=超高温高焓闭环冷却工质。
 
 # ===== 超临界磁流体膨胀发电机 =====
 tile.supercritical_mhd_generator.name=超临界磁流体膨胀发电机
+tile.industrial_cultivation_station.name=工业种植站
+container.industrial_cultivation_station=工业种植站
 container.supercritical_mhd_generator=超临界磁流体膨胀发电机
+
+# ===== 石油耦合孔雀石 / 赤铁矿二阶萃矿线 =====
+hbmfluid.reform_solvent=精制萃矿剂
+hbmfluid.reform_solvent.lore=由重整油、轻质芳烃(BTX)与氨复配的高效石油萃矿溶剂。
+hbmfluid.copper_extract_liquor=富铜萃液
+hbmfluid.copper_extract_liquor.lore=孔雀石经精制萃矿剂深度萃取的高浓含铜有机液。
+hbmfluid.iron_extract_liquor=富铁萃液
+hbmfluid.iron_extract_liquor.lore=赤铁矿经精制萃矿剂深度萃取的高浓含铁有机液。
+item.refined_copper_clump.name=精炼铜团
+item.refined_iron_clump.name=精炼铁团
+
+tile.atomic_probe.name=投送探头
+item.atomic_linker.name=探头绑定器
+container.atomic_probe=投送探头
+
+mnga.probe.title=投送探头
+mnga.probe.mode.send=发送端
+mnga.probe.mode.recv=接收端
+mnga.probe.btn.links=连接(%s)
+mnga.probe.btn.back=返回设置
+mnga.probe.btn.clear=清空
+mnga.probe.btn.link=连接
+mnga.probe.btn.linked=已连
+mnga.probe.btn.whitelist=白名单
+mnga.probe.btn.blacklist=黑名单
+mnga.probe.btn.batch_on=定量:开
+mnga.probe.btn.batch_off=定量:关
+mnga.probe.btn.priority=优先补满
+mnga.probe.btn.rr=轮询调度
+mnga.probe.label.name=名称:
+mnga.probe.label.filter_samples=过滤样本
+mnga.probe.label.batch_samples=定量样本 (左键+1 / 右键-1)
+mnga.probe.label.threshold=定量:
+mnga.probe.label.max_send=上限:
+mnga.probe.label.recv_limit=接收上限 (0=无限):
+mnga.probe.links.none_send=附近 32 格内没有发送端
+mnga.probe.links.none_recv=附近 32 格内没有接收端
+mnga.probe.state.idle=待机
+mnga.probe.state.aligning=对准中
+mnga.probe.state.firing=投送中
+mnga.probe.state.out_of_range=超出距离
+mnga.probe.state.blind_spot=视角死角
+mnga.probe.state.target_full=目标已满
+mnga.probe.state.unbound=未绑定
+mnga.probe.state.recv_idle=待机就绪
+mnga.probe.state.recv_locked=锁定接收
+mnga.probe.tip.links.1=§b连接管理界面
+mnga.probe.tip.links.2=§7查看 32 格内所有探头
+mnga.probe.tip.threshold.1=§e定量上限 (0=有货就发)
+mnga.probe.tip.threshold.2=§7源容器必须至少凑齐该数量才触发发送
+mnga.probe.tip.max_send.1=§e单次最大发送量 (1~256，默认64)
+mnga.probe.tip.max_send.2=§7最大 256，回车生效
+mnga.probe.tip.recv_limit.1=§e接收上限 (0=无限)
+mnga.probe.tip.recv_limit.2=§7目标容器同类物品达到上限时拒收
+mnga.probe.tip.poll=§e轮询间隔(1t/10t/20t/40t/80t)
+mnga.probe.tip.filter_batch=§7左键+1 / 右键-1 / Shift+右键清空
+mnga.probe.tip.filter_normal=§7右键或空手左键清空
+mnga.probe.tooltip.1=§b贴面式投送探头
+mnga.probe.tooltip.2=§7潜行空手右键切换发送/接收模式
+mnga.probe.tooltip.3=§7贴在可识别的箱子/机器接口
+mnga.probe.chat.mode_send=§7[投送探头] 已切换为：§6发送端
+mnga.probe.chat.mode_recv=§7[投送探头] 已切换为：§b接收端
+mnga.linker.tooltip.1=§7右键接收端记录坐标，再右键发送端添加目标
+mnga.linker.tooltip.2=§7潜行右键清空目标
+mnga.linker.tooltip.saved=§b已选接收端: (%s, %s, %s)
+mnga.linker.chat.cleared=§7[探头绑定器] 已清空暂存坐标
+mnga.linker.chat.unbound_all=§e[探头绑定器] 已清空该发送端的全部绑定目标
+mnga.linker.chat.is_recv=§7[探头绑定器] 该探头为接收端，右键即可记录其坐标
+mnga.linker.chat.saved=§b[探头绑定器] 已记录接收端坐标: (%s, %s, %s)
+mnga.linker.chat.need_recv=§c[探头绑定器] 请先右键一个接收端探头记录目标坐标
+mnga.linker.chat.cross_dim=§c[探头绑定器] 无法跨维度绑定
+mnga.linker.chat.self=§c[探头绑定器] 不能绑定到自身
+mnga.linker.chat.exists=§e[探头绑定器] 该接收端已在目标列表中(或已达上限 %s)
+mnga.linker.chat.bound_ok=§6[探头绑定器] 已添加目标 #%s -> (%s, %s, %s) §a(%s/%sm)
+mnga.linker.chat.bound_far=§6[探头绑定器] 已添加目标 #%s -> (%s, %s, %s) §c(%s/%sm 超出距离!)
+
+tile.delivery_relay.name=投送中继节点
+mnga.relay.tooltip.1=§b360° 全向中继节点
+mnga.relay.tooltip.2=§7自动组网(延长32格)
+mnga.probe.links.hops=· %s中继
+mnga.probe.links.no_route=暂无路径，显示直线距离

@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.recipes.FusionRecipe;
-import com.hbm.inventory.recipes.FusionRecipes;
+import com.makentmgreatagain.recipes.StellaratorRecipes;
 import com.hbm.inventory.recipes.loader.GenericRecipe;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.ItemFluidIcon;
@@ -138,7 +138,7 @@ public class StellaratorFusionHandler extends TemplateRecipeHandler {
 		};
 
 		for(String name : recipeNames) {
-			GenericRecipe gr = FusionRecipes.INSTANCE.recipeNameMap.get(name);
+			GenericRecipe gr = StellaratorRecipes.INSTANCE.recipeNameMap.get(name);
 			if(gr instanceof HydrogenFusionRecipe) {
 				arecipes.add(new FusionCachedRecipe((HydrogenFusionRecipe) gr));
 			}
@@ -159,7 +159,7 @@ public class StellaratorFusionHandler extends TemplateRecipeHandler {
 		boolean isFluid = isFluidIcon(result);
 		int damage = result.getItemDamage();
 
-		for(Object o : FusionRecipes.INSTANCE.recipeOrderedList) {
+		for(Object o : StellaratorRecipes.INSTANCE.recipeOrderedList) {
 			if(o instanceof HydrogenFusionRecipe) {
 				HydrogenFusionRecipe r = (HydrogenFusionRecipe) o;
 				if(!HydrogenFusion.isOurRecipe(r.getInternalName())) continue;
@@ -197,7 +197,7 @@ public class StellaratorFusionHandler extends TemplateRecipeHandler {
 
 		if(isFluidIcon(ingredient)) {
 			int damage = ingredient.getItemDamage();
-			for(Object o : FusionRecipes.INSTANCE.recipeOrderedList) {
+			for(Object o : StellaratorRecipes.INSTANCE.recipeOrderedList) {
 				if(o instanceof HydrogenFusionRecipe) {
 					HydrogenFusionRecipe r = (HydrogenFusionRecipe) o;
 					if(!HydrogenFusion.isOurRecipe(r.getInternalName())) continue;

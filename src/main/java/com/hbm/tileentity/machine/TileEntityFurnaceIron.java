@@ -167,10 +167,8 @@ public class TileEntityFurnaceIron extends TileEntityMachineBase implements IGUI
 		if(result == null) return false;
 		if(slots[3] == null) return true;
 
-		if(!result.isItemEqual(slots[3])) return false;
-		if(result.stackSize + slots[3].stackSize > slots[3].getMaxStackSize()) return false;
-
-		return true;
+		if(!result.isItemEqual(slots[3]) || !ItemStack.areItemStackTagsEqual(result, slots[3])) return false;
+		return result.stackSize + slots[3].stackSize <= Math.min(result.getMaxStackSize(), slots[3].getMaxStackSize());
 	}
 
 	@Override
@@ -184,9 +182,11 @@ public class TileEntityFurnaceIron extends TileEntityMachineBase implements IGUI
 		if(i == 0)
 			return FurnaceRecipes.smelting().getSmeltingResult(itemStack) != null;
 
-		if(i < 3)
+		if(i == 1 || i == 2)
 			return burnModule.getBurnTime(itemStack) > 0;
 
+		if(i == 4) return itemStack.getItem() instanceof com.hbm.items.machine.ItemMachineUpgrade
+				&& ((com.hbm.items.machine.ItemMachineUpgrade)itemStack.getItem()).type == UpgradeType.SPEED;
 		return false;
 	}
 

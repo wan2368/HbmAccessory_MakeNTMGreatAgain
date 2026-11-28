@@ -74,6 +74,7 @@ public final class ThrexRadResistance {
 	public static Block threxBlock;
 	public static Block threxShieldBrickBlock;
 	public static Block threxShieldGlassBlock;
+	public static final java.util.Set<Block> threxShieldVariantBlocks = new java.util.HashSet<Block>();
 
 	private ThrexRadResistance() {
 	}
@@ -92,7 +93,9 @@ public final class ThrexRadResistance {
 	public static float apply(Block block, float vanilla) {
 		if(block == null) return vanilla;
 		if(block == threxBlock) return calibrated(THREX_RESISTANCE);
-		if(block == threxShieldBrickBlock) return calibrated(THREX_SHIELD_BRICK_RESISTANCE);
+		if(block == threxShieldBrickBlock || threxShieldVariantBlocks.contains(block)) {
+			return calibrated(THREX_SHIELD_BRICK_RESISTANCE);
+		}
 		if(block == threxShieldGlassBlock) return calibrated(THREX_SHIELD_GLASS_RESISTANCE);
 		return vanilla;
 	}

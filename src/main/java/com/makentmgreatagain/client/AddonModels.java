@@ -169,23 +169,71 @@ public class AddonModels {
 		return hybridCatalyticFractionTower;
 	}
 
-	/** 可控核爆炸发生器：13×13×17，模型按材质拆成 6 个 OBJ，渲染时逐个换贴图 */
-	public static final String[] neg_keys = {"hull", "dark", "hazard", "vent", "panel", "port"};
-	public static final ResourceLocation[] neg_tex = {
-			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/nuclear_explosion_generator.png"),
-			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/nuclear_explosion_generator_dark.png"),
-			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/nuclear_explosion_generator_hazard.png"),
-			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/nuclear_explosion_generator_vent.png"),
-			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/nuclear_explosion_generator_panel.png"),
-			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/nuclear_explosion_generator_port.png")};
-	private static final IModelCustom[] negModels = new IModelCustom[neg_keys.length];
+	/** 次临界核爆发生器：15×15×19，单 OBJ 按材质分组，贴图全部压缩到严格 16px/格 */
+	public static class NegPart {
+		public final String group;
+		public final ResourceLocation texture;
+		public final float r, g, b;
+		public final boolean translucent;
 
-	public static IModelCustom negModel(int i) {
-		if(negModels[i] == null) {
-			negModels[i] = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID,
-					"models/machines/nuclear_explosion_generator_" + neg_keys[i] + ".obj")).asVBO();
+		public NegPart(String group, String texName, float r, float g, float b, boolean translucent) {
+			this.group = group;
+			this.texture = new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/neg/" + texName);
+			this.r = r;
+			this.g = g;
+			this.b = b;
+			this.translucent = translucent;
 		}
-		return negModels[i];
+
+		public NegPart(String group, String texName, float r, float g, float b) {
+			this(group, texName, r, g, b, false);
+		}
+	}
+
+	public static final NegPart[] neg_parts = {
+			new NegPart("barrelAtlas", "barrel_atlas.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("barrelEndAtlas", "barrel_end_atlas.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("baseAtlas", "base_atlas.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("brass", "tex16_copper.png", 0.595F, 0.460F, 0.299F),
+			new NegPart("deepblack", "tex16_rubber.png", 0.095F, 0.108F, 0.118F),
+			new NegPart("edge", "tex16_milled.png", 0.533F, 0.564F, 0.537F),
+			new NegPart("fuelAtlas", "fuel_surface.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("gun", "tex16_rubber.png", 0.170F, 0.216F, 0.227F),
+			new NegPart("gunblue", "tex16_gunblue.png", 0.277F, 0.307F, 0.385F),
+			new NegPart("icfLiner", "tex16_icfliner.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("icfRings", "tex16_icfrings.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("iron", "tex16_ironcast.png", 0.209F, 0.248F, 0.259F),
+			new NegPart("oxide", "tex16_copper.png", 0.400F, 0.332F, 0.277F),
+			new NegPart("reformerLight", "tex16_milled.png", 0.610F, 0.602F, 0.579F),
+			new NegPart("reformerPort", "tex16_reformerport.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("reformerSeam", "tex16_cast.png", 0.449F, 0.441F, 0.422F),
+			new NegPart("rib", "tex16_milled.png", 0.385F, 0.445F, 0.441F),
+			new NegPart("rust", "tex16_copper.png", 0.575F, 0.366F, 0.245F),
+			new NegPart("seal", "tex16_rubber.png", 0.135F, 0.209F, 0.216F),
+			new NegPart("shadow", "tex16_rubber.png", 0.122F, 0.156F, 0.167F),
+			new NegPart("shellAtlas", "shell_atlas.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("steel", "tex16_cast.png", 0.303F, 0.355F, 0.362F),
+			new NegPart("svcElbow", "tex16_svcelbow.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("svcPipe", "tex16_svcpipe.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("vesselDialA", "tex16_vesseldiala.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("vesselDialB", "tex16_vesseldialb.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("vesselPaint", "tex16_vesselpaint.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("warningWindow", "tex16_window_warning.png", 1.000F, 1.000F, 1.000F),
+			new NegPart("wireBlue", "tex16_rubber.png", 0.245F, 0.329F, 0.358F),
+			new NegPart("wireClip", "tex16_milled.png", 0.471F, 0.475F, 0.441F),
+			new NegPart("wireCoal", "tex16_rubber.png", 0.156F, 0.177F, 0.181F),
+			new NegPart("wireTag", "tex16_paint.png", 0.696F, 0.602F, 0.377F),
+			new NegPart("wireWarm", "tex16_rubber.png", 0.396F, 0.329F, 0.288F),
+			new NegPart("glass", "tex16_glass.png", 1.000F, 1.000F, 1.000F, true)
+	};
+	private static IModelCustom negModel;
+
+	public static IModelCustom negModel() {
+		if(negModel == null) {
+			negModel = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID,
+					"models/machines/nuclear_explosion_generator.obj")).asVBO();
+		}
+		return negModel;
 	}
 
 	/** 地核熔岩开采机（旧版 NTM 1.0.27 开发中机器「AMS发射极」的模型），5×5×6，另有熔毁模型/贴图 */
@@ -354,6 +402,19 @@ public class AddonModels {
 		return supercriticalMhd;
 	}
 
+	/** 工业种植站：7×7×5 多方块模型（16px/格 UV） */
+	public static final ResourceLocation industrial_cultivation_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/industrial_cultivation_station.png");
+
+	private static IModelCustom industrialCultivation = null;
+
+	public static IModelCustom industrialCultivationModel() {
+		if(industrialCultivation == null) {
+			industrialCultivation = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/industrial_cultivation_station.obj")).asVBO();
+		}
+		return industrialCultivation;
+	}
+
 	/** 流体传送器 / 物品传送器：1×1×1 单方块，参考 EIO 空间传送器外框 + 中心悬浮棱面晶体（含超频贴图变体） */
 	public static final ResourceLocation xen_fluid_transceiver_tex =
 			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/xen_fluid_transceiver.png");
@@ -371,5 +432,31 @@ public class AddonModels {
 			xenTransceiver = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/xen_transceiver.obj")).asVBO();
 		}
 		return xenTransceiver;
+	}
+
+	/** 原子投送探头：简洁 HBM 风格三段式云台模型（Base / Yoke / Head） */
+	public static final ResourceLocation atomic_probe_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/atomic_probe.png");
+
+	private static IModelCustom atomicProbe = null;
+
+	public static IModelCustom atomicProbeModel() {
+		if(atomicProbe == null) {
+			atomicProbe = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/atomic_probe.obj")).asVBO();
+		}
+		return atomicProbe;
+	}
+
+	/** 投送中继节点：1×1×1 16px/格 6面贴面光学中继节点（Body / Core / LED） */
+	public static final ResourceLocation delivery_relay_tex =
+			new ResourceLocation(MakeNTMGreatAgain.MODID, "textures/models/machines/delivery_relay.png");
+
+	private static IModelCustom deliveryRelay = null;
+
+	public static IModelCustom deliveryRelayModel() {
+		if(deliveryRelay == null) {
+			deliveryRelay = new HFRWavefrontObject(new ResourceLocation(MakeNTMGreatAgain.MODID, "models/machines/delivery_relay.obj")).asVBO();
+		}
+		return deliveryRelay;
 	}
 }

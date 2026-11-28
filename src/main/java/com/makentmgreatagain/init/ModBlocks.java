@@ -22,6 +22,8 @@ import com.makentmgreatagain.blocks.BlockLargeCentrifuge;
 import com.makentmgreatagain.blocks.BlockThrex;
 import com.makentmgreatagain.blocks.BlockThrexShieldBrick;
 import com.makentmgreatagain.blocks.BlockThrexShieldGlass;
+import com.makentmgreatagain.blocks.BlockThrexSlab;
+import com.makentmgreatagain.blocks.BlockThrexStairs;
 import com.makentmgreatagain.blocks.BlockWirelessStation;
 import com.makentmgreatagain.blocks.BlockXenCrystal;
 import com.makentmgreatagain.blocks.BlockArcHeater;
@@ -48,7 +50,6 @@ import com.makentmgreatagain.blocks.BlockStorageMetal;
 import com.makentmgreatagain.blocks.BlockAddonBattery;
 import com.makentmgreatagain.blocks.BlockAddonCapacitor;
 import com.makentmgreatagain.blocks.BatteryCellSpec;
-import com.makentmgreatagain.items.ItemBlockHelicopter;
 import com.makentmgreatagain.tileentity.TileEntityAlloyShredder;
 import com.makentmgreatagain.tileentity.TileEntityFluidCooler;
 import com.makentmgreatagain.tileentity.TileEntityMachineDrain;
@@ -124,8 +125,10 @@ public class ModBlocks {
 	public static Block block_helicopter, block_erbium, block_platinum;
 	/** Threx 块：抗爆 450000、硬度 100（黑曜石两倍）、钻石镐等级；物品态在背包内给缓慢 III */
 	public static Block block_threx;
-	/** Threx 建材：高产量屏蔽砖与连接式屏蔽玻璃 */
+	/** Threx 建材：高产量屏蔽砖、连接式屏蔽玻璃及衍生建材 */
 	public static Block threx_shield_brick, threx_shield_glass;
+	public static Block threx_slab, threx_double_slab, threx_stairs;
+	public static Block threx_tile, threx_deco, threx_casing, threx_vessel;
 	public static Block block_alloy_shredder;
 	/** 大型储罐（重生版） */
 	public static Block block_bat9000_reborn;
@@ -172,6 +175,8 @@ public class ModBlocks {
 	public static Block plasma_heater;
 	/** 超临界磁流体膨胀发电机（11×5×5 无 GUI 多方块） */
 	public static Block supercritical_mhd_generator;
+	/** 工业种植站（7×7×5 多方块） */
+	public static Block industrial_cultivation_station;
 	/** 流体传送器（单方块跨维流体传送） */
 	public static Block xen_fluid_transceiver;
 	/** 物品传送器（单方块跨维物品传送） */
@@ -223,6 +228,11 @@ public class ModBlocks {
 	public static Block battery_array_controller;
 	public static Block battery_array_shell;
 
+	/** 原子投送探头（6方向贴面云台） */
+	public static Block atomic_probe;
+	/** 投送中继节点（6方向贴面，自动组网接力激光） */
+	public static Block delivery_relay;
+
 	public static void init() {
 		block_advanced_alloy = new BlockAdvancedAlloy()
 			.setBlockName("advanced_block_alloy")
@@ -234,9 +244,8 @@ public class ModBlocks {
 		block_advanced_alloy.setHarvestLevel("pickaxe", 2);
 		GameRegistry.registerBlock(block_advanced_alloy, "advanced_block_alloy");
 
-		// 三材质金属储存块
-		// 耐摔合金块用专门的 ItemBlock：被破坏后的掉落物会自旋、到 120 转/分后升空
-		block_helicopter = registerStorageBlock("block_helicopter", true);
+		// 三材质金属储存块（掉落物一律是普通 ItemBlock）
+		block_helicopter = registerStorageBlock("block_helicopter");
 		block_erbium = registerStorageBlock("block_erbium");
 		block_platinum = registerStorageBlock("block_platinum");
 
@@ -264,6 +273,58 @@ public class ModBlocks {
 			.setBlockName("threx_shield_glass")
 			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
 		GameRegistry.registerBlock(threx_shield_glass, ItemBlockBlastInfo.class, "threx_shield_glass");
+
+		// Threx 台阶（单层 + 双层需先初始化再注册 ItemBlockThrexSlab）
+		threx_slab = new BlockThrexSlab(false)
+			.setBlockName("threx_slab")
+			.setBlockTextureName(MakeNTMGreatAgain.MODID + ":threx_shield_brick")
+			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+		threx_slab.setHarvestLevel("pickaxe", 3);
+		threx_double_slab = new BlockThrexSlab(true)
+			.setBlockName("threx_double_slab")
+			.setBlockTextureName(MakeNTMGreatAgain.MODID + ":threx_shield_brick");
+		threx_double_slab.setHarvestLevel("pickaxe", 3);
+		GameRegistry.registerBlock(threx_slab, com.makentmgreatagain.items.ItemBlockThrexSlab.class, "threx_slab");
+		GameRegistry.registerBlock(threx_double_slab, com.makentmgreatagain.items.ItemBlockThrexSlab.class, "threx_double_slab");
+
+		// Threx 楼梯
+		threx_stairs = new BlockThrexStairs(threx_shield_brick)
+			.setBlockName("threx_stairs")
+			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+		threx_stairs.setHarvestLevel("pickaxe", 3);
+		GameRegistry.registerBlock(threx_stairs, ItemBlockBlastInfo.class, "threx_stairs");
+
+		// Threx 瓷砖
+		threx_tile = new BlockThrexShieldBrick()
+			.setBlockName("threx_tile")
+			.setBlockTextureName(MakeNTMGreatAgain.MODID + ":threx_tile")
+			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+		threx_tile.setHarvestLevel("pickaxe", 3);
+		GameRegistry.registerBlock(threx_tile, ItemBlockBlastInfo.class, "threx_tile");
+
+		// Threx 装饰块
+		threx_deco = new BlockThrexShieldBrick()
+			.setBlockName("threx_deco")
+			.setBlockTextureName(MakeNTMGreatAgain.MODID + ":threx_deco")
+			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+		threx_deco.setHarvestLevel("pickaxe", 3);
+		GameRegistry.registerBlock(threx_deco, ItemBlockBlastInfo.class, "threx_deco");
+
+		// Threx 外壳（仿 ICF 外壳）
+		threx_casing = new BlockThrexShieldBrick()
+			.setBlockName("threx_casing")
+			.setBlockTextureName(MakeNTMGreatAgain.MODID + ":threx_casing")
+			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+		threx_casing.setHarvestLevel("pickaxe", 3);
+		GameRegistry.registerBlock(threx_casing, ItemBlockBlastInfo.class, "threx_casing");
+
+		// Threx 容器壁（仿 ICF 密封容器壁）
+		threx_vessel = new BlockThrexShieldBrick()
+			.setBlockName("threx_vessel")
+			.setBlockTextureName(MakeNTMGreatAgain.MODID + ":threx_vessel")
+			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
+		threx_vessel.setHarvestLevel("pickaxe", 3);
+		GameRegistry.registerBlock(threx_vessel, ItemBlockBlastInfo.class, "threx_vessel");
 
 		// 铅锌矿（ISP 法提镉的起点）
 		ore_leadzinc = new BlockOreLeadZinc()
@@ -694,6 +755,17 @@ public class ModBlocks {
 		GameRegistry.registerBlock(supercritical_mhd_generator, com.hbm.items.block.ItemBlockBase.class, "supercritical_mhd_generator");
 		GameRegistry.registerTileEntity(com.makentmgreatagain.tileentity.TileEntitySupercriticalMHDGenerator.class, "makentmgreatagain.supercritical_mhd_generator");
 
+		// 工业种植站：7×7×5 多方块（模型与材质预览版）
+		industrial_cultivation_station = ((Block) new com.makentmgreatagain.blocks.BlockIndustrialCultivationStation())
+			.setBlockName("industrial_cultivation_station")
+			.setBlockTextureName("minecraft:iron_block")
+			.setHardness(5.0F)
+			.setResistance(25.0F)
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		industrial_cultivation_station.setHarvestLevel("pickaxe", 2);
+		GameRegistry.registerBlock(industrial_cultivation_station, com.hbm.items.block.ItemBlockBase.class, "industrial_cultivation_station");
+		GameRegistry.registerTileEntity(com.makentmgreatagain.tileentity.TileEntityIndustrialCultivationStation.class, "makentmgreatagain.industrial_cultivation_station");
+
 		// 流体传送器 / 物品传送器（单方块，无需供电）
 		xen_fluid_transceiver = new com.makentmgreatagain.blocks.BlockXenTransceiver(true).setBlockName("xen_fluid_transceiver");
 		GameRegistry.registerBlock(xen_fluid_transceiver, "xen_fluid_transceiver");
@@ -760,6 +832,24 @@ public class ModBlocks {
 		// 大型电池组（PWR 式成型）
 		registerBatteryArray();
 
+		// 原子投送探头
+		atomic_probe = new com.makentmgreatagain.blocks.BlockAtomicProbe()
+			.setBlockName("atomic_probe")
+			.setBlockTextureName(RefStrings.MODID + ":block_steel")
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		atomic_probe.setHarvestLevel("pickaxe", 1);
+		GameRegistry.registerBlock(atomic_probe, ItemBlockBase.class, "atomic_probe");
+		GameRegistry.registerTileEntity(com.makentmgreatagain.tileentity.TileEntityAtomicProbe.class, "makentmgreatagain.atomic_probe");
+
+		// 投送中继节点
+		delivery_relay = new com.makentmgreatagain.blocks.BlockDeliveryRelay()
+			.setBlockName("delivery_relay")
+			.setBlockTextureName(RefStrings.MODID + ":block_steel")
+			.setCreativeTab(ModCreativeTabs.TAB_MACHINES);
+		delivery_relay.setHarvestLevel("pickaxe", 1);
+		GameRegistry.registerBlock(delivery_relay, ItemBlockBase.class, "delivery_relay");
+		GameRegistry.registerTileEntity(com.makentmgreatagain.tileentity.TileEntityDeliveryRelay.class, "makentmgreatagain.delivery_relay");
+
 	}
 
 	/** 大型电池组：外壳/端口/控制器/成型壳 + 两个 TE。 */
@@ -823,25 +913,13 @@ public class ModBlocks {
 	 *
 	 * <p>方块同样要登记矿物词典（{@code block<材质>}）才能进坩埚熔成 648 quanta 的液体，
 	 * 登记位置见 {@link MNGAMetals#registerOreDict()}。</p>
+	 *
+	 * <p>掉落物一律用原版 {@code ItemBlock}：方块被破坏后走
+	 * {@code Block.dropBlockAsItem} → 普通 {@code EntityItem}，不会换成耐摔合金系列
+	 * 那种自旋升空的 {@code EntityItemHelicopter}。三块材质块（含
+	 * {@code block_helicopter}）行为完全一致。</p>
 	 */
 	private static Block registerStorageBlock(String name) {
-		return registerStorageBlock(name, false);
-	}
-
-	/**
-	 * 注册一块金属储存块。方块名与贴图名统一为 {@code block_<材质>}，
-	 * 贴图对应 {@code textures/blocks/block_<材质>.png}。
-	 *
-	 * <p>方块同样要登记矿物词典（{@code block<材质>}）才能进坩埚熔成 648 quanta 的液体，
-	 * 登记位置见 {@link MNGAMetals#registerOreDict()}。</p>
-	 *
-	 * @param spinning 是否改用 {@link ItemBlockHelicopter} 注册。改了之后掉落物是
-	 *                 {@code EntityItemHelicopter}，落地会自旋、120 转/分后升空；
-	 *                 保持 false 就是普通 ItemBlock，掉落物原地不动。
-	 *                 Forge 通过反射调用 {@code ItemBlockHelicopter(Block)} 构造，
-	 *                 所以那个类必须有单参 Block 构造。
-	 */
-	private static Block registerStorageBlock(String name, boolean spinning) {
 		Block block = new BlockStorageMetal()
 			.setBlockName(name)
 			// 必须用本模组的 modid；RefStrings.MODID 是 HBM 的 "hbm"，
@@ -850,11 +928,7 @@ public class ModBlocks {
 			.setCreativeTab(ModCreativeTabs.TAB_BLOCKS);
 		// setHarvestLevel 返回 void，不能链式
 		block.setHarvestLevel("pickaxe", 2);
-		if (spinning) {
-			GameRegistry.registerBlock(block, ItemBlockHelicopter.class, name);
-		} else {
-			GameRegistry.registerBlock(block, name);
-		}
+		GameRegistry.registerBlock(block, name);
 		return block;
 	}
 }

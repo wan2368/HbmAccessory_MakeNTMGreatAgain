@@ -51,6 +51,7 @@ public class CommonProxy {
     /** 主初始化：注册本模组自己的合成配方（原版工作台配方，不依赖 HBM）。 */
     public void init(FMLInitializationEvent event) {
         ModRecipes.init();
+        MinecraftForge.EVENT_BUS.register(new com.makentmgreatagain.tileentity.DeliveryRelayNetwork.ChunkListener());
         // DRX 香烟特效后的延迟击杀（ServerTickEvent 走 FML 总线）
         cpw.mods.fml.common.FMLCommonHandler.instance().bus().register(new CigaretteKillHandler());
         // 高级合金刀片磨满自动变损坏刀片（ServerTickEvent 走 FML 总线）
@@ -123,6 +124,14 @@ public class CommonProxy {
                 com.makentmgreatagain.init.ModBlocks.threx_shield_brick;
         com.makentmgreatagain.hook.ThrexRadResistance.threxShieldGlassBlock =
                 com.makentmgreatagain.init.ModBlocks.threx_shield_glass;
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.clear();
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.add(com.makentmgreatagain.init.ModBlocks.threx_slab);
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.add(com.makentmgreatagain.init.ModBlocks.threx_double_slab);
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.add(com.makentmgreatagain.init.ModBlocks.threx_stairs);
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.add(com.makentmgreatagain.init.ModBlocks.threx_tile);
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.add(com.makentmgreatagain.init.ModBlocks.threx_deco);
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.add(com.makentmgreatagain.init.ModBlocks.threx_casing);
+        com.makentmgreatagain.hook.ThrexRadResistance.threxShieldVariantBlocks.add(com.makentmgreatagain.init.ModBlocks.threx_vessel);
 
         // 高级合金五件套耐久 2000 → 4500。HBM 那几件是 @Deprecated 遗留物品，
         // 本体材质改不动（maxUses 在构造时就写进 Item.maxDamage），只能在这里覆写。
@@ -130,7 +139,7 @@ public class CommonProxy {
         // HBM 的 DamageResistanceHandler.init() 在它自己的 init 阶段会 clearSystem() 再建表，
         // 所以 DT/DR 只能在这里注册（晚于 HBM，早于玩家进图，且每局都会重新加一遍）
         com.makentmgreatagain.init.MNGAArmorStats.register();
-        // 复合材料储罐：把 HBM 的「易燃易爆 / 遇水反应 / 自燃」换成带护腿检查的包装类型。
+        // 复合材料储罐：把 HBM 的「易燃易爆 / 遇水反应 / 自燃 / 致盲」换成带护腿检查的包装类型。
         // 必须在 HBM 把所有 hazard 注册完之后做，postInit 是能拿到完整注册表的最早时机。
         com.makentmgreatagain.hazard.CompositeTankHazardGuard.install();
         NTMCompat.init();

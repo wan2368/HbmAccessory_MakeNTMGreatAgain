@@ -33,16 +33,14 @@ import net.minecraftforge.common.util.ForgeDirection;
  */
 public class BlockNuclearExplosionGenerator extends BlockDummyable {
 
-	/** 结构总高（格） */
-	public static final int HEIGHT = 17;
-	/** 水平半径（格）：13×13 足迹 */
-	public static final int RADIUS = 6;
-	/** 接口相对核心的高度 */
-	public static final int PORT_Y = 1;
-	/** 接口沿每条边的位置，间距 2 格，落在 2 格宽方格正中 */
-	public static final int[] PORT_T = {-4, -2, 0, 2, 4};
-	/** 顶部三层在四周各多占 2 格：模型顶盖比 13×13 宽出约 2.7 格，不补占位的话玩家走到顶边会穿进模型 */
-	public static final int CAP_LAYERS = 3;
+	/** 结构总高（格）：底台 y=0 到顶台 y=18，共 19 格 */
+	public static final int HEIGHT = 19;
+	/** 水平半径（格）：15×15 足迹（[-7, +7]） */
+	public static final int RADIUS = 7;
+	/** 接口相对核心的高度：底台 y=0 与顶台 y=18 */
+	public static final int[] PORT_YS = {0, 18};
+	/** 接口沿每条边的位置：±3，与模型底台/顶台每面 2 个整格接口一一对应 */
+	public static final int[] PORT_T = {-3, 3};
 
 	public BlockNuclearExplosionGenerator() {
 		super(Material.iron);
@@ -71,12 +69,10 @@ public class BlockNuclearExplosionGenerator extends BlockDummyable {
 		return new int[] {HEIGHT - 1, 0, RADIUS, RADIUS, RADIUS, RADIUS};
 	}
 
-	/** 第二个箱体：顶部三层向四周各外扩 RADIUS+2，用于放置时的轮廓预览 */
 	@Override
 	public int[][] getAllDimensions() {
 		return new int[][] {
-			getDimensions(),
-			new int[] {CAP_LAYERS - 1, 0, RADIUS + 2, RADIUS + 2, RADIUS + 2, RADIUS + 2, 0, HEIGHT - CAP_LAYERS, 0}
+			getDimensions()
 		};
 	}
 
@@ -87,15 +83,17 @@ public class BlockNuclearExplosionGenerator extends BlockDummyable {
 
 	@Override
 	public int[][] getAllPorts(ForgeDirection dir) {
-		// 20 个接口：四个平面各 5 个，位置与模型上每面的 5 块接口贴片一一对应
-		int[][] ports = new int[20][4];
+		// 16 个接口：底台(y=0) 与顶台(y=18) 四面各 2 个（±3），与模型 16 个整格接口一一对应
+		int[][] ports = new int[PORT_YS.length * PORT_T.length * 4][4];
 		int i = 0;
 
-		for(int t : PORT_T) {
-			ports[i++] = new int[] { t, PORT_Y, -RADIUS, ForgeDirection.NORTH.ordinal()};
-			ports[i++] = new int[] { t, PORT_Y,  RADIUS, ForgeDirection.SOUTH.ordinal()};
-			ports[i++] = new int[] { RADIUS, PORT_Y, t, ForgeDirection.EAST.ordinal()};
-			ports[i++] = new int[] {-RADIUS, PORT_Y, t, ForgeDirection.WEST.ordinal()};
+		for(int py : PORT_YS) {
+			for(int t : PORT_T) {
+				ports[i++] = new int[] { t, py, -RADIUS, ForgeDirection.NORTH.ordinal()};
+				ports[i++] = new int[] { t, py,  RADIUS, ForgeDirection.SOUTH.ordinal()};
+				ports[i++] = new int[] { RADIUS, py, t, ForgeDirection.EAST.ordinal()};
+				ports[i++] = new int[] {-RADIUS, py, t, ForgeDirection.WEST.ordinal()};
+			}
 		}
 
 		return rotatePorts(ports, dir);
@@ -103,8 +101,7 @@ public class BlockNuclearExplosionGenerator extends BlockDummyable {
 
 	/**
 	 * HBM 的 {@code MultiblockHandlerXR.checkSpace} 里硬编码了 2000 格上限，
-	 * 而 13×13×17 = 2873 格，走原版流程永远判定"放不下"，这就是放了没反应的原因。
-	 * 这里自己实现一遍，去掉上限。
+	 * 而 15×15×19 = 4275 格，走原版流程永远判定"放不下"。这里自己实现一遍，去掉上限。
 	 */
 	@Override
 	protected boolean checkRequirement(World world, int x, int y, int z, ForgeDirection dir, int o) {
@@ -120,18 +117,6 @@ public class BlockNuclearExplosionGenerator extends BlockDummyable {
 					if(a == x && b == y && c == z) continue;
 
 					if(!world.getBlock(a, b, c).isReplaceable(world, a, b, c)) return false;
-				}
-			}
-		}
-
-		// 顶部外扩那一圈也要检查
-		for(int a = -RADIUS - 2; a <= RADIUS + 2; a++) {
-			for(int c = -RADIUS - 2; c <= RADIUS + 2; c++) {
-
-				if(Math.max(Math.abs(a), Math.abs(c)) <= RADIUS) continue;
-
-				for(int b = HEIGHT - CAP_LAYERS; b < HEIGHT; b++) {
-					if(!world.getBlock(cx + a, cy + b, cz + c).isReplaceable(world, cx + a, cy + b, cz + c)) return false;
 				}
 			}
 		}
@@ -167,23 +152,6 @@ public class BlockNuclearExplosionGenerator extends BlockDummyable {
 			}
 		}
 
-		// 顶部三层外扩的一圈。meta 必须写成「从核心指向本格」的方向，findCore 才能顺着走回核心：
-		// 先沿 X 收到主箱体边界，再沿 Z 收进去，之后自然接上主箱体的 UP/DOWN 链。
-		for(int a = -RADIUS - 2; a <= RADIUS + 2; a++) {
-			for(int c = -RADIUS - 2; c <= RADIUS + 2; c++) {
-
-				if(Math.max(Math.abs(a), Math.abs(c)) <= RADIUS) continue; // 主箱体已铺
-
-				int meta = Math.abs(a) > RADIUS
-						? (a > 0 ? ForgeDirection.EAST.ordinal() : ForgeDirection.WEST.ordinal())
-						: (c > 0 ? ForgeDirection.SOUTH.ordinal() : ForgeDirection.NORTH.ordinal());
-
-				for(int b = cy + HEIGHT - CAP_LAYERS; b < cy + HEIGHT; b++) {
-					world.setBlock(cx + a, b, cz + c, this, meta, 3);
-				}
-			}
-		}
-
 		BlockDummyable.safeRem = false;
 
 		for(int[] port : getAllPorts(dir)) {
@@ -193,14 +161,10 @@ public class BlockNuclearExplosionGenerator extends BlockDummyable {
 
 	/**
 	 * 模型外壳的交互判定盒，坐标相对核心方块底部中心（和模型原点一致）。
-	 *
-	 * <p>只覆盖底部 4 格高度：塔身上部全由实体方块组成，不需要补判定，
-	 * 补了反而会在从上往下点击时被外壳盒抢先命中、反复开界面造成闪烁。
-	 * 两个盒子都取成 X/Z 对称，这样不用跟着朝向做旋转。</p>
+	 * 15×15 实体外只有约 0.5 格管件外伸，保持紧凑范围即可。
 	 */
 	private static final AxisAlignedBB[] HITBOXES = {
-			AxisAlignedBB.getBoundingBox(-12.0D, 2.0D, -12.0D, 12.0D, 4.0D, 12.0D),
-			AxisAlignedBB.getBoundingBox(-8.5D, 0.0D, -8.5D, 8.5D, 2.0D, 8.5D)
+			AxisAlignedBB.getBoundingBox(-8.0D, 0.0D, -8.0D, 8.0D, 4.0D, 8.0D)
 	};
 
 	/**

@@ -279,7 +279,7 @@ public final class HydrogenFusion {
      * 只要有一条退化成普通配方，就整表重注册。</p>
      */
     public static boolean isRegistered() {
-        FusionRecipes table = FusionRecipes.INSTANCE;
+        StellaratorRecipes table = StellaratorRecipes.INSTANCE;
         return table.recipeNameMap.get(RECIPE_HE3) instanceof HydrogenFusionRecipe
                 && table.recipeNameMap.get(RECIPE_HE4) instanceof HydrogenFusionRecipe
                 && table.recipeNameMap.get(RECIPE_HB) instanceof HydrogenFusionRecipe
@@ -482,7 +482,7 @@ public final class HydrogenFusion {
                 .setConfinementPower(confinement)
                 .setStartupTicks(startupTicks);
 
-        RecipeRegistrar.add(FusionRecipes.INSTANCE, (FusionRecipe) recipe
+        RecipeRegistrar.add(StellaratorRecipes.INSTANCE, (FusionRecipe) recipe
                 .setInputEnergy(IGNITION)   // 不用速调管
                 .setOutputEnergy(heat)      // TU/t，仿星器读它算蒸汽
                 .setOutputFlux(flux)        // flux/t
@@ -498,22 +498,15 @@ public final class HydrogenFusion {
                         : new ItemStack[] { outItem }));
     }
 
-    /** 清空聚变表（含跨表静态查表里的旧条目）。 */
+    /** 只清空仿星器专用聚变表（不碰 HBM 原版 FusionRecipes.INSTANCE 与 fus.* 条目）。 */
     private static void resetTable() {
 
-        FusionRecipes table = FusionRecipes.INSTANCE;
+        StellaratorRecipes table = StellaratorRecipes.INSTANCE;
 
         for(String name : new ArrayList<String>(table.recipeNameMap.keySet())) {
             GenericRecipes.nameToRecipeGlobal.remove(name);
         }
 
         table.deleteRecipes();
-
-        // 万一 json 里还有表外的 fus.* 残留，一并清掉
-        Iterator<Map.Entry<String, GenericRecipe>> it = GenericRecipes.nameToRecipeGlobal.entrySet().iterator();
-        while(it.hasNext()) {
-            String name = it.next().getKey();
-            if(name != null && name.startsWith("fus.")) it.remove();
-        }
     }
 }

@@ -22,8 +22,8 @@ import net.minecraft.world.World;
  * <b>精确类为 {@code EntityItem}</b> 的实体都会走一遍。所以玩家丢弃、方块被破坏、
  * 箱子被打碎、{@code /give} 掉落 —— 只要落点是普通掉落物，都会换成我们的实体。</p>
  *
- * <p>方块形态（{@code block_helicopter}）掉落的是 {@code ItemBlock}，用
- * {@link ItemBlockHelicopter} 走同一套逻辑。</p>
+ * <p><b>方块不在覆盖范围内</b>：{@code block_helicopter} 等金属储存块用的是原版
+ * {@code ItemBlock}，破坏后掉落的是普通 {@code EntityItem}，不会触发这套演出。</p>
  */
 public class ItemHelicopterDrop extends ItemWithDesc {
 

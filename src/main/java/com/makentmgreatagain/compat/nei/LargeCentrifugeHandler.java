@@ -64,7 +64,7 @@ public class LargeCentrifugeHandler extends TemplateRecipeHandler {
 
 		int rows = Math.min(4, (count + 1) / 2);
 		int stepY = rows <= 3 ? 18 : 16;
-		int startY = rows <= 2 ? 15 : (rows == 3 ? 6 : 2);
+		int startY = 24 - ((rows - 1) * stepY) / 2;
 
 		int[][] slots = new int[count][2];
 		for(int i = 0; i < count; i++) {

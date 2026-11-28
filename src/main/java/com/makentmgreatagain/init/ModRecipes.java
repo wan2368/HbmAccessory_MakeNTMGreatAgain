@@ -61,6 +61,7 @@ import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.FluidStack;
 import com.hbm.inventory.recipes.ArcFurnaceRecipes;
 import com.hbm.inventory.recipes.AssemblyMachineRecipes;
+import com.hbm.inventory.recipes.PrecAssRecipes;
 import com.hbm.inventory.recipes.BlastFurnaceRecipesNT;
 import com.hbm.inventory.recipes.GenericRecipeNoPower;
 import com.hbm.inventory.recipes.CrackingRecipes;
@@ -99,6 +100,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 import com.hbm.items.ItemEnums.EnumExpensiveType;
+import com.hbm.items.ItemGenericPart.EnumPartType;
 import com.hbm.items.machine.ItemCircuit.EnumCircuitType;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -233,6 +235,7 @@ public class ModRecipes {
 
 		// 流体传送器 / 物品传送器（工作台有序合成）
 		addXenTransceiverRecipes();
+		addAtomicDeliveryCraftingRecipes();
 
 		// 大型离心机：灰尘、铁粉、铀粉、水、重砂精矿、铂族精矿、氯气、盐酸、四氯化钛、钛粉、锆粉、铍粉、小撮钕粉、小撮镧粉、铈粉、钍粉、铀粉、金粉、铋粉、铋粒、硫粉、粗铂液、镉粉、铜粉、硫酸锌溶液、铂粉、硫酸、氢氧化钴、石膏、盐水、白砷、硫酸钠
 		LargeCentrifugeRecipes.registerRecipes();
@@ -247,12 +250,13 @@ public class ModRecipes {
 	 * 屏蔽玻璃以一锭 Threx 和八块硼玻璃为边框料，制成 16 块观察窗。</p>
 	 */
 	public static void addThrexBuildingRecipes() {
+		// Threx 屏蔽砖：8 × 加固高密度贫铀混凝土 + 1 × Threx 锭 → 32 块
 		GameRegistry.addShapedRecipe(
 			new ItemStack(ModBlocks.threx_shield_brick, 32),
 			"CCC",
 			"CTC",
 			"CCC",
-			'C', new ItemStack(com.hbm.blocks.ModBlocks.cmb_brick_reinforced),
+			'C', new ItemStack(com.hbm.blocks.ModBlocks.reinforced_ducrete),
 			'T', new ItemStack(ModItems.ingot_threx));
 
 		GameRegistry.addShapedRecipe(
@@ -262,6 +266,68 @@ public class ModRecipes {
 			"GGG",
 			'G', new ItemStack(com.hbm.blocks.ModBlocks.glass_boron),
 			'T', new ItemStack(ModItems.ingot_threx));
+
+		// Threx 台阶（3 砖 → 6 台阶；2 台阶合回 1 砖）
+		GameRegistry.addShapedRecipe(
+			new ItemStack(ModBlocks.threx_slab, 6),
+			"BBB",
+			'B', new ItemStack(ModBlocks.threx_shield_brick));
+		GameRegistry.addShapedRecipe(
+			new ItemStack(ModBlocks.threx_shield_brick, 1),
+			"S",
+			"S",
+			'S', new ItemStack(ModBlocks.threx_slab));
+
+		// Threx 楼梯（正反两种摆法，6 砖 → 4 楼梯）
+		GameRegistry.addShapedRecipe(
+			new ItemStack(ModBlocks.threx_stairs, 4),
+			"B  ",
+			"BB ",
+			"BBB",
+			'B', new ItemStack(ModBlocks.threx_shield_brick));
+		GameRegistry.addShapedRecipe(
+			new ItemStack(ModBlocks.threx_stairs, 4),
+			"  B",
+			" BB",
+			"BBB",
+			'B', new ItemStack(ModBlocks.threx_shield_brick));
+
+		// Threx 瓷砖（2×2 屏蔽砖 → 4 瓷砖）
+		GameRegistry.addShapedRecipe(
+			new ItemStack(ModBlocks.threx_tile, 4),
+			"BB",
+			"BB",
+			'B', new ItemStack(ModBlocks.threx_shield_brick));
+
+		// Threx 装饰块（2×2 瓷砖 → 4 装饰块）
+		GameRegistry.addShapedRecipe(
+			new ItemStack(ModBlocks.threx_deco, 4),
+			"TT",
+			"TT",
+			'T', new ItemStack(ModBlocks.threx_tile));
+	}
+
+	/** Threx 容器壁与 Threx 外壳（装配机配方，按名判重） */
+	public static void addThrexStructuralAssemblyRecipes() {
+		if(!hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.threxVessel")) {
+			RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.threxVessel")
+				.setup(200, 5_000)
+				.outputItems(new ItemStack(ModBlocks.threx_vessel, 1))
+				.inputItems(
+					new ComparableStack(ModItems.ingot_threx, 3),
+					new OreDictStack(MAGTUNG.ingot(), 4),
+					new ComparableStack(ModItems.ingot_helium, 4)));
+		}
+
+		if(!hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.threxCasing")) {
+			RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.threxCasing")
+				.setup(200, 5_000)
+				.outputItems(new ItemStack(ModBlocks.threx_casing, 1))
+				.inputItems(
+					new ComparableStack(ModItems.ingot_threx, 2),
+					new OreDictStack(W.plateWelded(), 4),
+					new ComparableStack(ModItems.ingot_peek, 4)));
+		}
 	}
 
 	/**
@@ -754,16 +820,22 @@ public class ModRecipes {
 			.setPools528(GenericRecipes.POOL_PREFIX_528 + "stellarator")
 			.outputItems(new ItemStack(ModBlocks.stellarator))
 			.inputItems(
-				new ComparableStack(ModBlocks.block_threx, 64),
+				new ComparableStack(ModBlocks.threx_casing, 64),
 				new ComparableStack(com.hbm.blocks.ModBlocks.fusion_component, 64),
 				new OreDictStack(com.hbm.inventory.OreDictManager.MAGTUNG.wireDense(), 64),
-				new ComparableStack(com.hbm.items.ModItems.circuit, 1, EnumCircuitType.CONTROLLER_QUANTUM.ordinal()))
+				new ComparableStack(com.hbm.items.ModItems.circuit, 1, EnumCircuitType.CONTROLLER_QUANTUM.ordinal()),
+				new ComparableStack(ModCoatings.get("threx"), 1),
+				new ComparableStack(ModBlocks.threx_vessel, 64),
+				new ComparableStack(com.hbm.blocks.ModBlocks.cm_flux, 32))
 			.inputItemsEx(
-				new ComparableStack(ModBlocks.block_threx, 64),
+				new ComparableStack(ModBlocks.threx_casing, 64),
 				new ComparableStack(com.hbm.blocks.ModBlocks.fusion_component, 64),
 				new OreDictStack(com.hbm.inventory.OreDictManager.MAGTUNG.wireDense(), 64),
 				new ComparableStack(com.hbm.items.ModItems.circuit, 16, EnumCircuitType.CONTROLLER_QUANTUM.ordinal()),
-				new ComparableStack(com.hbm.items.ModItems.item_expensive, 16, EnumExpensiveType.BRONZE_TUBES.ordinal()));
+				new ComparableStack(com.hbm.items.ModItems.item_expensive, 16, EnumExpensiveType.BRONZE_TUBES.ordinal()),
+				new ComparableStack(ModCoatings.get("threx"), 1),
+				new ComparableStack(ModBlocks.threx_vessel, 64),
+				new ComparableStack(com.hbm.blocks.ModBlocks.cm_flux, 32));
 
 		RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, recipe);
 	}
@@ -777,12 +849,12 @@ public class ModRecipes {
 			.setPools528(GenericRecipes.POOL_PREFIX_528 + "stellarator")
 			.outputItems(new ItemStack(ModBlocks.plasma_heater))
 			.inputItems(
-				new ComparableStack(ModBlocks.block_threx, 16),
+				new ComparableStack(ModBlocks.threx_casing, 16),
 				new ComparableStack(com.hbm.items.ModItems.pa_coil, 1, com.hbm.items.machine.ItemPACoil.EnumCoilType.BSCCO.ordinal()),
 				new ComparableStack(com.hbm.items.ModItems.magnetron, 64),
 				new ComparableStack(com.hbm.items.ModItems.coil_tungsten, 64))
 			.inputItemsEx(
-				new ComparableStack(ModBlocks.block_threx, 16),
+				new ComparableStack(ModBlocks.threx_casing, 16),
 				new ComparableStack(com.hbm.items.ModItems.pa_coil, 1, com.hbm.items.machine.ItemPACoil.EnumCoilType.BSCCO.ordinal()),
 				new ComparableStack(com.hbm.items.ModItems.magnetron, 64),
 				new ComparableStack(com.hbm.items.ModItems.coil_tungsten, 64),
@@ -1111,7 +1183,7 @@ public class ModRecipes {
 			.outputItems(new ItemStack(ModBlocks.machine_nuclear_explosion_generator))
 			.inputItems(
 				new OreDictStack(STEEL.plateWelded(), 64),
-				new ComparableStack(ModItems.ingot_threx, 32),
+				new ComparableStack(ModBlocks.threx_vessel, 32),
 				new ComparableStack(com.hbm.blocks.ModBlocks.block_graphite, 32),
 				new OreDictStack(CU.pipe(), 64),
 				new OreDictStack(ANY_RESISTANTALLOY.plateCast(), 32),
@@ -1332,12 +1404,63 @@ public class ModRecipes {
 		appendMixerRecipe(Fluids.ETHANOL, hydrogenation);
 	}
 
+	/** 将化工厂的单流体产物路线同步添加到搅拌机，按原配比并合并同产物配方表。 */
+	public static void addChemicalPlantMixerRecipes() {
+		FluidType acetic = addonFluid(ModFluids.ACETIC_ACID);
+		FluidType po = addonFluid(ModFluids.PROPYLENE_OXIDE);
+		FluidType methanol = addonFluid(ModFluids.METHANOL);
+		FluidType ammonia = addonFluid(ModFluids.AMMONIA);
+		FluidType sodiumSulphite = addonFluid(ModFluids.SODIUM_SULPHITE);
+		FluidType goldThiosulfate = addonFluid(ModFluids.GOLD_THIOSULFATE);
+		FluidType hf = addonFluid(ModFluids.HYDROFLUORIC_ACID);
+
+		if(acetic != Fluids.NONE) {
+			AddonMixerRecipe r = new AddonMixerRecipe(6_000, 240);
+			r.input1 = new FluidStack(Fluids.ETHANOL, 2_000);
+			r.input2 = new FluidStack(Fluids.WATER, 4_000);
+			appendMixerRecipe(acetic, r);
+		}
+		if(po != Fluids.NONE && methanol != Fluids.NONE) {
+			AddonMixerRecipe r = new AddonMixerRecipe(2_000, 150);
+			r.input1 = new FluidStack(po, 500);
+			r.input2 = new FluidStack(methanol, 1_500);
+			appendMixerRecipe(Fluids.SOLVENT, r);
+		}
+		if(ammonia != Fluids.NONE) {
+			AddonMixerRecipe r = new AddonMixerRecipe(1_000, 100);
+			r.input1 = new FluidStack(ammonia, 1_000);
+			r.input2 = new FluidStack(Fluids.WATER, 500);
+			appendMixerRecipe(Fluids.NITRIC_ACID, r);
+		}
+
+		if(hf != Fluids.NONE) {
+			AddonMixerRecipe uf6 = new AddonMixerRecipe(2_000, 100);
+			uf6.input1 = new FluidStack(hf, 1_500);
+			uf6.solidInput = new ComparableStack(com.hbm.items.ModItems.powder_yellowcake, 1);
+			appendMixerRecipe(Fluids.UF6, uf6);
+
+			AddonMixerRecipe puf6 = new AddonMixerRecipe(1_500, 160);
+			puf6.input1 = new FluidStack(hf, 1_500);
+			puf6.solidInput = new OreDictStack(com.hbm.inventory.OreDictManager.PU.dust(), 1);
+			appendMixerRecipe(Fluids.PUF6, puf6);
+		}
+
+		if(po != Fluids.NONE) {
+			AddonMixerRecipe coolant = new AddonMixerRecipe(4_000, 100);
+			coolant.input1 = new FluidStack(po, 500);
+			coolant.input2 = new FluidStack(Fluids.WATER, 1_500);
+			coolant.solidInput = new OreDictStack(KNO.dust(), 1);
+			appendMixerRecipe(Fluids.COOLANT, coolant);
+		}
+	}
+
 	/** 搅拌机追加配方：register 会整组覆盖，先判重再合并原数组，重载监听重复调用不叠加 */
 	private static void appendMixerRecipe(FluidType out, MixerRecipes.MixerRecipe add) {
 		MixerRecipes.MixerRecipe[] existing = MixerRecipes.getOutput(out);
 		if(existing != null) {
 			for(MixerRecipes.MixerRecipe r : existing) {
-				if(r.output == add.output && sameMixerInput(r.input1, add.input1) && sameMixerInput(r.input2, add.input2)) return;
+				if(r.output == add.output && sameMixerInput(r.input1, add.input1) && sameMixerInput(r.input2, add.input2)
+						&& sameMixerSolid(r.solidInput, add.solidInput)) return;
 			}
 			MixerRecipes.MixerRecipe[] merged = new MixerRecipes.MixerRecipe[existing.length + 1];
 			System.arraycopy(existing, 0, merged, 0, existing.length);
@@ -1351,6 +1474,19 @@ public class ModRecipes {
 	private static boolean sameMixerInput(FluidStack a, FluidStack b) {
 		if(a == null || b == null) return a == b;
 		return a.type == b.type && a.fill == b.fill;
+	}
+
+	private static boolean sameMixerSolid(AStack a, AStack b) {
+		if(a == null || b == null) return a == b;
+		if(a.stacksize != b.stacksize) return false;
+		if(a instanceof ComparableStack && b instanceof ComparableStack) {
+			ComparableStack left = (ComparableStack)a;
+			ComparableStack right = (ComparableStack)b;
+			return left.item == right.item && left.meta == right.meta;
+		}
+		if(a instanceof OreDictStack && b instanceof OreDictStack)
+			return ((OreDictStack)a).name.equals(((OreDictStack)b).name);
+		return false;
 	}
 
 	/** 正电子：氢胶囊×2 低动量对撞（简单配方），产物正电子胶囊 */
@@ -1627,6 +1763,25 @@ public class ModRecipes {
 		MakeNTMGreatAgain.LOG.info("Added assembly recipe: 8x resistant alloy ingot + 4x desh ingot + 4x cast steel plate + 16x tungsten bolt -> alloy shredder");
 	}
 
+	/** 工业种植站：土壤基座、铸钢/铝框架与聚合物舱体；昂贵版增加铆接钢板。 */
+	public static void addIndustrialCultivationStationAssemblyRecipe() {
+		if(hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.industrialCultivationStation")) return;
+		RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.industrialCultivationStation")
+			.setup(1200, 20_000)
+			.outputItems(new ItemStack(ModBlocks.industrial_cultivation_station))
+			.inputItems(
+				new ComparableStack(Blocks.dirt, 24),
+				new OreDictStack(STEEL.plateCast(), 16),
+				new OreDictStack(AL.plate(), 32),
+				new OreDictStack(ANY_PLASTIC.ingot(), 16))
+			.inputItemsEx(
+				new ComparableStack(Blocks.dirt, 24),
+				new OreDictStack(STEEL.plateCast(), 32),
+				new OreDictStack(AL.plate(), 64),
+				new OreDictStack(ANY_PLASTIC.ingot(), 32),
+				new ComparableStack(com.hbm.items.ModItems.item_expensive, 4, EnumExpensiveType.STEEL_PLATING)));
+	}
+
 	/** 工业燃气轮机：照工业内燃机(ass.combustiongen)的料单大幅加码（×4），另加 4 个钛汽轮转子 */
 	public static void addGasTurbineAssemblyRecipe() {
 		if(hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.gasTurbine")) return;
@@ -1661,13 +1816,13 @@ public class ModRecipes {
 			.setup(1200, 20_000)
 			.outputItems(new ItemStack(ModBlocks.supercritical_mhd_generator))
 			.inputItems(
-				new ComparableStack(ModBlocks.block_threx, 16),
+				new ComparableStack(ModBlocks.threx_casing, 16),
 				new OreDictStack(ANY_BISMOIDBRONZE.plateCast(), 32),
 				new ComparableStack(com.hbm.items.ModItems.circuit, 4, EnumCircuitType.QUANTUM),
 				new OreDictStack(BSCCO.wireDense(), 64),
 				new OreDictStack(MAGTUNG.wireDense(), 64))
 			.inputItemsEx( // 昂贵模式：threx/量子翻倍，另加塑料板+青铜结构件
-				new ComparableStack(ModBlocks.block_threx, 32),
+				new ComparableStack(ModBlocks.threx_casing, 32),
 				new OreDictStack(ANY_BISMOIDBRONZE.plateCast(), 32),
 				new ComparableStack(com.hbm.items.ModItems.circuit, 16, EnumCircuitType.QUANTUM),
 				new OreDictStack(BSCCO.wireDense(), 64),
@@ -2242,6 +2397,49 @@ public class ModRecipes {
 		MakeNTMGreatAgain.LOG.info("Added SO2 upstream (combination oven / pyro oven) and zinc sulphate electrolysis");
 	}
 
+	/**
+	 * 硫磺石（stone_resource:0）双路线化工深加工：
+	 * 1) 氧化焙烧：4×硫磺石 + 2000mB 氧气 → 4000mB 二氧化硫 + 1×铁粉；
+	 * 2) 接触法制酸：2000mB 二氧化硫 + 1000mB 氧气 + 2000mB 水 → 2000mB 硫酸；
+	 * 3) 弗拉施法蒸汽热熔：4×硫磺石 + 2000mB 蒸汽 → 12×硫粉 + 2×石英沙 + 1000mB 二氧化硫。
+	 */
+	public static void addBrimstoneChemicalRecipes() {
+		FluidType so2 = addonFluid(ModFluids.SULFUR_DIOXIDE);
+		if(so2 == Fluids.NONE) return;
+
+		int sulfurMeta = com.hbm.blocks.BlockEnums.EnumStoneType.SULFUR.ordinal();
+
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.brimstoneRoast")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.brimstoneRoast")
+				.setup(100, 500)
+				.inputItems(new ComparableStack(com.hbm.blocks.ModBlocks.stone_resource, 4, sulfurMeta))
+				.inputFluids(new FluidStack(Fluids.OXYGEN, 2_000))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.powder_iron, 1))
+				.outputFluids(new FluidStack(so2, 4_000)));
+		}
+
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.contactSulfuricAcid")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.contactSulfuricAcid")
+				.setup(80, 800)
+				.inputFluids(
+					new FluidStack(so2, 2_000),
+					new FluidStack(Fluids.OXYGEN, 1_000),
+					new FluidStack(Fluids.WATER, 2_000))
+				.outputFluids(new FluidStack(Fluids.SULFURIC_ACID, 2_000)));
+		}
+
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.brimstoneFrasch")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.brimstoneFrasch")
+				.setup(100, 600)
+				.inputItems(new ComparableStack(com.hbm.blocks.ModBlocks.stone_resource, 4, sulfurMeta))
+				.inputFluids(new FluidStack(Fluids.STEAM, 2_000))
+				.outputItems(
+					new ItemStack(com.hbm.items.ModItems.sulfur, 12),
+					new ItemStack(com.hbm.items.ModItems.powder_quartz, 2))
+				.outputFluids(new FluidStack(so2, 1_000)));
+		}
+	}
+
 	/** 铅锭、蓝粉、铁粉、白砷 */
 	public static void addLeadZincBlastRecipe() {
 
@@ -2300,6 +2498,7 @@ public class ModRecipes {
 		FluidType auThio = addonFluid(ModFluids.GOLD_THIOSULFATE);
 		FluidType na2so3 = addonFluid(ModFluids.SODIUM_SULPHITE);
 		FluidType hcl = HBMCompat.hcl();
+
 		if(thio == Fluids.NONE || auThio == Fluids.NONE) return;
 		if(ModItems.arsenical_residue == null || ModBlocks.ore_refractory_gold == null) return;
 
@@ -2872,23 +3071,19 @@ public class ModRecipes {
 				.outputFluids(new FluidStack(methanol, 3_000)));
 		}
 
-		// 宿主已提供氨时不重复注册
-		boolean hostOwnsAmmonia = ammonia != Fluids.NONE
-			&& (ModFluids.AMMONIA.isExternal() || hostProducesFluid(ChemicalPlantRecipes.INSTANCE, ammonia));
-		if(ammonia != Fluids.NONE && !hostOwnsAmmonia) {
-			if(!hasChemRecipe("makentmgreatagain.petro.ammonia")) {
-				RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.petro.ammonia")
-					.setup(250, 900)
-					.inputFluids(new FluidStack(Fluids.AIR, 1_500), new FluidStack(Fluids.HYDROGEN, 600))
-					.outputFluids(new FluidStack(ammonia, 800), new FluidStack(Fluids.WATER, 200)));
-			}
-			// 硝酸
-			if(!hasChemRecipe("makentmgreatagain.petro.nitricfromammonia")) {
-				RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.petro.nitricfromammonia")
-					.setup(100, 100)
-					.inputFluids(new FluidStack(ammonia, 1_000), new FluidStack(Fluids.WATER, 500))
-					.outputFluids(new FluidStack(Fluids.NITRIC_ACID, 1_000)));
-			}
+		// 航天版可能复用同一氨流体，但其配方 ID/工艺不同，不代表附属产线已存在。
+		if(ammonia != Fluids.NONE && !hasChemRecipe("makentmgreatagain.petro.ammonia")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.petro.ammonia")
+				.setup(250, 900)
+				.inputFluids(new FluidStack(Fluids.AIR, 1_500), new FluidStack(Fluids.HYDROGEN, 600))
+				.outputFluids(new FluidStack(ammonia, 800), new FluidStack(Fluids.WATER, 200)));
+		}
+		// 下游独立判重；允许宿主氨配方与附属硝酸配方并存。
+		if(ammonia != Fluids.NONE && !hasChemRecipe("makentmgreatagain.petro.nitricfromammonia")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.petro.nitricfromammonia")
+				.setup(100, 100)
+				.inputFluids(new FluidStack(ammonia, 1_000), new FluidStack(Fluids.WATER, 500))
+				.outputFluids(new FluidStack(Fluids.NITRIC_ACID, 1_000)));
 		}
 
 		// 528 加压：天然气 / 硝酸必须先过压缩机
@@ -4069,6 +4264,7 @@ public class ModRecipes {
 		step("scheeliteShredder",    com.makentmgreatagain.recipes.ScheeliteRecipes::addShredderRecipes);
 		step("gasTurbineAssembly",   ModRecipes::addGasTurbineAssemblyRecipe);
 		step("thermalStationAssembly", ModRecipes::addThermalStationAssemblyRecipe);
+		step("industrialCultivationStationAssembly", ModRecipes::addIndustrialCultivationStationAssemblyRecipe);
 		step("supercriticalMHDAssembly", ModRecipes::addSupercriticalMHDAssemblyRecipe);
 		step("waterToSnowball",      ModRecipes::addWaterToSnowballRecipe);
 		step("sreaWaterToSalt",      ModRecipes::addSreaWaterToSaltRecipe);
@@ -4089,7 +4285,13 @@ public class ModRecipes {
 		step("coreLavaExtractorAssembly", ModRecipes::addCoreLavaExtractorRecipe);
 		step("stellaratorAssembly",       ModRecipes::addStellaratorRecipe);
 		step("plasmaHeaterAssembly",      ModRecipes::addPlasmaHeaterRecipe);
+		step("threxStructuralAssembly",   ModRecipes::addThrexStructuralAssemblyRecipes);
+		step("brimstoneChemical",         ModRecipes::addBrimstoneChemicalRecipes);
 		step("electricBlastFurnaceAssembly", ModRecipes::addElectricBlastFurnaceRecipe);
+		step("parallelUpgradeAssembly",   ModRecipes::addParallelUpgradeAssemblyRecipes);
+		step("parallelUpgradePrecAss",    ModRecipes::addParallelUpgradePrecAssRecipes);
+		step("quantumPulseAssembly", ModRecipes::addQuantumPulseAssemblyRecipe);
+		step("quantumPulsePrecAss", ModRecipes::addQuantumPulsePrecAssRecipe);
 		step("magicPowder", ModRecipes::addMagicPowderRecipe);
 		step("xenCrystalAcid", ModRecipes::addXenCrystalAcidRecipe);
 		step("xenCrystalSILEX", ModRecipes::addXenCrystalSILEXRecipe);
@@ -4098,6 +4300,7 @@ public class ModRecipes {
 		step("aceticAcid",          ModRecipes::addAceticAcidRecipe);
 		step("syntheticEthanol",    ModRecipes::addSyntheticEthanolRecipes);
 		step("syntheticEthanolMixer", ModRecipes::addSyntheticEthanolMixerRecipes);
+		step("chemicalPlantMixer", ModRecipes::addChemicalPlantMixerRecipes);
 		step("positronAccelerator", ModRecipes::addPositronAcceleratorRecipe);
 		step("ethylAcetate",        ModRecipes::addEthylAcetateRecipe);
 		step("propyleneOxide",      ModRecipes::addPropyleneOxideRecipes);
@@ -4172,6 +4375,10 @@ public class ModRecipes {
 		// 铂细线替代：金/铅细线 → 铂细线、产出翻倍（原配方保留）+ 电弧焊机马达
 		// 详情见 init/ModPlatinumRecipes。这里走「派生」而不是抄数值，所以 HBM 改配方它自动跟随。
 		step("platinumSwap",         ModPlatinumRecipes::inject);
+		// 石油耦合孔雀石 / 赤铁矿双阶高产精炼线
+		step("petroOrePyro",         ModRecipes::addPetroOrePyroRecipes);
+		step("petroOreChemical",     ModRecipes::addPetroOreChemicalRecipes);
+		step("petroOreCentrifuge",   ModRecipes::addPetroOreCentrifugeRecipes);
 
 		MakeNTMGreatAgain.LOG.info("postInit 兜底注入完成（若 config/hbmRecipes 存在玩家版配置，本次注入即为生效来源）");
 	}
@@ -4531,5 +4738,345 @@ public class ModRecipes {
 			'P', PLATE_WELDED_TC_OR_CD,
 			'C', com.hbm.blocks.ModBlocks.crate_desh,
 			'X', ModItems.crystal_xen_unstable));
+	}
+
+	/** 投送探头、中继节点和绑定器的工作台配方。 */
+	private static void addAtomicDeliveryCraftingRecipes() {
+		ItemStack lens = new ItemStack(com.hbm.items.ModItems.part_generic, 1, EnumPartType.GLASS_POLARIZED.ordinal());
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.atomic_probe, 32),
+			"XBX", "HVH", "XBX",
+			'X', W.plateCast(), 'V', ModItems.crystal_xen_unstable,
+			'H', com.hbm.items.ModItems.motor_desh, 'B', lens));
+		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.delivery_relay, 8),
+			"XBX", "BVB", "XBX",
+			'X', W.plateCast(), 'V', ModItems.crystal_xen_unstable, 'B', lens));
+		GameRegistry.addRecipe(new ShapelessOreRecipe(new ItemStack(ModItems.atomic_linker),
+			new ItemStack(com.hbm.items.ModItems.circuit, 1, EnumCircuitType.BASIC.ordinal()),
+			com.hbm.items.ModItems.screwdriver_desh));
+	}
+
+	/* =====================================================================================
+	 *  石油耦合 · 孔雀石 / 赤铁矿双阶高产精炼线
+	 *
+	 *  一阶（0 新增物品/流体，3 机串联：热解炉 → 化工厂 → 原生离心机，单矿 8x 粉）：
+	 *    · 孔雀石原石 + 石油气 2000 → 2× 孔雀石矿块 + CO2 250；2× 孔雀石矿块 + 石脑油 2000 + 芳香烃 1500 → 2× 铜晶体（离心 8× 铜粉）
+	 *    · 赤铁矿石 + 石油气 2000 → 2× 氧化铁粉 + CO2 250；2× 氧化铁粉 + 石脑油 2000 + 芳香烃 1500 → 2× 铁晶体（离心 8× 铁粉）
+	 *
+	 *  二阶（重整油 + BTX + 氨 → 精制萃矿剂，3 机串联，单矿 18x 粉 + 高阶副产）：
+	 *    · 孔雀石原石/矿块 + 精制萃矿剂 2500 + 重整油 1500 → 富铜萃液 1500 + CO2 500 → 热解 4× 精炼铜团 → 化工厂 18× 铜粉 + 阳极泥/氢氧化钴
+	 *    · 赤铁矿石 + 精制萃矿剂 2500 + 重整油 1500 → 富铁萃液 1500 → 热解 3× 精炼铁团 + CO2 500 → 离心机 18× 铁粉 + 钛粉
+	 * ===================================================================================== */
+
+	private static boolean hasPyroRecipeForFluid(FluidType type) {
+		if(type == null || type == Fluids.NONE) return true;
+		for(PyroOvenRecipes.PyroOvenRecipe rec : PyroOvenRecipes.recipes) {
+			if(rec.inputFluid != null && rec.inputFluid.type == type) return true;
+		}
+		return false;
+	}
+
+	private static boolean hasPyroRecipeForStack(ItemStack target) {
+		if(target == null) return true;
+		for(PyroOvenRecipes.PyroOvenRecipe rec : PyroOvenRecipes.recipes) {
+			if(rec.inputItem != null && rec.inputItem.matchesRecipe(target, true)) return true;
+		}
+		return false;
+	}
+
+	/** 石油耦合双阶精炼线 · 热解炉配方（一阶石油气焙烧 + 二阶萃液浓缩） */
+	public static void addPetroOrePyroRecipes() {
+		ItemStack malachiteOre = new ItemStack(com.hbm.blocks.ModBlocks.stone_resource, 1,
+				com.hbm.blocks.BlockEnums.EnumStoneType.MALACHITE.ordinal());
+		ItemStack malachiteChunk = new ItemStack(com.hbm.items.ModItems.chunk_ore, 6, EnumChunkType.MALACHITE.ordinal());
+		ItemStack hematiteOre = new ItemStack(com.hbm.blocks.ModBlocks.stone_resource, 1,
+				com.hbm.blocks.BlockEnums.EnumStoneType.HEMATITE.ordinal());
+
+		// 一阶孔雀石 ①：孔雀石原石 + 石油气 2000 mB → 6× 孔雀石矿块（显著高于手挖 2~4 个） + CO2 250 mB
+		if(!hasPyroRecipeForStack(malachiteOre)) {
+			PyroOvenRecipes.PyroOvenRecipe r = new PyroOvenRecipes.PyroOvenRecipe(100);
+			com.makentmgreatagain.compat.HBMVersionCompat.pyroIn(r, new FluidStack(Fluids.PETROLEUM, 2_000));
+			com.makentmgreatagain.compat.HBMVersionCompat.pyroIn(r, new ComparableStack(malachiteOre));
+			r.out(malachiteChunk).out(new FluidStack(Fluids.CARBONDIOXIDE, 250));
+			PyroOvenRecipes.recipes.add(r);
+		}
+
+		// 一阶赤铁矿 ①：赤铁矿石 + 石油气 2000 mB → 2× 氧化铁粉 + CO2 250 mB
+		if(!hasPyroRecipeForStack(hematiteOre)) {
+			PyroOvenRecipes.PyroOvenRecipe r = new PyroOvenRecipes.PyroOvenRecipe(100);
+			com.makentmgreatagain.compat.HBMVersionCompat.pyroIn(r, new FluidStack(Fluids.PETROLEUM, 2_000));
+			com.makentmgreatagain.compat.HBMVersionCompat.pyroIn(r, new ComparableStack(hematiteOre));
+			r.out(new ItemStack(ModItems.powder_oxidate_iron, 2)).out(new FluidStack(Fluids.CARBONDIOXIDE, 250));
+			PyroOvenRecipes.recipes.add(r);
+		}
+
+		// 二阶孔雀石 ②：富铜萃液 1500 mB → 4× 精炼铜团
+		FluidType cuLiquor = addonFluid(ModFluids.COPPER_EXTRACT_LIQUOR);
+		if(cuLiquor != Fluids.NONE && !hasPyroRecipeForFluid(cuLiquor)) {
+			PyroOvenRecipes.PyroOvenRecipe r = new PyroOvenRecipes.PyroOvenRecipe(120);
+			com.makentmgreatagain.compat.HBMVersionCompat.pyroIn(r, new FluidStack(cuLiquor, 1_500));
+			r.out(new ItemStack(ModItems.refined_copper_clump, 4));
+			PyroOvenRecipes.recipes.add(r);
+		}
+
+		// 二阶赤铁矿 ②：富铁萃液 1500 mB → 3× 精炼铁团 + CO2 500 mB
+		FluidType feLiquor = addonFluid(ModFluids.IRON_EXTRACT_LIQUOR);
+		if(feLiquor != Fluids.NONE && !hasPyroRecipeForFluid(feLiquor)) {
+			PyroOvenRecipes.PyroOvenRecipe r = new PyroOvenRecipes.PyroOvenRecipe(120);
+			com.makentmgreatagain.compat.HBMVersionCompat.pyroIn(r, new FluidStack(feLiquor, 1_500));
+			r.out(new ItemStack(ModItems.refined_iron_clump, 3)).out(new FluidStack(Fluids.CARBONDIOXIDE, 500));
+			PyroOvenRecipes.recipes.add(r);
+		}
+	}
+
+	/** 石油耦合双阶精炼线 · 化工厂配方（一阶石脑油/芳香烃结晶 + 二阶溶剂合成/萃取/铜精炼） */
+	public static void addPetroOreChemicalRecipes() {
+		ItemStack malachiteOre = new ItemStack(com.hbm.blocks.ModBlocks.stone_resource, 1,
+				com.hbm.blocks.BlockEnums.EnumStoneType.MALACHITE.ordinal());
+		ItemStack malachiteChunk3 = new ItemStack(com.hbm.items.ModItems.chunk_ore, 3, EnumChunkType.MALACHITE.ordinal());
+		ItemStack malachiteChunk2 = new ItemStack(com.hbm.items.ModItems.chunk_ore, 2, EnumChunkType.MALACHITE.ordinal());
+		ItemStack hematiteOre = new ItemStack(com.hbm.blocks.ModBlocks.stone_resource, 1,
+				com.hbm.blocks.BlockEnums.EnumStoneType.HEMATITE.ordinal());
+
+		// 一阶孔雀石 ②：2× 孔雀石矿块 + 石脑油 2000 + 芳香烃 1500 → 2× 铜晶体（离心 8× 铜粉）
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.t1_malachite_leach")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.t1_malachite_leach")
+				.setup(120, 1_000)
+				.inputItems(new ComparableStack(malachiteChunk2))
+				.inputFluids(
+					new FluidStack(Fluids.NAPHTHA, 2_000),
+					new FluidStack(Fluids.AROMATICS, 1_500))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.crystal_copper, 2)));
+		}
+
+		// 一阶赤铁矿 ②：2× 氧化铁粉 + 石脑油 2000 + 芳香烃 1500 → 2× 铁晶体（离心 8× 铁粉）
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.t1_hematite_reduce")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.t1_hematite_reduce")
+				.setup(120, 1_000)
+				.inputItems(new ComparableStack(ModItems.powder_oxidate_iron, 2))
+				.inputFluids(
+					new FluidStack(Fluids.NAPHTHA, 2_000),
+					new FluidStack(Fluids.AROMATICS, 1_500))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.crystal_iron, 2)));
+		}
+
+		FluidType nh3 = addonFluid(ModFluids.AMMONIA);
+		FluidType solvent = addonFluid(ModFluids.REFORM_SOLVENT);
+		FluidType cuLiquor = addonFluid(ModFluids.COPPER_EXTRACT_LIQUOR);
+		FluidType feLiquor = addonFluid(ModFluids.IRON_EXTRACT_LIQUOR);
+		if(nh3 == Fluids.NONE || solvent == Fluids.NONE || cuLiquor == Fluids.NONE || feLiquor == Fluids.NONE) return;
+
+		// 二阶前置：重整油 2500 + 轻质芳烃(BTX) 1500 + 氨 500 → 精制萃矿剂 2000 mB
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.reform_solvent")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.reform_solvent")
+				.setup(100, 1_500)
+				.inputFluids(
+					new FluidStack(Fluids.REFORMATE, 2_500),
+					new FluidStack(Fluids.XYLENE, 1_500),
+					new FluidStack(nh3, 500))
+				.outputFluids(new FluidStack(solvent, 2_000)));
+		}
+
+		// 二阶孔雀石 ①（原石）：1× 孔雀石原石 + 精制萃矿剂 3500 + 重整油 2000 → 富铜萃液 3000 + CO2 750（精准采集原矿双倍萃液）
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.t2_malachite_ore")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.t2_malachite_ore")
+				.setup(160, 2_500)
+				.inputItems(new ComparableStack(malachiteOre))
+				.inputFluids(
+					new FluidStack(solvent, 3_500),
+					new FluidStack(Fluids.REFORMATE, 2_000))
+				.outputFluids(
+					new FluidStack(cuLiquor, 3_000),
+					new FluidStack(Fluids.CARBONDIOXIDE, 750)));
+		}
+
+		// 二阶孔雀石 ①b（矿块）：3× 孔雀石矿块 + 精制萃矿剂 2500 + 重整油 1500 → 富铜萃液 1500 + CO2 500
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.t2_malachite_chunk")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.t2_malachite_chunk")
+				.setup(140, 2_000)
+				.inputItems(new ComparableStack(malachiteChunk3))
+				.inputFluids(
+					new FluidStack(solvent, 2_500),
+					new FluidStack(Fluids.REFORMATE, 1_500))
+				.outputFluids(
+					new FluidStack(cuLiquor, 1_500),
+					new FluidStack(Fluids.CARBONDIOXIDE, 500)));
+		}
+
+		// 二阶孔雀石 ③a（纯铜）：4× 精炼铜团 + 水 1000 → 18× 铜粉（不产副产物，防堵槽）
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.t2_copper_refine_pure")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.t2_copper_refine_pure")
+				.setup(100, 2_000)
+				.inputItems(new ComparableStack(ModItems.refined_copper_clump, 4))
+				.inputFluids(new FluidStack(Fluids.WATER, 1_000))
+				.outputItems(new ItemStack(com.hbm.items.ModItems.powder_copper, 18)));
+		}
+
+		// 二阶孔雀石 ③b（含副产批量精炼）：8× 精炼铜团 + 水 2000 → 36× 铜粉 + 2× 阳极泥 + 1× 氢氧化钴（纯固定产出，无概率随机）
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.t2_copper_refine")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.t2_copper_refine")
+				.setup(160, 2_500)
+				.inputItems(new ComparableStack(ModItems.refined_copper_clump, 8))
+				.inputFluids(new FluidStack(Fluids.WATER, 2_000))
+				.outputItems(
+					new ItemStack(com.hbm.items.ModItems.powder_copper, 36),
+					new ItemStack(ModItems.anode_mud, 2),
+					new ItemStack(ModItems.cobalt_hydroxide, 1)));
+		}
+
+		// 二阶赤铁矿 ①：1× 赤铁矿石 + 精制萃矿剂 2500 + 重整油 1500 → 富铁萃液 1500
+		if(!hasGenericRecipe(ChemicalPlantRecipes.INSTANCE, "makentmgreatagain.chem.t2_hematite_ore")) {
+			RecipeRegistrar.add(ChemicalPlantRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.chem.t2_hematite_ore")
+				.setup(140, 2_000)
+				.inputItems(new ComparableStack(hematiteOre))
+				.inputFluids(
+					new FluidStack(solvent, 2_500),
+					new FluidStack(Fluids.REFORMATE, 1_500))
+				.outputFluids(new FluidStack(feLiquor, 1_500)));
+		}
+	}
+
+	/** 石油耦合双阶精炼线 · 离心机配方（二阶精炼铁团 → 6× 铁粉 + 钛粉，3 团合 18× 铁粉） */
+	public static void addPetroOreCentrifugeRecipes() {
+		ComparableStack ironClumpKey = new ComparableStack(ModItems.refined_iron_clump, 1);
+		if(!CentrifugeRecipes.recipes.containsKey(ironClumpKey)) {
+			CentrifugeRecipes.recipes.put(ironClumpKey, new ItemStack[] {
+				new ItemStack(com.hbm.items.ModItems.powder_iron, 4),
+				new ItemStack(com.hbm.items.ModItems.powder_iron, 2),
+				new ItemStack(com.hbm.items.ModItems.powder_titanium, 1),
+				new ItemStack(com.hbm.items.ModItems.powder_lithium_tiny, 1)
+			});
+		}
+		if(!hasCentrifugeItem(ModItems.refined_iron_clump)) {
+			LargeCentrifugeRecipes.RECIPES.add(new CentrifugeRecipe()
+				.items(new ComparableStack(ModItems.refined_iron_clump, 3))
+				.outItems(
+					new ItemStack(com.hbm.items.ModItems.powder_iron, 18),
+					new ItemStack(com.hbm.items.ModItems.powder_titanium, 3),
+					new ItemStack(com.hbm.items.ModItems.powder_lithium_tiny, 3))
+				.power(15_000L).duration(100));
+		}
+	}
+
+	public static void addQuantumPulseAssemblyRecipe() {
+		if(GeneralConfig.enable528 || ModItems.quantum_pulse_component == null) return;
+		String name = "makentmgreatagain.ass.quantum_pulse_component";
+		if(hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, name)) return;
+		RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, quantumPulseRecipe(name)
+			.outputItems(new ItemStack(ModItems.quantum_pulse_component)));
+	}
+
+	public static void addQuantumPulsePrecAssRecipe() {
+		if(!GeneralConfig.enable528 || ModItems.quantum_pulse_component == null) return;
+		String name = "makentmgreatagain.precass.quantum_pulse_component";
+		if(hasGenericRecipe(PrecAssRecipes.INSTANCE, name)) return;
+		int reclaim = GeneralConfig.enableExpensiveMode ? 50 : 75;
+		PrecAssRecipes.INSTANCE.registerPair(quantumPulseRecipe(name),
+			new ItemStack(ModItems.quantum_pulse_component), 50, reclaim);
+	}
+
+	private static GenericRecipe quantumPulseRecipe(String name) {
+		return new GenericRecipe(name).setup(400, 20_000L)
+			.inputItems(
+				new ComparableStack(com.hbm.items.ModItems.circuit, 1, EnumCircuitType.CHIP_QUANTUM),
+				new ComparableStack(com.hbm.items.ModItems.circuit, 1, EnumCircuitType.CONTROLLER_ADVANCED),
+				new ComparableStack(com.hbm.items.ModItems.circuit, 8, EnumCircuitType.CAPACITOR_BOARD),
+				new ComparableStack(ModItems.wire_platinum, 16),
+				new ComparableStack(ModItems.ingot_peek, 2));
+	}
+
+	/**
+	 * 1~3 级并行升级（正常模式：装配机，耗时与耗电均为同级超速传动的 1.5 倍）。
+	 */
+	public static void addParallelUpgradeAssemblyRecipes() {
+		if(com.hbm.config.GeneralConfig.enable528) return;
+		if(ModItems.upgrade_parallel_1 == null || ModItems.upgrade_parallel_2 == null || ModItems.upgrade_parallel_3 == null) return;
+
+		if(!hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.ass.parallel1")) {
+			RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.ass.parallel1")
+				.setup(300, 150)
+				.outputItems(new ItemStack(ModItems.upgrade_parallel_1, 1))
+				.inputItems(
+					new ComparableStack(com.hbm.items.ModItems.upgrade_speed_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_effect_3, 1),
+					new ComparableStack(ModItems.ingot_peek, 16),
+					new ComparableStack(ModItems.wire_platinum, 32),
+					new ComparableStack(com.hbm.items.ModItems.circuit, 4, com.hbm.items.machine.ItemCircuit.EnumCircuitType.BISMOID)));
+		}
+
+		if(!hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.ass.parallel2")) {
+			RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.ass.parallel2")
+				.setup(900, 150)
+				.outputItems(new ItemStack(ModItems.upgrade_parallel_2, 1))
+				.inputItems(
+					new ComparableStack(ModItems.upgrade_parallel_1, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_speed_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_effect_3, 1),
+					new ComparableStack(ModItems.ingot_peek, 16),
+					new ComparableStack(com.hbm.items.ModItems.ingot_combine_steel, 16),
+					new ComparableStack(com.hbm.items.ModItems.circuit, 16, com.hbm.items.machine.ItemCircuit.EnumCircuitType.CAPACITOR_BOARD)));
+		}
+
+		if(!hasGenericRecipe(AssemblyMachineRecipes.INSTANCE, "makentmgreatagain.ass.parallel3")) {
+			RecipeRegistrar.add(AssemblyMachineRecipes.INSTANCE, new GenericRecipe("makentmgreatagain.ass.parallel3")
+				.setup(1_800, 150)
+				.outputItems(new ItemStack(ModItems.upgrade_parallel_3, 1))
+				.inputItems(
+					new ComparableStack(ModItems.upgrade_parallel_2, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_speed_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_effect_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.ingot_bscco, 8),
+					new ComparableStack(ModItems.ingot_erbium, 16),
+					new ComparableStack(ModItems.ingot_helium, 16)));
+		}
+	}
+
+	/**
+	 * 1~3 级并行升级（528 模式：精密装配机，耗时与耗电为同级超速传动的 1.5 倍；
+	 * 损坏概率 1~3 级分别为 25% / 50% / 75%，废品回收走 registerPair，回收率与超速传动一致）。
+	 */
+	public static void addParallelUpgradePrecAssRecipes() {
+		if(!com.hbm.config.GeneralConfig.enable528) return;
+		if(ModItems.upgrade_parallel_1 == null || ModItems.upgrade_parallel_2 == null || ModItems.upgrade_parallel_3 == null) return;
+
+		com.hbm.inventory.recipes.PrecAssRecipes table = com.hbm.inventory.recipes.PrecAssRecipes.INSTANCE;
+		int reclaim = com.hbm.config.GeneralConfig.enableExpensiveMode ? 50 : 75;
+
+		if(!table.recipeNameMap.containsKey("makentmgreatagain.precass.parallel1")) {
+			table.registerPair(new GenericRecipe("makentmgreatagain.precass.parallel1")
+				.setup(300, 1_500)
+				.inputItems(
+					new ComparableStack(com.hbm.items.ModItems.upgrade_speed_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_effect_3, 1),
+					new ComparableStack(ModItems.ingot_peek, 16),
+					new ComparableStack(ModItems.wire_platinum, 32),
+					new ComparableStack(com.hbm.items.ModItems.circuit, 4, com.hbm.items.machine.ItemCircuit.EnumCircuitType.BISMOID)),
+				new ItemStack(ModItems.upgrade_parallel_1), 75, reclaim);
+		}
+
+		if(!table.recipeNameMap.containsKey("makentmgreatagain.precass.parallel2")) {
+			table.registerPair(new GenericRecipe("makentmgreatagain.precass.parallel2")
+				.setup(900, 7_500)
+				.inputItems(
+					new ComparableStack(ModItems.upgrade_parallel_1, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_speed_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_effect_3, 1),
+					new ComparableStack(ModItems.ingot_peek, 16),
+					new ComparableStack(com.hbm.items.ModItems.ingot_combine_steel, 16),
+					new ComparableStack(com.hbm.items.ModItems.circuit, 16, com.hbm.items.machine.ItemCircuit.EnumCircuitType.CAPACITOR_BOARD)),
+				new ItemStack(ModItems.upgrade_parallel_2), 50, reclaim);
+		}
+
+		if(!table.recipeNameMap.containsKey("makentmgreatagain.precass.parallel3")) {
+			table.registerPair(new GenericRecipe("makentmgreatagain.precass.parallel3")
+				.setup(1_800, 150_000)
+				.inputItems(
+					new ComparableStack(ModItems.upgrade_parallel_2, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_speed_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.upgrade_effect_3, 1),
+					new ComparableStack(com.hbm.items.ModItems.ingot_bscco, 8),
+					new ComparableStack(ModItems.ingot_erbium, 16),
+					new ComparableStack(ModItems.ingot_helium, 16)),
+				new ItemStack(ModItems.upgrade_parallel_3), 25, reclaim);
+		}
 	}
 }

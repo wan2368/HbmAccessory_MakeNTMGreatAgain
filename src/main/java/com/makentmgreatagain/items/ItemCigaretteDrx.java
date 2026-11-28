@@ -7,6 +7,7 @@ import com.hbm.handler.threading.PacketThreading;
 import com.hbm.packet.toclient.AuxParticlePacketNT;
 import com.makentmgreatagain.init.ModNetwork;
 import com.makentmgreatagain.packet.CigaretteDrxEffectPacket;
+import com.makentmgreatagain.packet.CigaretteScreenEvent;
 
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.relauncher.Side;
@@ -41,6 +42,21 @@ import net.minecraft.world.World;
  */
 public class ItemCigaretteDrx extends ItemWithDesc {
 
+	/** 各档位演出时长（毫秒），双端共用：客户端渲染与服务端冷却/处决严格对齐 */
+	public static final long[] STAGE_DURATIONS_MS = {
+			3200L,  // 1：比较与凝视
+			3400L,  // 2：愧疚与窒息
+			3600L,  // 3：存在否定
+			5800L   // 4：终局吞噬 + 处决
+	};
+
+	public static final String NBT_CIG_LOCK_UNTIL = "mntga.cigLockUntil";
+
+	public static long getStageDurationMs(int stage) {
+		int idx = Math.max(0, Math.min(STAGE_DURATIONS_MS.length - 1, stage - 1));
+		return STAGE_DURATIONS_MS[idx];
+	}
+
 	/** 抽烟（使用中）时显示的图标 */
 	@SideOnly(Side.CLIENT)
 	private IIcon iconUsing;
@@ -63,6 +79,17 @@ public class ItemCigaretteDrx extends ItemWithDesc {
 
 	@Override
 	public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
+		// 动画播放结束前禁止再次使用香烟（双端同时拦截，避免客户端起手抖动或服务端绕过）
+		if (world.isRemote) {
+			if (CigaretteScreenEvent.clientEffectActive || CigaretteScreenEvent.pendingStage > 0) {
+				return stack;
+			}
+		} else {
+			long lockUntil = player.getEntityData().getLong(NBT_CIG_LOCK_UNTIL);
+			if (System.currentTimeMillis() < lockUntil) {
+				return stack;
+			}
+		}
 		player.setItemInUse(stack, this.getMaxItemUseDuration(stack));
 		return stack;
 	}
@@ -95,16 +122,16 @@ public class ItemCigaretteDrx extends ItemWithDesc {
 
 			spawnBlackSmoke(world, player);
 
-			// DRX 专属：按"本赛季（两次死亡之间）抽烟根数"触发全屏效果。
-			// “1”=复活后第 1 根，“2”=第 2 根……“5”=第 5 根及以后都按第 5 档算。
+			// DRX 专属：按"本赛季（两次死亡之间）抽烟根数"触发全屏效果（共 4 档，第 4 根处决）。
 			int stage = getNextStage(player);
+			long durationMs = getStageDurationMs(stage);
+			player.getEntityData().setLong(NBT_CIG_LOCK_UNTIL, System.currentTimeMillis() + durationMs);
 			sendScreenEffect(player, stage);
 
-			// 只有抽完第五次（stage>=5）才处决：全黑 + "Am I still alive？"持续放大，
-			// 约 5 秒后击杀（含创造模式，服务端事件驱动，见 CigaretteKillHandler）。
-			// 前四次只放警告黑幕，不击杀。
-			if (stage >= 5) {
-				com.makentmgreatagain.hook.CigaretteKillHandler.scheduleKill(player, 5000L);
+			// 抽完第 4 根（stage>=4）触发终局处决：全黑 + "Am I still alive？"持续放大，
+			// 5.8 秒后击杀（含创造模式，与 ScreenEffectManager 第 4 档时长严格对齐）。
+			if (stage >= 4) {
+				com.makentmgreatagain.hook.CigaretteKillHandler.scheduleKill(player, durationMs);
 			}
 		}
 
@@ -112,14 +139,13 @@ public class ItemCigaretteDrx extends ItemWithDesc {
 	}
 
 	/**
-	 * 读取并递增"本赛季抽烟计数"，返回下一个要展示的档位（1~5）。
-	 * 计数挂在玩家实体 NBT，死亡时由 CigaretteDeathHandler 清零。
+	 * 读取并递增"本赛季抽烟计数"，返回下一个要展示的档位（1~4）。
 	 */
 	private int getNextStage(EntityPlayer player) {
 		net.minecraft.nbt.NBTTagCompound data = player.getEntityData();
 		int count = data.getInteger("mntga.cigCount");
 		data.setInteger("mntga.cigCount", count + 1);
-		return Math.min(count + 1, 5);
+		return Math.min(count + 1, 4);
 	}
 
 	/** 把效果档位发给该玩家（仅服务端调用）。 */

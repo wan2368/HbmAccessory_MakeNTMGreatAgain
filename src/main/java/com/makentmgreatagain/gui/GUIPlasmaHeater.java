@@ -4,7 +4,8 @@ import com.hbm.inventory.gui.GuiInfoContainer;
 import com.hbm.inventory.gui.GUIScreenRecipeSelector;
 import com.hbm.inventory.gui.element.GUIElements;
 import com.hbm.inventory.recipes.FusionRecipe;
-import com.hbm.inventory.recipes.FusionRecipes;
+import com.makentmgreatagain.recipes.HydrogenFusion;
+import com.makentmgreatagain.recipes.StellaratorRecipes;
 import com.hbm.items.machine.ItemBlueprints;
 import com.hbm.util.i18n.I18nUtil;
 import com.makentmgreatagain.MakeNTMGreatAgain;
@@ -89,9 +90,10 @@ public class GUIPlasmaHeater extends GuiInfoContainer {
 	protected void mouseClicked(int x, int y, int button) {
 		super.mouseClicked(x, y, button);
 
-		// 配方选择区：与聚变堆同款，打开 FusionRecipes 选择器，蓝图池取自蓝图槽
+		// 配方选择区：打开仿星器专用聚变表，蓝图池取自蓝图槽
 		if(this.checkClick(x, y, SELECT_X, SELECT_Y, SELECT_SIZE, SELECT_SIZE)) {
-			GUIScreenRecipeSelector.openSelector(FusionRecipes.INSTANCE, te, te.getRecipeName(), 0,
+			if(!HydrogenFusion.isRegistered()) HydrogenFusion.addRecipe();
+			GUIScreenRecipeSelector.openSelector(StellaratorRecipes.INSTANCE, te, te.getRecipeName(), 0,
 					ItemBlueprints.grabPool(te.slots[TileEntityPlasmaHeater.SLOT_BLUEPRINT]), this);
 		}
 	}

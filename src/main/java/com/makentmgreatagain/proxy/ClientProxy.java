@@ -259,6 +259,20 @@ public class ClientProxy extends CommonProxy {
                 Item.getItemFromBlock(ModBlocks.xen_item_transceiver),
                 xenTransceiverRenderer.itemRenderer(AddonModels.xen_item_transceiver_tex));
 
+        // 原子投送探头：6方向贴面云台 + 短脉冲原子光束
+        com.makentmgreatagain.client.RenderAtomicProbe atomicProbeRenderer = new com.makentmgreatagain.client.RenderAtomicProbe();
+        ClientRegistry.bindTileEntitySpecialRenderer(com.makentmgreatagain.tileentity.TileEntityAtomicProbe.class, atomicProbeRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.atomic_probe),
+                atomicProbeRenderer.getItemRenderer());
+
+        // 投送中继节点：6方向贴面全向光学中继器
+        com.makentmgreatagain.client.RenderDeliveryRelay deliveryRelayRenderer = new com.makentmgreatagain.client.RenderDeliveryRelay();
+        ClientRegistry.bindTileEntitySpecialRenderer(com.makentmgreatagain.tileentity.TileEntityDeliveryRelay.class, deliveryRelayRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.delivery_relay),
+                deliveryRelayRenderer.getItemRenderer());
+
         // 混合催化分馏塔：5×5×6 八棱柱，底部 8 个检修口
         RenderHybridCatalyticFractionTower fractionTowerRenderer = new RenderHybridCatalyticFractionTower();
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityHybridCatalyticFractionTower.class, fractionTowerRenderer);
@@ -349,6 +363,15 @@ public class ClientProxy extends CommonProxy {
         MinecraftForgeClient.registerItemRenderer(
                 Item.getItemFromBlock(ModBlocks.supercritical_mhd_generator),
                 mhdRenderer.getRenderer());
+
+        // 工业种植站：7×7×5 多方块
+        com.makentmgreatagain.client.RenderIndustrialCultivationStation cultRenderer =
+                new com.makentmgreatagain.client.RenderIndustrialCultivationStation();
+        ClientRegistry.bindTileEntitySpecialRenderer(
+                com.makentmgreatagain.tileentity.TileEntityIndustrialCultivationStation.class, cultRenderer);
+        MinecraftForgeClient.registerItemRenderer(
+                Item.getItemFromBlock(ModBlocks.industrial_cultivation_station),
+                cultRenderer.getRenderer());
 
         // 海面立管钻机：7×7×16 平台井架
         RenderRiserRig riserRigRenderer = new RenderRiserRig();
@@ -538,6 +561,22 @@ public class ClientProxy extends CommonProxy {
             if(te instanceof com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver) {
                 return new com.makentmgreatagain.gui.GUIXenItemTransceiver(player.inventory,
                         (com.makentmgreatagain.tileentity.TileEntityXenItemTransceiver) te);
+            }
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_INDUSTRIAL_CULTIVATION_STATION) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityIndustrialCultivationStation) {
+                return new com.makentmgreatagain.gui.GUIIndustrialCultivationStation(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityIndustrialCultivationStation) te);
+            }
+        }
+
+        if(id == MakeNTMGreatAgain.GUI_ATOMIC_PROBE) {
+            TileEntity te = world.getTileEntity(x, y, z);
+            if(te instanceof com.makentmgreatagain.tileentity.TileEntityAtomicProbe) {
+                return new com.makentmgreatagain.gui.GUIAtomicProbe(player.inventory,
+                        (com.makentmgreatagain.tileentity.TileEntityAtomicProbe) te);
             }
         }
 

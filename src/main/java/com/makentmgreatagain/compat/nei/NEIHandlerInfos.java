@@ -56,6 +56,7 @@ public final class NEIHandlerInfos {
 		send(StellaratorBreedingHandler.KEY, StellaratorBreedingHandler.class);
 		send(StellaratorFusionHandler.KEY, StellaratorFusionHandler.class);
 		send(PlasmaHeaterHandler.KEY, PlasmaHeaterHandler.class);
+		send(IndustrialCultivationStationHandler.KEY, IndustrialCultivationStationHandler.class);
 	}
 
 	private static void send(String handlerID, Class<?> handlerClass) {

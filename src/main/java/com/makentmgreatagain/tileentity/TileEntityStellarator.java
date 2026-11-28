@@ -7,7 +7,7 @@ import com.hbm.inventory.fluid.FluidType;
 import com.hbm.inventory.fluid.Fluids;
 import com.hbm.inventory.fluid.tank.FluidTank;
 import com.hbm.inventory.recipes.FusionRecipe;
-import com.hbm.inventory.recipes.FusionRecipes;
+import com.makentmgreatagain.recipes.StellaratorRecipes;
 import com.hbm.inventory.recipes.loader.GenericRecipe;
 import com.hbm.items.ModItems;
 import com.hbm.items.machine.IItemFluidIdentifier;
@@ -128,6 +128,9 @@ public class TileEntityStellarator extends TileEntityMachineBase
 	public static final int SLOT_BREED_OUT = 3;
 	public static final int SLOT_BREED_ID = 4;
 	public static final int SLOT_COUNT = 5;
+
+	/** 防止多方块拆机时重复掉落仿星器物品（每台机器只允许掉落一次） */
+	public transient boolean droppedByHarvest = false;
 
 	/** 每 1000 TU 完成一轮「水 → 超临界蒸汽」 */
 	public static final int TU_PER_BOIL = 1000;
@@ -722,7 +725,7 @@ public class TileEntityStellarator extends TileEntityMachineBase
 
 		if(this.recipe == null || NULL_RECIPE.equals(this.recipe)) return null;
 
-		GenericRecipe r = (GenericRecipe) FusionRecipes.INSTANCE.recipeNameMap.get(this.recipe);
+		GenericRecipe r = (GenericRecipe) StellaratorRecipes.INSTANCE.recipeNameMap.get(this.recipe);
 		return r instanceof FusionRecipe ? (FusionRecipe) r : null;
 	}
 
@@ -823,7 +826,7 @@ public class TileEntityStellarator extends TileEntityMachineBase
 	}
 
 	private FusionRecipe lookupRecipe(String name) {
-		GenericRecipe recipe = FusionRecipes.INSTANCE.recipeNameMap.get(name);
+		GenericRecipe recipe = StellaratorRecipes.INSTANCE.recipeNameMap.get(name);
 		return recipe instanceof FusionRecipe ? (FusionRecipe) recipe : null;
 	}
 

@@ -70,6 +70,29 @@ public class LargeCentrifugeRecipes {
 					  new ItemStack(com.hbm.items.ModItems.nugget_pu239, 2))
 			.power(10_000L)
 			.duration(180));
+
+		// Aerospace-only MINSOL recipe; resolve its fluid and item by name for original-HBM builds.
+		FluidType minsol = Fluids.fromName("MINSOL");
+		ItemStack cleanedCrystal = aerospaceItem("crystal_cleaned");
+		if(minsol != null && minsol != Fluids.NONE && cleanedCrystal != null) {
+			RECIPES.add(new CentrifugeRecipe()
+				.fluid(new FluidStack(minsol, 1_000))
+				.outItems(new ItemStack(com.hbm.items.ModItems.powder_iron, 1), cleanedCrystal)
+				.power(10_000L)
+				.duration(180));
+		}
+	}
+
+	private static ItemStack aerospaceItem(String fieldName) {
+		try {
+			java.lang.reflect.Field field = com.hbm.items.ModItems.class.getField(fieldName);
+			Object value = field.get(null);
+			return value instanceof net.minecraft.item.Item
+				? new ItemStack((net.minecraft.item.Item) value, 1)
+				: null;
+		} catch(Throwable ignored) {
+			return null;
+		}
 	}
 
 	/**

@@ -39,6 +39,12 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 	private static final int TANK_Y = 86;
 	private static final int TANK_H = 34;
 
+	private static final int CONTROLS_LEFT = 128;
+	private static final int CONTROLS_RIGHT = W - 10;
+	private static final int FREQ_Y = 18;
+	private static final int FREQ_BUTTON_W = 17;
+	private static final int FREQ_BUTTON_H = 13;
+
 	private static final int[] FREQ_DELTAS = { -100, -10, -1, 1, 10, 100 };
 	private static final String[] FREQ_LABELS = { "-10", "-1", "-.1", "+.1", "+1", "+10" };
 
@@ -49,6 +55,23 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 		this.te = te;
 		this.xSize = W;
 		this.ySize = H;
+	}
+
+	private static int frequencyButtonX(int index) {
+		// 保持各键等宽，将剩余像素分摊给间距，首尾与下方按钮行对齐。
+		return CONTROLS_LEFT + Math.round(index * (CONTROLS_RIGHT - CONTROLS_LEFT - FREQ_BUTTON_W)
+				/ (float) (FREQ_DELTAS.length - 1));
+	}
+
+	private static boolean isOverFrequencyButton(int rx, int ry, int buttonX) {
+		return rx >= buttonX && rx < buttonX + FREQ_BUTTON_W && ry >= FREQ_Y && ry < FREQ_Y + FREQ_BUTTON_H;
+	}
+
+	private static int findFrequencyButton(int rx, int ry) {
+		for(int i = 0; i < FREQ_DELTAS.length; i++) {
+			if(isOverFrequencyButton(rx, ry, frequencyButtonX(i))) return i;
+		}
+		return -1;
 	}
 
 	private void sendCtrl(NBTTagCompound data) {
@@ -64,21 +87,19 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 		int ry = mouseY - guiTop;
 
 		// 1. 频率微调按钮
-		if(button == 0 && ry >= 18 && ry < 31) {
-			for(int i = 0; i < 6; i++) {
-				int bx = 128 + i * 18;
-				if(rx >= bx && rx < bx + 17) {
-					NBTTagCompound tag = new NBTTagCompound();
-					tag.setInteger("freqDelta", FREQ_DELTAS[i]);
-					sendCtrl(tag);
-					return;
-				}
+		if(button == 0) {
+			int freqButton = findFrequencyButton(rx, ry);
+			if(freqButton >= 0) {
+				NBTTagCompound tag = new NBTTagCompound();
+				tag.setInteger("freqDelta", FREQ_DELTAS[freqButton]);
+				sendCtrl(tag);
+				return;
 			}
 		}
 
 		// 2. 复制 / 粘贴 / 分发模式
 		if(button == 0 && ry >= 32 && ry < 44) {
-			if(rx >= 128 && rx < 155) {
+			if(rx >= CONTROLS_LEFT && rx < 155) {
 				copiedFrequency = te.frequency;
 				mc.getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.2F));
 				return;
@@ -89,7 +110,7 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 				sendCtrl(tag);
 				return;
 			}
-			if(rx >= 186 && rx < 238) {
+			if(rx >= 186 && rx < CONTROLS_RIGHT) {
 				NBTTagCompound tag = new NBTTagCompound();
 				tag.setBoolean("toggleDist", true);
 				sendCtrl(tag);
@@ -98,7 +119,7 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 		}
 
 		// 3. 超频模式总开关
-		if(button == 0 && rx >= 128 && rx < 238 && ry >= 45 && ry < 58) {
+		if(button == 0 && rx >= CONTROLS_LEFT && rx < CONTROLS_RIGHT && ry >= 45 && ry < 58) {
 			NBTTagCompound tag = new NBTTagCompound();
 			tag.setBoolean("toggleOverclock", true);
 			sendCtrl(tag);
@@ -157,7 +178,7 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 		int ry = mouseY - guiTop;
 
 		// 频率微调提示
-		if(ry >= 18 && ry < 31 && rx >= 128 && rx < 235) {
+		if(findFrequencyButton(rx, ry) >= 0) {
 			showWrappedTip(mouseX, mouseY,
 					XenGuiHelper.tr("mnga.xen.tip.freq.1"),
 					XenGuiHelper.tr("mnga.xen.tip.freq.fluid"));
@@ -166,7 +187,7 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 
 		// 复制 / 粘贴 / 分发策略提示
 		if(ry >= 32 && ry < 44) {
-			if(rx >= 128 && rx < 155) {
+			if(rx >= CONTROLS_LEFT && rx < 155) {
 				showWrappedTip(mouseX, mouseY, XenGuiHelper.tr("mnga.xen.tip.copy"));
 				return;
 			}
@@ -174,7 +195,7 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 				showWrappedTip(mouseX, mouseY, XenGuiHelper.tr("mnga.xen.tip.paste", String.format("%05.1f", copiedFrequency / 10.0F)));
 				return;
 			}
-			if(rx >= 186 && rx < 238) {
+			if(rx >= 186 && rx < CONTROLS_RIGHT) {
 				if(te.distMode == TileEntityXenFluidTransceiver.DIST_ROUND_ROBIN) {
 					showWrappedTip(mouseX, mouseY,
 							XenGuiHelper.tr("mnga.xen.tip.dist.rr.1"),
@@ -189,7 +210,7 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 		}
 
 		// 超频按钮悬停说明
-		if(rx >= 128 && rx < 238 && ry >= 45 && ry < 58) {
+		if(rx >= CONTROLS_LEFT && rx < CONTROLS_RIGHT && ry >= 45 && ry < 58) {
 			if(te.overclocked) {
 				showWrappedTip(mouseX, mouseY,
 						XenGuiHelper.tr("mnga.xen.tip.fluid.oc_on.1"),
@@ -260,24 +281,24 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 
 		int rx = mouseX - guiLeft;
 		int ry = mouseY - guiTop;
-		for(int i = 0; i < 6; i++) {
-			int bx = 128 + i * 18;
-			boolean hover = rx >= bx && rx < bx + 17 && ry >= 18 && ry < 31;
-			XenGuiHelper.drawSmallButton(x + bx, y + 18, 17, 13, hover, oc);
+		for(int i = 0; i < FREQ_DELTAS.length; i++) {
+			int bx = frequencyButtonX(i);
+			boolean hover = isOverFrequencyButton(rx, ry, bx);
+			XenGuiHelper.drawSmallButton(x + bx, y + FREQ_Y, FREQ_BUTTON_W, FREQ_BUTTON_H, hover, oc);
 		}
-		XenGuiHelper.drawSmallButton(x + 128, y + 32, 27, 12, rx >= 128 && rx < 155 && ry >= 32 && ry < 44, oc);
+		XenGuiHelper.drawSmallButton(x + CONTROLS_LEFT, y + 32, 27, 12, rx >= CONTROLS_LEFT && rx < 155 && ry >= 32 && ry < 44, oc);
 		XenGuiHelper.drawSmallButton(x + 157, y + 32, 27, 12, rx >= 157 && rx < 184 && ry >= 32 && ry < 44, oc);
-		XenGuiHelper.drawSmallButton(x + 186, y + 32, 52, 12, rx >= 186 && rx < 238 && ry >= 32 && ry < 44, oc);
+		XenGuiHelper.drawSmallButton(x + 186, y + 32, CONTROLS_RIGHT - 186, 12, rx >= 186 && rx < CONTROLS_RIGHT && ry >= 32 && ry < 44, oc);
 
-		boolean ocHover = rx >= 128 && rx < 238 && ry >= 45 && ry < 58;
+		boolean ocHover = rx >= CONTROLS_LEFT && rx < CONTROLS_RIGHT && ry >= 45 && ry < 58;
 		if(oc) {
 			float pulse = 0.5F + 0.5F * (float) Math.sin(System.currentTimeMillis() / 160.0D);
 			int r = (int) (175 + pulse * 55);
 			int g = (int) (45 + pulse * 40);
 			int btnFill = (0xFF << 24) | (r << 16) | (g << 8) | 0x18;
-			XenGuiHelper.drawHbmButton(x + 128, y + 45, 110, 13, 0xFF1E0404, 0xFFFFAA44, 0xFF6B1408, 0xFFB84420, ocHover ? 0xFFFF6E24 : btnFill);
+			XenGuiHelper.drawHbmButton(x + CONTROLS_LEFT, y + 45, CONTROLS_RIGHT - CONTROLS_LEFT, 13, 0xFF1E0404, 0xFFFFAA44, 0xFF6B1408, 0xFFB84420, ocHover ? 0xFFFF6E24 : btnFill);
 		} else {
-			XenGuiHelper.drawHbmButton(x + 128, y + 45, 110, 13, 0xFF141414, 0xFF9EB0B8, 0xFF343E42, 0xFF566870, ocHover ? 0xFF58727C : 0xFF485C64);
+			XenGuiHelper.drawHbmButton(x + CONTROLS_LEFT, y + 45, CONTROLS_RIGHT - CONTROLS_LEFT, 13, 0xFF141414, 0xFF9EB0B8, 0xFF343E42, 0xFF566870, ocHover ? 0xFF58727C : 0xFF485C64);
 		}
 
 		int active = te.getActiveChannelCount();
@@ -334,18 +355,18 @@ public class GUIXenFluidTransceiver extends GuiInfoContainer {
 				+ (te.hasCrossDimPeer ? XenGuiHelper.tr("mnga.xen.status.cross") : "");
 		this.fontRendererObj.drawString(peerText, 14, 45, oc ? 0xFFFFB899 : 0xFFAAD8E6);
 
-		for(int i = 0; i < 6; i++) {
-			XenGuiHelper.drawCenteredFit(this.fontRendererObj, FREQ_LABELS[i], 128 + i * 18, 18, 17, 13, 0xFFE8E8E8);
+		for(int i = 0; i < FREQ_DELTAS.length; i++) {
+			XenGuiHelper.drawCenteredFit(this.fontRendererObj, FREQ_LABELS[i], frequencyButtonX(i), FREQ_Y, FREQ_BUTTON_W, FREQ_BUTTON_H, 0xFFE8E8E8);
 		}
-		XenGuiHelper.drawCenteredFit(this.fontRendererObj, XenGuiHelper.tr("mnga.xen.copy"), 128, 32, 27, 12, 0xFFD8D8D8);
+		XenGuiHelper.drawCenteredFit(this.fontRendererObj, XenGuiHelper.tr("mnga.xen.copy"), CONTROLS_LEFT, 32, 27, 12, 0xFFD8D8D8);
 		XenGuiHelper.drawCenteredFit(this.fontRendererObj, XenGuiHelper.tr("mnga.xen.paste"), 157, 32, 27, 12, 0xFFD8D8D8);
 		XenGuiHelper.drawCenteredFit(this.fontRendererObj,
 				XenGuiHelper.tr(te.distMode == TileEntityXenFluidTransceiver.DIST_ROUND_ROBIN
 						? "mnga.xen.dist.rr_long" : "mnga.xen.dist.prio_long"),
-				186, 32, 52, 12, 0xFFE8E8E8);
+				186, 32, CONTROLS_RIGHT - 186, 12, 0xFFE8E8E8);
 
 		String ocLbl = XenGuiHelper.tr(oc ? "mnga.xen.oc.on_fluid" : "mnga.xen.oc.off_fluid");
-		XenGuiHelper.drawCenteredFit(this.fontRendererObj, ocLbl, 128, 45, 110, 13, oc ? 0xFFFFF0D0 : 0xFFB8E8F4);
+		XenGuiHelper.drawCenteredFit(this.fontRendererObj, ocLbl, CONTROLS_LEFT, 45, CONTROLS_RIGHT - CONTROLS_LEFT, 13, oc ? 0xFFFFF0D0 : 0xFFB8E8F4);
 
 		int active = te.getActiveChannelCount();
 		for(int i = 0; i < TileEntityXenFluidTransceiver.MAX_CHANNELS; i++) {

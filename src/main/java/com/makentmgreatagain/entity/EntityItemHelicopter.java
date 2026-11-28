@@ -84,8 +84,8 @@ import net.minecraft.world.World;
  * <h2>怎么挂到物品上</h2>
  * <p>物品侧覆盖 {@code Item.hasCustomEntity} 返回 true、{@code Item.createEntity}
  * 调用 {@link #fromDropped(World, Entity, ItemStack)} 即可，见
- * {@code items/ItemHelicopterDrop}、{@code items/ItemBlockHelicopter}、
- * {@code items/ItemToolAbilityHelicopter}。</p>
+ * {@code items/ItemHelicopterDrop}、{@code items/ItemToolAbilityHelicopter}。
+ * 方块（{@code block_helicopter} 等金属储存块）用的是原版 {@code ItemBlock}，不在此列。</p>
  */
 public class EntityItemHelicopter extends EntityItem implements IEntityAdditionalSpawnData {
 

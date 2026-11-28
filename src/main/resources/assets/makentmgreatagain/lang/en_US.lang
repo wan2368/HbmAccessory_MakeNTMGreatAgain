@@ -62,7 +62,7 @@ hbmmat.erbium=Erbium
 hbmmat.platinum=Platinum
 hbmmat.helium=Helium
 item.cmb_.electrode.name=CMB Electrode
-item.cmb_.electrode.desc=An electrode made of CMB Steel and Dineutronium.$Unbreakable
+item.cmb_.electrode.desc=An electrode forged from CMB Steel and Dineutronium.$§bUnbreakable!
 item.alloy_helmet_reborn.name=Advanced Alloy Helmet
 item.alloy_plate_reborn.name=Advanced Alloy Chestplate
 item.alloy_legs_reborn.name=Advanced Alloy Leggings
@@ -73,10 +73,10 @@ item.alloy_shovel_reborn.name=Advanced Alloy Shovel
 item.alloy_hoe_reborn.name=Advanced Alloy Hoe
 item.alloy_sword_reborn.name=Advanced Alloy Sword
 item.cigarette_drx.name=DRX Cigarette
-item.meth_impure.name=Methamphetamine (Crude)
+item.meth_impure.name=Crude Methamphetamine
 item.meth_crystal.name=Methamphetamine Crystal
 item.meth_pill.name=(2R)-N-Methyl-1-phenylpropan-2-amine
-item.meth_pill.desc.radiation=§aInstantly clears all personal radiation (including digamma)
+item.meth_pill.desc.radiation=§aInstantly purges all radiation (including Digamma)
 item.meth_pill.desc.effects=§9Rad-X 3:00 · Haste II 3:00 · Speed I 3:00
 item.meth_pill.desc.weakness=§cWeakness II 5:00
 hbmfluid.methylamine=Methylamine
@@ -85,6 +85,7 @@ container.alloyShredder=Advanced Alloy Shredder
 item.powder_graphite.name=Graphite Powder
 item.ingot_peek.name=PEEK Ingot
 item.powder_peek.name=PEEK Powder
+item.quantum_pulse_component.name=Quantum Pulse Component
 item.upgrade_parallel_1.name=Parallel Chip Tier I
 item.upgrade_parallel_2.name=Parallel Chip Tier II
 item.upgrade_parallel_3.name=Parallel Chip Tier III
@@ -155,45 +156,45 @@ item.strontium_oxide.desc=SrO. Roasted celestite, ready for aluminothermic reduc
 item.wood_frame.name=Wood Frame
 item.raw_rubber.name=Raw Rubber
 item.carbon_black_pure.name=High-Purity Carbon Black
-item.wood_frame.desc=A universal mould for the crystallizer. Any pulp crystallizes into its own log; the steel scaffolds come back out.
+item.wood_frame.desc=A universal mold for the crystallizer. Any wood pulp crystallizes into its matching log, returning the steel scaffolds.
 item.inf_destroy.name=Small Void Barrel
 item.inf_destroy.desc=§7Void rate: §e%s mB/tick$§cDestroyed by corrosive fluids$§4Cannot void antimatter
 item.inf_destroy_mk2.name=Large Void Barrel
 item.inf_destroy_mk2.desc=§7Void rate: §e%s mB/tick$§6Destroyed by highly corrosive fluids$§4Cannot void antimatter
 item.inf_destroy_mk3.name=Epic Void Barrel
-item.inf_destroy_mk3.desc=§7Void rate: §e%s mB/tick$§5Can void antimatter (10%% speed)$§aImmune to corrosion
+item.inf_destroy_mk3.desc=§7Void rate: §e%s mB/tick$§aImmune to corrosion$§5Voids antimatter at 10%% speed
 tile.bat9000_reborn.name=Standard Pattern Large Tank
 container.bat9000_reborn=Standard Pattern Large Tank
 item.blank_template.name=Blank Template
 item.solid_fuel_adv.name=Advanced Solid Fuel
-item.solid_fuel_adv.desc=Oxygen-rich propellant pressed from nitromethane. Burns for 12000 ticks, about four times plain solid fuel.
+item.solid_fuel_adv.desc=Oxygen-rich propellant pressed from nitromethane. Burns for 12,000 ticks—about four times longer than standard solid fuel.
 
 # ---- Electric Hover Work Pack ----
 item.hover_jetpack.name=Electric Hover Work Pack
-item.hover_jetpack.desc=Jetpack and hover pack in one, powered by charge.$Defaults to vectorized mode (hold space to fly along your view); press the mode key to switch into hover mode (space rises, Shift sinks)$On/off still uses the HBM jetpack toggle key (C by default)
+item.hover_jetpack.desc=Electric jetpack and hover pack in one.$Defaults to Vector Mode (hold Space to thrust where you look). Press the mode key for Hover Mode (Space to ascend, Shift to descend).$Toggle on/off with the HBM jetpack key (default: C).
 makentmgreatagain.key.group=Make NTM Great Again: Keys
 makentmgreatagain.key.hoverMode=Hover Pack - toggle vector/hover mode
 
 # ---- Achievements (vanilla system, own page in the achievement GUI: MNGA) ----
 # Key format: achievement.<name>=title ; achievement.<name>.desc=description
 # <name> is the second argument of new Achievement in ModAchievements.
-achievement.mnga_scheelite_mined=Wu!
+achievement.mnga_scheelite_mined=A Massive W!
 achievement.mnga_scheelite_mined.desc=Your first scheelite ore. It will not smelt into anything. Go crush it.
 
 achievement.mnga_scheelite_acid=Can I Drink This?
 achievement.mnga_scheelite_acid.desc=Tungstic acid. A yellow filter cake, and a terrible beverage.
 
 achievement.mnga_tungsten_carbide=High Strength Tungsten Carbide
-achievement.mnga_tungsten_carbide.desc=A tungsten carbide ingot. Second highest melting point, hardest thing around.
+achievement.mnga_tungsten_carbide.desc=A tungsten carbide ingot. Second-highest melting point, hardest material around.
 
-achievement.mnga_nothing_smelt=Rolling Log?
+achievement.mnga_nothing_smelt=Wait, Where'd It Go?
 achievement.mnga_nothing_smelt.desc=You put scheelite in a furnace. The furnace finished smelting it and handed you nothing at all.
 
-achievement.mnga_scheelite_300=That Is All Of It
+achievement.mnga_scheelite_300=That's All of It
 achievement.mnga_scheelite_300.desc=Three hundred scheelite blocks mined. About half a large vein.
 
-achievement.mnga_waste_acid=I Should Soak The World In Acid
-achievement.mnga_waste_acid.desc=Sixteen tungsten acid cakes, roughly ten thousand millibuckets of waste acid. Do not drink it.
+achievement.mnga_waste_acid=I Should Soak the World in Acid
+achievement.mnga_waste_acid.desc=Sixteen tungstic acid cakes—roughly 10,000 mB of waste acid. Don't drink it.
 
 achievement.mnga_beryllium_conc=A Buried Story
 achievement.mnga_beryllium_conc.desc=You pulled a beryllium concentrate out of the leach residue. Beryllium is rarer than tungsten.
@@ -208,22 +209,22 @@ achievement.mnga_seawater=That Is Not Water
 achievement.mnga_seawater.desc=The environmental pump pulled up seawater. It picks its output by biome, not by what is under it.
 
 achievement.mnga_chlorine=Both Will Kill You
-achievement.mnga_chlorine.desc=Electrolysed chlorine. Lye comes out the other side. Neither is safe to touch.
+achievement.mnga_chlorine.desc=Electrolyzed chlorine. Lye comes out the other side. Neither is safe to touch.
 
 achievement.mnga_lithium=It Starts With Lithium
 achievement.mnga_lithium.desc=Lithium powder from ore liquor. Batteries, grease and tritium breeding all start here.
 
-achievement.mnga_zinc=My Heart Is In Pieces!
+achievement.mnga_zinc=My Heart Is in Pieces!
 achievement.mnga_zinc.desc=After the sinter crumbles, the zinc stays behind as oxide in that pile of ash.
 
 achievement.mnga_hover=I Can Fly
 achievement.mnga_hover.desc=You lifted off with the powered hover pack. It will not hold you forever - the power runs out.
 
-achievement.mnga_escape_abyss=Escape The Abyss
+achievement.mnga_escape_abyss=Escape the Abyss
 achievement.mnga_escape_abyss.desc=Nicotine poisoning. You ascended, or at least skipped the death screen.
 
 achievement.mnga_fork_shock=Tingling Sensation
-achievement.mnga_fork_shock.desc=This careless soul fried himself trying to fish like a fish.
+achievement.mnga_fork_shock.desc=This careless soul mistook himself for a fish.
 
 achievement.mnga_pump_overworked=A Thankless Job
 achievement.mnga_pump_overworked.desc=She does not look happy. Wonder why?
@@ -244,7 +245,7 @@ achievement.mnga_pump_strike=She Quit
 achievement.mnga_pump_strike.desc=You put her above the clouds. She did the math, decided it wasn't worth it, and sat down.
 
 achievement.mnga_helicopter_elements=HeLiCoPtEr
-achievement.mnga_helicopter_elements.desc=Helium Helium Lithium Cobalt Platinum Erbium. Try saying it. No prize if you get it right.
+achievement.mnga_helicopter_elements.desc=Helium, Lithium, Cobalt, Platinum, Erbium. Try saying it out loud—no prize if you nail it.
 
 achievement.mnga_ruin_estate=Ruin Real Estate
 achievement.mnga_ruin_estate.desc=Forty blocks under the lava, a building nobody wanted. You furnished it.
@@ -252,7 +253,7 @@ achievement.mnga_ruin_estate.desc=Forty blocks under the lava, a building nobody
 item.armor_battery_mk4.name=Power Armor Battery Pack Mk4
 item.armor_battery_mk4.desc=Triples the charge capacity of the armor it is installed in (+200%).
 item.neutrino_goggles.name=Neutrino Goggles
-item.neutrino_goggles.desc=Night vision and clearer sight while submerged in lava. No power, full set, or fire protection.
+item.neutrino_goggles.desc=Grants night vision and clear sight under lava. Requires no power or full set, but offers no fire protection.
 item.neutrino_goggles.toggle=Toggle with the HBM head function key (default V).
 item.neutrino_goggles.locator=Locator key (default G): tap to cancel the locate display, double-tap to start searching, hold to open target selection.
 makentmgreatagain.key.neutrinoLocator=Neutrino Goggles - block locator
@@ -268,7 +269,7 @@ gui.makentmgreatagain.neutrino_locator.multiple_min=At least %s targets nearby
 gui.makentmgreatagain.neutrino_locator.ore_family=Ore family: %s
 gui.makentmgreatagain.neutrino_locator.scanning=Locating: %s
 gui.makentmgreatagain.neutrino_locator.no_match=No target found in the scanned area
-gui.makentmgreatagain.neutrino_locator.cooldown=Locator cooling down; try again shortly
+gui.makentmgreatagain.neutrino_locator.cooldown=Locator on cooldown; try again shortly
 gui.makentmgreatagain.neutrino_locator.disabled=Neutrino goggles are disabled
 gui.makentmgreatagain.neutrino_locator.invalid=This target cannot be scanned
 gui.makentmgreatagain.neutrino_locator.busy=Locator busy; try again shortly
@@ -285,7 +286,7 @@ gui.makentmgreatagain.neutrino_locator.above=%s blocks up
 gui.makentmgreatagain.neutrino_locator.below=%s blocks down
 
 tile.environment_pump.name=Environmental Pump
-tile.environment_pump.desc=Extracts a fluid depending on the biome it stands in$Every tier above the first adds another 50%% to the base power draw$Going outside the normal altitude band adds a further 25%% per 5 blocks$Each step also demands 5%% more input and yields 5%% less output, reaching zero output at 20 steps$Tier V can draw heavy water and experience juice
+tile.environment_pump.desc=Extracts fluids based on the current biome$Each tier above Tier I adds 50%% to base power draw$Operating outside the ideal altitude band adds another 25%% power draw per 5 blocks$Each 5-block step also requires 5%% more input and yields 5%% less output (zero output at 20 steps)$Tier V can extract rare fluids like Heavy Water and Experience Juice
 info.environment_pump.biome=Biome
 info.environment_pump.tier=Tier
 info.environment_pump.base_power=base
@@ -318,13 +319,13 @@ makentmgreatagain.fus.dd3=Deuterium Plasma (Helium-3 Branch)
 
 # ---- Integrated Heat Exchanger Heater ----
 tile.heatex_reborn.name=Integrated Heat Exchanger Heater
-tile.heatex_reborn.desc=Hot fluid in on one end, chilled fluid out the other, heat drawn off through the 3x3 hot face on top$Recovers 25%% more heat than a regular heat exchanger and can use it to heat fluids (Water -> Steam)$The identifier in the GUI only swaps the coolable exchange fluid; sneak-use an identifier on the casing to set the fluid being heated
+tile.heatex_reborn.desc=Pumps hot fluid in one end and chilled fluid out the other; draw heat from the top 3x3 hot plate$Recovers 25%% more heat than a standard heat exchanger and can heat fluids directly (Water -> Steam)$The GUI identifier only sets the hot fluid to cool; sneak-click the casing with an identifier to set the heated fluid
 container.heatex_reborn=Integrated Heat Exchanger Heater
 info.heatex_reborn.input_port=→Input
 info.heatex_reborn.output_port=←Output
 info.heatex_reborn.heated_in=→Fluid to heat
 info.heatex_reborn.heated_out=←Heated fluid
-info.heatex_reborn.changed=Changed type to
+info.heatex_reborn.changed=Fluid set to
 info.heatex_reborn.not_heatable=This fluid cannot be heated
 info.heatex_reborn.heat=Heat
 info.heatex_reborn.amount_per_cycle=Amount per cycle (mB)
@@ -352,13 +353,13 @@ item.cmb_converter.name=CMB Catalytic Converter
 # ---- Large Catalytic Chemical Factory ----
 tile.machine_large_catalytic_chemical_factory.name=Large Catalytic Chemical Factory
 tile.machine_electric_blast_furnace.name=Electric Blast Furnace
-tile.machine_nuclear_explosion_generator.name=Controllable Nuclear Explosion Generator
+tile.machine_nuclear_explosion_generator.name=Subcritical Nuclear Explosion Generator
 info.core.shift=Hold <LSHIFT> to display core stats
 info.core.header=Core Stats
 info.core.flux=Neutron flux: %s
 info.core.power=Power: %s HE
 info.core.sodium=Liquid sodium: %s mB
-container.nuclear_explosion_generator=Controllable Nuclear Explosion Generator
+container.nuclear_explosion_generator=Subcritical Nuclear Explosion Generator
 gui.nuclear_explosion.no_core=NO CORE
 gui.nuclear_explosion.no_coating=NO COATING
 gui.nuclear_explosion.no_power=NOT ENOUGH POWER
@@ -366,7 +367,7 @@ gui.nuclear_explosion.no_coolant=NOT ENOUGH COOLANT
 gui.nuclear_explosion.no_output_space=NOT ENOUGH OUTPUT SPACE
 gui.nuclear_explosion.non_explosive=CANNOT START
 info.core.non_explosive=§cCannot fission for a nuclear detonation
-gui.nuclear_explosion.no_item=No item to be bred
+gui.nuclear_explosion.no_item=No item to breed
 gui.nuclear_explosion.breedable=Breedable items:
 gui.nuclear_explosion.need_flux=Required neutron flux: %s
 gui.nuclear_explosion.min_flux=Minimum neutron flux: %s
@@ -380,13 +381,13 @@ gui.nuclear_explosion.run_tip_cancel=Click again to cancel (does not affect norm
 gui.nuclear_explosion.run_tip_start=Click to start the detonation
 gui.nuclear_explosion.run_tip_auto=Shift+Click to toggle auto mode
 gui.nuclear_explosion.run_tip_auto_ready=In auto mode, when all conditions are met
-gui.nuclear_explosion.run_tip_auto_loop=It detonates again the moment each 10s cooldown ends, no delay
+gui.nuclear_explosion.run_tip_auto_loop=Detonates again the moment each 10s cooldown ends
 container.electric_blast_furnace=Electric Blast Furnace
 container.large_catalytic_chemical_factory=Large Catalytic Chemical Factory
 
 # ---- Small Electrolyzer ----
 tile.electrolyzer_reborn.name=Small Electrolyzer
-tile.electrolyzer_reborn.desc=2x2x3 multiblock electrolyzer with four fluid/power sockets on the sides$Only item-free electrolysis recipes with two fluid outputs are accepted$Sneak-use a fluid identifier on the casing to switch the recipe; speed and power scale with a Java multiplier
+tile.electrolyzer_reborn.desc=2x2x3 multiblock electrolyzer with four fluid/power ports on the sides$Only accepts item-free electrolysis recipes with two fluid outputs$Sneak-click the casing with a fluid identifier to switch recipes
 container.electrolyzer_reborn=Small Electrolyzer
 info.electrolyzer_reborn.changed=Electrolysis recipe changed to
 info.electrolyzer_reborn.no_recipe=No usable recipe (only item-free electrolysis recipes with two fluid outputs are accepted)
@@ -418,24 +419,24 @@ container.large_centrifuge.parallel.1=1x: process 1 recipe at a time (power unch
 container.large_centrifuge.parallel.2=2x: process 2 recipes at once (power unchanged, coolant x2)
 container.large_centrifuge.parallel.3=4x: process 4 recipes at once (power unchanged, coolant x2)
 container.large_centrifuge.parallel.4=8x: process 8 recipes at once (power unchanged, coolant x2)
-tile.arc_heater.desc=3x2 footprint, 3.5 blocks tall arc heating cabinet$Up to 100,000 HE/t and 10,000 TU/t$Use a screwdriver to cycle settings 0-10; the arc window faces the player, power connects at the middle back layer
+tile.arc_heater.desc=3x2 footprint, 3.5-block-tall arc heating cabinet$Draws up to 100,000 HE/t for up to 10,000 TU/t$Use a screwdriver to cycle levels 0-10; the arc window faces you, and power connects at the center rear
 container.arc_heater=Arc Heater
 
 # ---- Offshore Riser Drilling Rig ----
 tile.riser_rig.name=Offshore Riser Drilling Rig
-tile.riser_rig.desc=7x7 platform with a 16 block truss derrick$Six universal ports (three on each ±X side), each accepting power and fluid in/out
+tile.riser_rig.desc=7x7 platform with a 16-block truss derrick$Six universal ports (three on each ±X side) for power and fluid I/O
 container.riser_rig=Offshore Riser Drilling Rig
 container.riser_rig.mining=Mining
 container.riser_rig.mining.tip=Requires >=8000mB High-Performance Solvent; %smB per pipe block
 container.riser_rig.mining.base=Requires a 5x5x5 solid foundation under the machine
-container.riser_rig.mining.output=Requires free space in the 3x3 output grid and none of the three output tanks full
+container.riser_rig.mining.output=Requires free space in the 3x3 output grid and space in all three output tanks
 container.riser_rig.mining.power=Consumes %s HE/t while running
 container.riser_rig.mining.ore_solvent=Consumes %smB High-Performance Solvent per nodule mined
 container.riser_rig.mining.progress=Mining %s%% (%ss per cycle)
 container.riser_rig.mining.nodule=No nodule under the drill bit
 container.riser_rig.crusher=Crusher
-container.riser_rig.crusher.on=Enabled: concentrates are shredded into mixes on site
-container.riser_rig.crusher.off=Disabled: concentrates are output as-is (send them to a shredder)
+container.riser_rig.crusher.on=Enabled: shreds concentrates into mixes on site
+container.riser_rig.crusher.off=Disabled: outputs raw concentrates (send to a shredder)
 tile.riser_pipe.name=Riser Pipe
 tile.empty_deep_sea_nodule.name=Depleted Deep-Sea Nodule
 item.cobalt_polymetallic_concentrate.name=Cobalt-Rich Polymetallic Concentrate
@@ -461,6 +462,7 @@ nei.stellarator_fusion.startup=Startup: %ss
 nei.stellarator_fusion.power=Power: %sHE/t
 nei.plasma_heater.name=Plasma Heater
 nei.plasma_heater.power=Power: %sHE/t
+nei.industrial_cultivation_station.name=Industrial Cultivation Station
 
 # ---- Lead-zinc smelting (ISP) ----
 tile.ore_leadzinc.name=Lead-Zinc Ore
@@ -469,23 +471,23 @@ item.leadzinc_sinter.name=Lead-Zinc Sinter
 item.bp_blue_powder.name=Blue Powder
 item.powder_zinc_isp.name=Zinc Powder
 item.arsenic_trioxide.name=Arsenic Trioxide
-item.powder_sodium_sulfate.name=Sodium Sulphate
-hbmfluid.sulfur_dioxide=Sulphur Dioxide
+item.powder_sodium_sulfate.name=Sodium Sulfate
+hbmfluid.sulfur_dioxide=Sulfur Dioxide
 hbmfluid.cadmium_liquor=Cadmium Liquor
-hbmfluid.zinc_sulfate=Zinc Sulphate Solution
-hbmfluid.sodium_sulphite=Sodium Sulphite Solution
+hbmfluid.zinc_sulfate=Zinc Sulfate Solution
+hbmfluid.sodium_sulphite=Sodium Sulfite Solution
 makentmgreatagain.leadzinc.float=Lead-Zinc Ore Flotation
 makentmgreatagain.leadzinc.roast=Lead-Zinc Concentrate Roasting
 makentmgreatagain.leadzinc.leach=Blue Powder Acid Leaching
 makentmgreatagain.leadzinc.cadmiumCell=Cadmium Electrowinning
 makentmgreatagain.leadzinc.zincCell=Zinc Electrowinning
-makentmgreatagain.leadzinc.acidPlant=Sulphur Dioxide Contact Process
+makentmgreatagain.leadzinc.acidPlant=Sulfur Dioxide Contact Process
 makentmgreatagain.leadzinc.cementation=Zinc Cementation of Cadmium
 makentmgreatagain.leadzinc.shaft=Lead-Zinc Sinter Reduction
 makentmgreatagain.leadzinc.dearsenify=Arsenical Feed Dearsenifying Leach
-makentmgreatagain.leadzinc.sulphite=Sulphite Scrubbing of Sulphur Dioxide
-makentmgreatagain.pulp.jungle.sulfate=Jungle Pulp (Sulphate Process, Salt Cake)
-makentmgreatagain.chloralkali.dechlor=Sodium Sulphite Dechlorination
+makentmgreatagain.leadzinc.sulphite=Sulfite Scrubbing of Sulfur Dioxide
+makentmgreatagain.pulp.jungle.sulfate=Jungle Pulp (Sulfate Process, Salt Cake)
+makentmgreatagain.chloralkali.dechlor=Sodium Sulfite Dechlorination
 makentmgreatagain.leadzinc.arsenicReduction=Arsenic Trioxide Carbothermic Reduction
 makentmgreatagain.leadzinc.arsine=Arsine from Arsenic Trioxide Reduction
 
@@ -508,23 +510,23 @@ tile.ore_refractory_gold.name=Arsenical Gold Ore
 item.arsenical_residue.name=Arsenical Leach Residue
 # fluid keys are hbmfluid.<lowercased first arg of def()>, NOT the texture name:
 # the fluid is SODIUM_THIOSULFATE (F), so the key is ...thiosulfate, not ...thiosulphate
-hbmfluid.sodium_thiosulfate=Sodium Thiosulphate Solution
-hbmfluid.gold_thiosulfate=Gold Thiosulphate Solution
+hbmfluid.sodium_thiosulfate=Sodium Thiosulfate Solution
+hbmfluid.gold_thiosulfate=Gold Thiosulfate Solution
 
 # ---- Duna variants ----
 tile.ore_leadzinc_duna.name=Duna Lead-Zinc Ore
 tile.ore_refractory_gold_duna.name=Duna Arsenical Gold Ore
 tile.ore_scheelite_duna.name=Duna Scheelite Ore
-makentmgreatagain.gold.thiosulfate=Sodium Thiosulphate Synthesis
-makentmgreatagain.gold.leach=Arsenical Gold Ore Thiosulphate Leaching
+makentmgreatagain.gold.thiosulfate=Sodium Thiosulfate Synthesis
+makentmgreatagain.gold.leach=Arsenical Gold Ore Thiosulfate Leaching
 makentmgreatagain.gold.cementation=Zinc Cementation of Gold
 makentmgreatagain.gold.residueRoast=Arsenical Residue Reduction Roast
-makentmgreatagain.chloralkali.thiosulfateDechlor=Sodium Thiosulphate Dechlorination
+makentmgreatagain.chloralkali.thiosulfateDechlor=Sodium Thiosulfate Dechlorination
 
 # ---- Composite tank (leggings armor mod) ----
 item.composite_tank.name=Composite Tank
 desc.composite_tank.1=A proven remedy for explosive tempers and sensitive skin
-desc.composite_tank.2=Once fitted to a pair of leggings, explosive, hydroreactive and pyrophoric items in the inventory no longer go off
+desc.composite_tank.2=While worn, blocks explosive, hydroreactive, pyrophoric and blinding hazards from inventory items
 
 # ---- Auto extinguisher (leggings armor mod) ----
 item.auto_extinguisher.name=Auto Extinguisher
@@ -545,18 +547,18 @@ item.helicopter_legs.name=Crashproof Alloy Leggings
 item.helicopter_boots.name=Crashproof Alloy Boots
 # ---- Crashproof full-set info (used by ItemArmorHelicopter.addInformation, HBM armor.* format) ----
 mnga.armor.heli.nodamage=Immune to all damage except falling
-mnga.armor.heli.fireproof=Fireproof; never catches flame
+mnga.armor.heli.fireproof=Immune to fire and burning
 mnga.armor.heli.no_debuff=Removes all negative effects (incl. HBM)
-mnga.armor.heli.no_rad=Radiation fully immune
+mnga.armor.heli.no_rad=Complete immunity to all radiation
 mnga.armor.heli.stun_punch=Unarmed strikes inflict Stun XXIV
-mnga.armor.heli.manout=Cries MAN OUT! when falling to death
+mnga.armor.heli.manout=Cries "MAMBA OUT!" upon falling to death
 item.cobalt_tungsten_sword.name=High-Strength Tungsten Carbide Sword
 item.cobalt_tungsten_pickaxe.name=High-Strength Tungsten Carbide Pickaxe
 item.cobalt_tungsten_axe.name=High-Strength Tungsten Carbide Axe
 item.cobalt_tungsten_shovel.name=High-Strength Tungsten Carbide Shovel
 item.cobalt_tungsten_hoe.name=High-Strength Tungsten Carbide Hoe
-item.helicopter_pickaxe.name=Drop-Resistant Alloy Pickaxe
-item.helicopter_axe.name=Drop-Resistant Alloy Axe
+item.helicopter_pickaxe.name=Crashproof Alloy Pickaxe
+item.helicopter_axe.name=Crashproof Alloy Axe
 item.powder_cobalt_tungsten_ingot.name=High-Strength Tungsten Carbide Ingot
 item.powder_cobalt_tungsten_mixture.name=High-Strength Tungsten Carbide Powder
 item.powder_carbon_tungsten_mixture.name=Tungsten Carbide Powder
@@ -566,12 +568,12 @@ item.powder_oxidate_iron.name=Iron Oxide Powder
 item.powder_salt.name=Salt Powder
 item.alloy_blades_reborn.name=Advanced Alloy Blades
 item.scrap_blades_alloy_reborn.name=Scrap Advanced Alloy Blades
-item.armor_battery_mk5.name=Power Armor Battery Mk5
+item.armor_battery_mk5.name=Power Armor Battery Pack Mk5
 item.electric_fork.name=Electric Fork
 item.inf_water_mk3.name=Epic Infinite Water Tank Mk3
-tile.Block_Salt_Contain_Gravel.name=Salt-Containing Gravel
-tile.Block_Salt_Contain_Red_Sand.name=Salt-Containing Red Sand
-tile.Block_Salt_Contain_Sand.name=Salt-Containing Sand
+tile.Block_Salt_Contain_Gravel.name=Salt-Bearing Gravel
+tile.Block_Salt_Contain_Red_Sand.name=Salt-Bearing Red Sand
+tile.Block_Salt_Contain_Sand.name=Salt-Bearing Sand
 tile.advanced_block_alloy.name=Advanced Alloy Block
 tile.alloy_shredder.name=Advanced Alloy Shredder
 tile.pipe_anchor_advanced.name=Advanced Pipe Anchor (25m)
@@ -579,22 +581,22 @@ tile.iron_mass_storage.name=Iron Mass Storage Unit (1000)
 container.ironMassStorage=Iron Mass Storage Unit
 tile.deep_sea_nodule.name=Deep Sea Nodule Mixture
 
-tile.mnga_battery.name=Battery (component)
-tile.mnga_battery_lithium.name=Lithium Battery (component)
-tile.mnga_battery_sodium.name=Sodium-Ion Battery (component)
-tile.mnga_battery_schrabidium.name=Schrabidium Battery (component)
-tile.mnga_battery_quantum.name=Quantum Battery (component)
-tile.mnga_capacitor_gold.name=Gold Capacitor (component)
-tile.mnga_capacitor_niobium.name=Niobium Capacitor (component)
-tile.mnga_capacitor_tantalium.name=Tantalum Capacitor (component)
-tile.mnga_capacitor_schrabidate.name=Schrabidate Capacitor (component)
+tile.mnga_battery.name=Battery (Component)
+tile.mnga_battery_lithium.name=Lithium Battery (Component)
+tile.mnga_battery_sodium.name=Sodium-Ion Battery (Component)
+tile.mnga_battery_schrabidium.name=Schrabidium Battery (Component)
+tile.mnga_battery_quantum.name=Quantum Battery (Component)
+tile.mnga_capacitor_gold.name=Gold Capacitor (Component)
+tile.mnga_capacitor_niobium.name=Niobium Capacitor (Component)
+tile.mnga_capacitor_tantalium.name=Tantalum Capacitor (Component)
+tile.mnga_capacitor_schrabidate.name=Schrabidate Capacitor (Component)
 tile.mnga_battery_array_casing.name=Battery Array Casing
 tile.mnga_battery_array_port.name=Battery Array Port
 tile.mnga_battery_array_controller.name=Battery Array Controller
-tile.mnga_battery_array_shell.name=Battery Array Shell (formed)
+tile.mnga_battery_array_shell.name=Battery Array Shell (Formed)
 container.mnga_battery_array=Battery Array
 
-death.attack.electricFork=%1$s was turned into charcoal by an electric fork
+death.attack.electricFork=%1$s was fried to a crisp by an electric fork
 hbmfluid.acetic_acid=Acetic Acid
 hbmfluid.ethyl_acetate=Ethyl Acetate
 
@@ -625,17 +627,17 @@ hbmfluid.strange_quark=Strange Quark
 hbmfluid.positron=Positron
 item.particle_positron.name=Positron Capsule
 item.cell_positron.name=Positron Cell
-item.crystal_xen_unstable.name=Unstable X Crystal
-item.crystal_xen_metastable.name=Metastable X Crystal
+item.crystal_xen_unstable.name=Unstable Xen Crystal
+item.crystal_xen_metastable.name=Metastable Xen Crystal
 item.crystal_xen_glitch.name=§kUndefined Crystal§r
 item.horn_of_plenty.name=Horn of Plenty
-item.horn_of_plenty.desc="Never wanna go hungry again."$§7Infinite use.
-tile.xen_crystal_cluster_seed.name=Xen Crystal Seed Cluster
-tile.xen_crystal_cluster_grow1.name=Growing Xen Crystal Cluster I
-tile.xen_crystal_cluster_grow2.name=Growing Xen Crystal Cluster II
-tile.xen_crystal_cluster_ready.name=Ready Xen Crystal Cluster
-tile.xen_fluid_transceiver.name=Fluid Transceiver
-tile.xen_item_transceiver.name=Item Transceiver
+item.horn_of_plenty.desc="I never want to be hungry again."$§7Infinite use.
+tile.xen_crystal_cluster_seed.name=Xen Crystal Cluster (Seed)
+tile.xen_crystal_cluster_grow1.name=Xen Crystal Cluster (Stage I)
+tile.xen_crystal_cluster_grow2.name=Xen Crystal Cluster (Stage II)
+tile.xen_crystal_cluster_ready.name=Xen Crystal Cluster (Near-Mature)
+tile.xen_fluid_transceiver.name=Xen Fluid Transceiver
+tile.xen_item_transceiver.name=Xen Item Transceiver
 hbmfluid.tailings_heavy_fraction=Chlorination Heavy Fraction
 hbmfluid.crude_platinum=Crude Platinum Liquor
 hbmfluid.cobalt_liquor=Cobalt Liquor
@@ -646,7 +648,7 @@ hbmfluid.ferro_melt=Ferrous Melt Mixture
 hbmfluid.pgm_melt=Platinum-Group Melt Mixture
 
 # 耐摔合金砸落的死亡播报（%1$s 是死者名字）
-death.attack.mnga.helicopter=%1$s was elbowed into the sky by Lao Da...
+death.attack.mnga.helicopter=%1$s was elbowed into the sky by the Mamba...
 gui.recipe.heat=Heat
 gui.recipe.catalyst=Required Catalyst
 makentmgreatagain.gui.recipe.power=Power
@@ -654,29 +656,36 @@ makentmgreatagain.large.balefireQuench=Balefire Quenching
 makentmgreatagain.large.watzTreatment=Toxic Sludge Treatment
 makentmgreatagain.pyro.solidfuel=Solid Fuel Synthesis
 makentmgreatagain.pyro.solidfuel.desc1=The 4 input tanks can hold 4 different fuel-making fluids at once, each converting to solid fuel at its own ratio
-makentmgreatagain.pyro.solidfuel.desc2=Leftover fluid too little for another fuel piece is burned into ash (burn time 100) and ejected along with the fuel
+makentmgreatagain.pyro.solidfuel.desc2=Leftover fluid insufficient for a full piece is burned into fine ash (100 burn time) and ejected with the fuel
 
 # ---- Electric Boiler (ported from vanilla HBM) ----
-tile.machine_boiler_electric_off.name=Electric Oil Heater
-tile.machine_boiler_electric_on.name=Electric Oil Heater
-container.machineElectricBoiler=Electric Oil Heater
+tile.machine_boiler_electric_off.name=Electric Boiler
+tile.machine_boiler_electric_on.name=Electric Boiler
+container.machineElectricBoiler=Electric Boiler
 makentmgreatagain.electric_boiler.heat_info=Heat produced:$  1.5°C/t$  or 30°C/s$Heat consumed:$  0.15°C/t$  or 3.0°C/s (base)$  0.25°C/t$  or 5.0°C/s (once boiling point is reached)$  0.4°C/t$  or 8.0°C/s (per further multiple of boiling point)
 makentmgreatagain.electric_boiler.rate_info=Boiling rate:$  Base rate × amount of full multiples$  of boiling points reached
-makentmgreatagain.electric_boiler.error_info=Error: Liquid can not be boiled!
+makentmgreatagain.electric_boiler.error_info=Error: This liquid cannot be boiled!
 item.ingot_threx.name=Threx Ingot
-item.ingot_threx.desc=§cSlowness II while it sits anywhere in your inventory - you don't have to hold it$A Composite Tank (leggings mod) makes you immune
+item.ingot_threx.desc=§cInflicts Slowness II anywhere in your inventory (no need to hold it)$A Composite Tank (leggings mod) grants immunity
 item.powder_threx.name=Threx Powder
-item.powder_threx.desc=§cSlowness II while it sits anywhere in your inventory - you don't have to hold it$A Composite Tank (leggings mod) makes you immune
+item.powder_threx.desc=§cInflicts Slowness II anywhere in your inventory (no need to hold it)$A Composite Tank (leggings mod) grants immunity
 tile.block_threx.name=Block of Threx
-tile.block_threx.desc=§cExtremely high radiation resistance: one block beats ten reinforced CMB steel bricks
+tile.block_threx.desc=§cExtreme radiation shielding: a single block outperforms ten Reinforced CMB Steel Bricks
 tile.threx_shield_brick.name=Threx Shield Brick
 tile.threx_shield_glass.name=Threx Shield Glass
+tile.threx_slab.name=Threx Slab
+tile.threx_double_slab.name=Double Threx Slab
+tile.threx_stairs.name=Threx Stairs
+tile.threx_tile.name=Threx Tiles
+tile.threx_deco.name=Threx Decorative Block
+tile.threx_casing.name=Threx Casing
+tile.threx_vessel.name=Threx Vessel Wall
 
 item.core_uranium_fuel.name=Uranium Fuel Core
 item.core_thorium_fuel.name=Thorium Fuel Core
 item.core_plutonium_fuel.name=Plutonium Fuel Core
 item.core_sr90.name=Strontium-90 Core
-item.core_cs137.name=Caesium-137 Core
+item.core_cs137.name=Cesium-137 Core
 item.core_i131.name=Iodine-131 Core
 item.core_co60.name=Cobalt-60 Core
 item.core_u233.name=Uranium-233 Core
@@ -687,7 +696,7 @@ item.core_am241.name=Americium-241 Core
 item.core_am242.name=Americium-242 Core
 item.core_schrabidium.name=Schrabidium-326 Core
 item.core_lithium_deuteride.name=Lithium Deuteride Core
-item.core_helium.name=Aerogel Helium Core
+item.core_helium.name=Condensed Helium Core
 item.core_balefire.name=Balefire Core
 tooltip.makentmgreatagain.edible=§7[Edible]
 tooltip.makentmgreatagain.inedible=§8[Inedible]
@@ -714,7 +723,7 @@ item.can_tushonka.name=Canned Beef Stew
 item.can_green_peas.name=Canned Green Peas
 item.can_sprats.name=Canned Sprats
 item.can_duck_pate.name=Canned Duck Pate
-item.can_squash.name=Canned Vegetable Puree
+item.can_squash.name=Canned Squash Spread
 item.bar_alyonka.name=Alyonka Chocolate
 item.bar_slickers.name=Slickers Bar
 item.pack_sugar.name=Sugar Pack
@@ -879,9 +888,9 @@ mnga.xen.tip.item.ore=Match OreDict: %s
 mnga.xen.tip.item.nbt=Match NBT: %s
 mnga.xen.tip.item.batch.1=§bBatch Exact Mode: %s
 mnga.xen.tip.item.batch.2=§7Filter slots stack counts (L+1, Shift+L+16, R-1)
-mnga.xen.tip.item.batch.3=§7Waits until all items & counts are ready then sends whole batch
+mnga.xen.tip.item.batch.3=§7Waits until all required items and counts are ready, then sends the full batch
 mnga.xen.tip.item.stock.1=§bStock Limit (Max Received)
-mnga.xen.tip.item.stock.2=§70 = unlimited; pauses recv at cap
+mnga.xen.tip.item.stock.2=§70 = unlimited; pauses receiving at cap
 mnga.xen.tip.item.stock.3=§eL-Click +-16 / R-Click +-1
 
 # ===== Supercritical Steam =====
@@ -890,4 +899,87 @@ hbmfluid.supercritical_steam.lore=Ultra-high-enthalpy closed-loop coolant from t
 
 # ===== Supercritical MHD Expansion Generator =====
 tile.supercritical_mhd_generator.name=Supercritical MHD Expansion Generator
+tile.industrial_cultivation_station.name=Industrial Cultivation Station
+container.industrial_cultivation_station=Industrial Cultivation Station
 container.supercritical_mhd_generator=Supercritical MHD Expansion Generator
+
+# ===== Petroleum-Coupled Malachite / Hematite Extraction =====
+hbmfluid.reform_solvent=Refined Extraction Solvent
+hbmfluid.reform_solvent.lore=High-grade petrochemical ore extractant blended from Reformate, BTX, and Ammonia.
+hbmfluid.copper_extract_liquor=Copper Extraction Liquor
+hbmfluid.copper_extract_liquor.lore=Concentrated copper-loaded organic phase leached from Malachite.
+hbmfluid.iron_extract_liquor=Iron Extraction Liquor
+hbmfluid.iron_extract_liquor.lore=Concentrated iron-loaded organic phase leached from Hematite.
+item.refined_copper_clump.name=Refined Copper Clump
+item.refined_iron_clump.name=Refined Iron Clump
+
+tile.atomic_probe.name=Delivery Probe
+item.atomic_linker.name=Probe Linker
+container.atomic_probe=Delivery Probe
+
+mnga.probe.title=Delivery Probe
+mnga.probe.mode.send=Sender
+mnga.probe.mode.recv=Receiver
+mnga.probe.btn.links=Links(%s)
+mnga.probe.btn.back=Back
+mnga.probe.btn.clear=Clear
+mnga.probe.btn.link=Link
+mnga.probe.btn.linked=Linked
+mnga.probe.btn.whitelist=White
+mnga.probe.btn.blacklist=Black
+mnga.probe.btn.batch_on=Batch:ON
+mnga.probe.btn.batch_off=Batch:OFF
+mnga.probe.btn.priority=Priority
+mnga.probe.btn.rr=RoundRobin
+mnga.probe.label.name=Name:
+mnga.probe.label.filter_samples=Filter Samples (Max 9)
+mnga.probe.label.batch_samples=Batch Samples (L+1 / R-1)
+mnga.probe.label.threshold=Min:
+mnga.probe.label.max_send=Max:
+mnga.probe.label.recv_limit=Recv Limit (0=Inf):
+mnga.probe.links.none_send=No Senders within 32 blocks
+mnga.probe.links.none_recv=No Receivers within 32 blocks
+mnga.probe.state.idle=Idle
+mnga.probe.state.aligning=Aligning
+mnga.probe.state.firing=Sending
+mnga.probe.state.out_of_range=Out of Range
+mnga.probe.state.blind_spot=Blind Spot
+mnga.probe.state.target_full=Target Full
+mnga.probe.state.unbound=Unbound
+mnga.probe.state.recv_idle=Standby
+mnga.probe.state.recv_locked=Receiving
+mnga.probe.tip.links.1=§bConnection Manager
+mnga.probe.tip.links.2=§7Browse probes within 32m by name and toggle links
+mnga.probe.tip.threshold.1=§eMin Batch Threshold (0=Any)
+mnga.probe.tip.threshold.2=§7Source must hold at least this many items to send
+mnga.probe.tip.max_send.1=§eMax Per Transfer (1-256, default 64)
+mnga.probe.tip.max_send.2=§7Up to 4 stacks (256), press Enter to apply
+mnga.probe.tip.recv_limit.1=§eReceive Stock Limit (0=Unlimited)
+mnga.probe.tip.recv_limit.2=§7Stops receiving once the target container reaches this amount
+mnga.probe.tip.poll=§ePoll Interval (1t / 10t / 20t / 40t / 80t)
+mnga.probe.tip.filter_batch=§7L-Click +1 / R-Click -1 / Shift+R Clear
+mnga.probe.tip.filter_normal=§7R-Click or empty L-Click to clear
+mnga.probe.tooltip.1=§bSurface-mount Delivery Probe (32m range, zero buffer)
+mnga.probe.tooltip.2=§7Right-click for GUI; Shift+empty-hand toggles mode
+mnga.probe.tooltip.3=§7Supports naming, direct GUI linking, Priority/RR & batching
+mnga.probe.chat.mode_send=§7[Delivery Probe] Switched to: §6Sender
+mnga.probe.chat.mode_recv=§7[Delivery Probe] Switched to: §bReceiver
+mnga.linker.tooltip.1=§7R-Click Receiver to store, then R-Click Sender to link
+mnga.linker.tooltip.2=§7Shift+R-Click Sender to clear links / Air to clear
+mnga.linker.tooltip.saved=§bStored Receiver: (%s, %s, %s)
+mnga.linker.chat.cleared=§7[Probe Linker] Cleared stored coordinates
+mnga.linker.chat.unbound_all=§e[Probe Linker] Cleared all links on this Sender
+mnga.linker.chat.is_recv=§7[Probe Linker] This is a Receiver; right-click to copy coords
+mnga.linker.chat.saved=§b[Probe Linker] Stored Receiver: (%s, %s, %s)
+mnga.linker.chat.need_recv=§c[Probe Linker] Right-click a Receiver probe first
+mnga.linker.chat.cross_dim=§c[Probe Linker] Cannot link across dimensions
+mnga.linker.chat.self=§c[Probe Linker] Cannot link a probe to itself
+mnga.linker.chat.exists=§e[Probe Linker] Target already linked (or max %s reached)
+mnga.linker.chat.bound_ok=§6[Probe Linker] Linked #%s -> (%s, %s, %s) §a(%s/%sm)
+mnga.linker.chat.bound_far=§6[Probe Linker] Linked #%s -> (%s, %s, %s) §c(%s/%sm Out of Range!)
+
+tile.delivery_relay.name=Delivery Relay Node
+mnga.relay.tooltip.1=§b360° Omnidirectional Optical Relay (32m/hop, unlimited chaining)
+mnga.relay.tooltip.2=§7Mounts on all 6 faces; auto-meshes delivery beams with no manual linking
+mnga.probe.links.hops=· Relays: %s
+mnga.probe.links.no_route=No route; showing straight-line distance

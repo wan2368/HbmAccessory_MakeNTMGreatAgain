@@ -12,6 +12,9 @@ package com.makentmgreatagain.packet;
  */
 public class CigaretteScreenEvent {
 
-	/** 待处理的档位（1~5），0 表示没有待处理。网络线程写，渲染线程（主线程）读并清零。 */
+	/** 待处理的档位（1~4），0 表示没有待处理。网络线程写，渲染线程（主线程）读并清零。 */
 	public static volatile int pendingStage = 0;
+
+	/** 客户端动画是否正在播放中（用于播放结束前拦截右键抽下一根，专用服务端安全）。 */
+	public static volatile boolean clientEffectActive = false;
 }
